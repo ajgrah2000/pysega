@@ -11,11 +11,14 @@ class Sega(object):
         self.pc_state  = cpu.pc_state.PC_State()
         self.inputs    = inputs.Input()
         self.memory    = memory.Memory()
-        self.z80memory = riot.Z80Memory(self.clocks, self.inputs)
+        self.z80memory = z80memory.Z80Memory(self.clocks, self.inputs)
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state)
 
         self.core.initialise()
+
+    def set_palette(self, palette_type):
+        self.vdp.set_palette(palette_type)
 
     def insert_cartridge(self, cart_name):
         new_cart = cartridge.GenericCartridge(cart_name)

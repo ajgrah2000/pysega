@@ -7,8 +7,7 @@ from . import sega
 
 # Possible audio drivers
 audio_options = {
-    'pygame':      'from pysega.audio.pygameaudio import PygameStretchSound as AudioDriver',
-    'oss':         'from pysega.audio.testaudio import OSS_TIA_Sound as AudioDriver',
+    'pygame':      'from pysega.audio.pygameaudio import PygameSound as AudioDriver',
     }
 
 # Possible graphics drivers
@@ -39,10 +38,10 @@ def run(args):
 
     sms = sega.Sega(video, audio, cpu)
 
-    atari.set_palette(args.palette)
+    sms.set_palette(args.palette)
     sms.insert_cartridge(args.cartridge_name)
 
-    sms.power_on(args.stop_clock, args.no_delay, args.debug, args.record_audio_only)
+    sms.power_on(args.stop_clock, args.no_delay, args.debug)
 
 def get_pysega_argparser():
     parser = argparse.ArgumentParser(description='Sega emulator', formatter_class=argparse.ArgumentDefaultsHelpFormatter)

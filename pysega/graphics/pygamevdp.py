@@ -10,7 +10,7 @@ except:
 finally:
     pass
 
-class PygameColors(stella.Colors):
+class PygameColors(vdp.Colors):
     def __init__(self):
         super(PygameColors, self).__init__()
 
@@ -22,11 +22,11 @@ class PygameColors(stella.Colors):
 
       return color
 
-class PygameVDP(stella.VDP):
-    """ GUI layer for stella.
+class PygameVDP(vdp.VDP):
+    """ GUI layer for vdp.
     """
     def __init__(self, *args):
-        # 'default_color' is used by stella init, need to set before super
+        # 'default_color' is used by vdp init, need to set before super
         self.default_color = 0
         self._colors = PygameColors()
         super(PygameVDP, self).__init__(*args)
@@ -60,7 +60,7 @@ class PygameVDP(stella.VDP):
         self._display_lines = numpy.array(self._display_lines)
 
       self._screen = pygame.display.set_mode((
-                            stella.VDP.FRAME_WIDTH  * vdp.VDP.PIXEL_WIDTH, 
+                            vdp.VDP.FRAME_WIDTH  * vdp.VDP.PIXEL_WIDTH, 
                             vdp.VDP.FRAME_HEIGHT * vdp.VDP.PIXEL_HEIGHT))
 
       pygame.display.set_caption('Pysega')
