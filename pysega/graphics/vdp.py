@@ -58,6 +58,8 @@ class VDP(object):
         for y in range(self.END_DRAW_Y - self.START_DRAW_Y + 1):
           self._display_lines.append([self.default_color]*self.FRAME_WIDTH)
 
+        self.driver_open_display()
+
     def _draw_display(self):
         self.poll_events()
         self.driver_draw_display()

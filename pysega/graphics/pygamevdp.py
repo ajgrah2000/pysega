@@ -66,7 +66,7 @@ class PygameVDP(vdp.VDP):
       pygame.display.set_caption('Pysega')
       pygame.mouse.set_visible(0)
 
-      self._background = pygame.Surface((vdp.VDP.FRAME_WIDTH, vdp.VDP.FRAME_HEIGHT+vdp.VDP.HORIZONTAL_BLANK))
+      self._background = pygame.Surface((vdp.VDP.FRAME_WIDTH, vdp.VDP.FRAME_HEIGHT))
       self._background = self._background.convert()
 
     def driver_update_display(self):
