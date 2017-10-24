@@ -71,15 +71,15 @@ class GenericCartridge(object):
             for i in range(self.num_banks):
               self.cartridge_banks[i] = self.max_cartridge[i]
 
-            # Set default bank to the last bank.
-            self.current_bank = self.num_banks - 1
+            # Set default bank
+            self.current_bank = 0
 
             print("Cartridge read:")
             print(" banks = ", self.num_banks)
             print(" bytes = ", total_bytes_read)
             print(" first bank size = ", len(self.cartridge_banks[0]))
 
-            # Allocate memory for possible battary back RAM
+            # Allocate memory for possible battery back RAM
             self.ram = [[0]*self.bank_size] * self.num_ram_pages
 
     def _chunks(self, l, n):

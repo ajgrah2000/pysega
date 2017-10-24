@@ -1,5 +1,5 @@
 #from . import addressing
-#from . import instructions
+from . import instructions
 from . import pc_state
 
 class Core(object):
@@ -10,6 +10,10 @@ class Core(object):
         self.clocks    = clocks
         self.memory    = memory
         self.pc_state  = pc_state
+
+        self.instruction_exe = instructions.InstructionExec(self.pc_state)
+
+        self.instruction_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
 
     def get_save_state(self):
         # TODO
@@ -25,9 +29,15 @@ class Core(object):
         pass
 
     def initialise(self):
-        # TODO
-        pass
+        self.populate_instruction_map()
 
     def step(self):
-        # TODO
+        op_code = self.memory.read(self.pc_state.PC)
+        print "%x"%(op_code)
+    
+        # This will raise an exception for unsupported op_code
+        self.instruction_lookup[op_code].execute()
+
+    def populate_instruction_map(self):
+        self.instruction_lookup[0xC3] = instructions.JumpInstruction(self.clocks, self.pc_state, self.memory)
         pass
