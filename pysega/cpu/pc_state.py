@@ -1,7 +1,11 @@
+#
+# 8-bit registers, combine 8-bit to generate 16-bit
+#
 
 class PC_Register(object):
-    def __init__(self):
-        self.value = 0
+    def __init__(self, num_bits):
+        self._value = 0
+        self._mask = (2 ** num_bits) - 1
 
     def get_save_state(self):
         return self.value
@@ -10,21 +14,32 @@ class PC_Register(object):
         self.value = state
 
     def __add__(self, x):
-        self.value = (self.value + x) & 0xFF
+        if isinstance(x, PC_Register):
+          self.value = (self.value + x.value) & self._mask
+        else:
+          self.value = (self.value + x) & self._mask
         return self
 
     def __sub__(self, x):
-        self.value = (self.value - x) & 0xFF
+        if isinstance(x, PC_Register):
+          self.value = (self.value - x.value) & self._mask
+        else:
+          self.value = (self.value - x) & self._mask
         return self
 
     def __int__(self):
         return self.value
 
+
+    def __setattribute__(self, name, x):
+        print "setattribute"
+        self.value = x & self._mask
+
     def set_value(self, value):
         if isinstance(value, PC_Register):
             self.value = value.get_value()
         else:
-            self.value = value & 0xFF
+            self.value = value & self._mask
 
     def get_value(self):
         return self.value
@@ -96,32 +111,26 @@ class PC_StatusFlags(object):
                 self.get_H(), self.get_X2(), self.get_Z(), self.get_S())
 
 class PC_State(object):
+    """ Initially, an ineficient but convinient representation of PC State.
+    """
+    eight_bit_registers = ['A', 'B', 'C', 'D', 'E', 'HLHigh', 'HLLow', 'F', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow']
+
+    sixteen_bit_registers = ['PC', 'SP', 'IX', 'IY', 'HL']
     def __init__(self):
-        self.PC = 0
+        self._PC = 0
+        for name in PC_State.eight_bit_registers:
+            super(PC_State, self).__setattr__(name, 0)
 
-        self.A  = PC_Register()
-        self.B  = PC_Register()
-        self.C  = PC_Register()
-        self.D  = PC_Register()
-        self.E  = PC_Register()
-        self.H  = PC_Register()
-        self.L  = PC_Register()
-        self.F  = PC_Register()
-        self.SPHigh = PC_Register()
-        self.SPLow  = PC_Register()
-        self.PCHigh = PC_Register()
-        self.PCLow  = PC_Register()
-        self.IXHigh = PC_Register()
-        self.IXLow  = PC_Register()
-        self.IYHigh = PC_Register()
-        self.IYLow  = PC_Register()
-        self.I      = PC_Register()
-        self.R      = PC_Register()
-        self.IM     = PC_Register()
-        self.IFF1   = PC_Register()
-        self.IFF2   = PC_Register()
+        for name in PC_State.sixteen_bit_registers:
+            super(PC_State, self).__setattr__(name, 0)
 
-        self.F = PC_StatusFlags()
+        self.I      = 0
+        self.R      = 0
+        self.IM     = 0
+        self.IFF1   = 0
+        self.IFF2   = 0
+
+        self._F = PC_StatusFlags()
 
         self.CYCLES_TO_CLOCK = 3
 
@@ -133,6 +142,23 @@ class PC_State(object):
     def set_save_state(self, state):
         # TODO
         pass
+
+    def __getattribute__(self, name):
+        if name in PC_State.eight_bit_registers:
+            return super(PC_State, self).__getattribute__(name) & 0xFF
+        elif name in PC_State.sixteen_bit_registers:
+            return super(PC_State, self).__getattribute__("%sHigh"%(name)) * 256 + super(PC_State, self).__getattribute__("%sLow"%(name))
+        else:
+            return super(PC_State, self).__getattribute__(name)
+
+    def __setattr__(self, name, value):
+        if name in self.eight_bit_registers:
+            super(PC_State, self).__setattr__(name, value & 0xFF)
+        elif name in PC_State.sixteen_bit_registers:
+            super(PC_State, self).__setattr__("%sHigh"%(name), value/256 & 0xFF)
+            super(PC_State, self).__setattr__("%sLow"%(name),  value % 256)
+        else:
+            super(PC_State, self).__setattr__(name, value)
 
     def __str__(self):
         return "TODO"
