@@ -3,12 +3,6 @@ import unittest
 
 class TestPC_State(unittest.TestCase):
     def test_pc_status(self):
-        a = pc_state.PC_Register(8)
-        a.set_value(8)
-        b = pc_state.PC_Register(8)
-        b.set_value(13)
-        b = b + a
-        b += 1
         p = pc_state.PC_State()
         p.A = 1
         p.A = p.A + 1
@@ -27,6 +21,19 @@ class TestPC_State(unittest.TestCase):
 
         self.assertEqual(p.PCHigh, 2)
         self.assertEqual(p.PCLow, 3)
+
+    def test_pc_status_flags(self):
+        flags = pc_state.PC_StatusFlags()
+        flags.S = 1
+        flags.Z = 1
+        flags.X2 = 0
+        flags.H = 1
+        flags.X1 = 1
+        flags.PV = 0
+        flags.N = 1
+        flags.C = 1
+
+        self.assertEqual(str(flags), "(C:1 N:1 PV:0 X1:1 H:1 X2:0 Z:1 S:1)")
 
 if __name__ == '__main__':
     unittest.main()
