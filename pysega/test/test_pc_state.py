@@ -22,6 +22,10 @@ class TestPC_State(unittest.TestCase):
         self.assertEqual(p.PCHigh, 2)
         self.assertEqual(p.PCLow, 3)
 
+        p.Fstatus.C = 1
+        self.assertEqual(p.Fstatus.C, 1)
+        self.assertEqual(p.Fstatus.H, 0)
+
     def test_pc_status_flags(self):
         flags = pc_state.PC_StatusFlags()
         flags.S = 1

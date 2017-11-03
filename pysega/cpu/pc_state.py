@@ -43,6 +43,9 @@ class PC_State(object):
 
     sixteen_bit_registers = ['PC', 'SP', 'IX', 'IY', 'HL']
     def __init__(self):
+
+        self.Fstatus =  PC_StatusFlags()
+
         self._PC = 0
         for name in PC_State.eight_bit_registers:
             super(PC_State, self).__setattr__(name, 0)
