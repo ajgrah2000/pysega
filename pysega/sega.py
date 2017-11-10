@@ -13,7 +13,7 @@ class Sega(object):
         self.memory    = memory.Memory()
         self.z80memory = z80memory.Z80Memory(self.clocks, self.inputs)
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
-        self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state)
+        self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.vdp)
 
         self.core.initialise()
 
