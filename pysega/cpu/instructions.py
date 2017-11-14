@@ -2,6 +2,8 @@ import ctypes
 import flagtables
 
 class Instruction(object):
+    FLAG_MASK_INC8 = 0x01; # Bits to leave unchanged
+    FLAG_MASK_DEC8 = 0x01; # Bits to leave unchanged
 
     def __init__(self, clocks, pc_state, instruction_exec):
         self.clocks = clocks

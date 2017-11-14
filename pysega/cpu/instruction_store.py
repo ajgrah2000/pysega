@@ -1,5 +1,10 @@
+from . import instructions
+
 class InstructionStore(object):
-    def __init__(self):
+    def __init__(self, clocks, pc_state, instruction_exe):
+        self.clocks = clocks
+        self.pc_state = pc_state
+        self.instruction_exe = instruction_exe
         self.instruction_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
         self.instruction_cb_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
         self.instruction_dd_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256

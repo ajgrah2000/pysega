@@ -64,4 +64,12 @@ class VDP(object):
         self.poll_events()
         self.driver_draw_display()
 
+    def setCycle(self, value):
+        print("setCycle Not implemented")
+        pass
+
+    def getNextInterupt(self, cycles):
+        print("getNextInterupt Not implemented")
+        return 0
+
 

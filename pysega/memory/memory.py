@@ -176,3 +176,7 @@ class Memory(object):
 
     def read(self, address):
         return self.cartridge.read(address)
+
+    def readMulti(self, address):
+        print("readMulti not implemented")
+        return [self.read(address + x) for x in range(3)]

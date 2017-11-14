@@ -1,6 +1,7 @@
 class Clock(object):
     def __init__(self):
         self.system_clock = 0
+        self.cycles = 0
 
     def get_save_state(self):
         # TODO

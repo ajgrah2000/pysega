@@ -39,5 +39,29 @@ class TestPC_State(unittest.TestCase):
 
         self.assertEqual(str(flags), "(C:1 N:1 PV:0 X1:1 H:1 X2:0 Z:1 S:1)")
 
+    def test_pc_state_access(self):
+        p = pc_state.PC_State()
+        for i in range(8):
+            p[i] = i
+
+        self.assertEqual(p[0], p.B)
+        self.assertEqual(p[1], p.C)
+        self.assertEqual(p[2], p.D)
+        self.assertEqual(p[3], p.E)
+        self.assertEqual(p[4], p.H)
+        self.assertEqual(p[5], p.L)
+        self.assertEqual(p[7], p.A)
+
+        (p.B, p.C, p.D, p.E, p.H, p.L, p.A) = tuple(range(5,12))
+
+        self.assertEqual(p[0], p.B)
+        self.assertEqual(p[1], p.C)
+        self.assertEqual(p[2], p.D)
+        self.assertEqual(p[3], p.E)
+        self.assertEqual(p[4], p.H)
+        self.assertEqual(p[5], p.L)
+        self.assertEqual(p[7], p.A)
+        self.assertEqual(p[7], p.A)
+
 if __name__ == '__main__':
     unittest.main()

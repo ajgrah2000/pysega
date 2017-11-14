@@ -1,6 +1,8 @@
 #from . import addressing
 from . import instructions
+from . import instruction_store
 from . import pc_state
+from .. import ports
 
 class Core(object):
     """
@@ -14,7 +16,9 @@ class Core(object):
 
         self.instruction_exe = instructions.InstructionExec(self.pc_state)
 
-        self.instruction_lookup = instruction_store.InstructionStore()
+        self.instruction_lookup = instruction_store.InstructionStore(self.clocks, self.pc_state, self.instruction_exe)
+
+        self._nextPossibleInterupt = 0
 
     def get_save_state(self):
         # TODO
@@ -30,29 +34,30 @@ class Core(object):
         pass
 
     def initialise(self):
-        self.instruction_store.populate_instruction_map(self.clocks, self.pc_state, self.memory)
+        self.instruction_lookup.populate_instruction_map(self.clocks, self.pc_state, self.memory)
 
     def step(self):
-        op_code = self.memory.read(self.pc_state.PC)
-        print "%x"%(op_code)
+     op_code = self.memory.read(self.pc_state.PC)
+     print "%x"%(op_code)
+     loop = True
     
 #    static uint16 tmp16;
 #    static uint8 tmp8, t8;
 #    static const Byte *atPC;
 
-    while loop:
+     while loop:
 
           # Check for any possible interupts
-      if (self.clocks.cycles >= nextPossibleInterupt):
+      if (self.clocks.cycles >= self._nextPossibleInterupt):
           self.interuptor.setCycle(self.clocks.cycles);
-          nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
+          self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
 
       atPC = self.memory.readMulti(self.pc_state.PC);
 #      std::cout << std::hex << (int) atPC[0] << " " << (int) self.pc_state.PC << std::endl;
       print("%s %s"%(atPC[0], self.pc_state.PC))
 
       # This will raise an exception for unsupported op_code
-      instruction = self.instruction_store.getInstruction(op_code)
+      instruction = self.instruction_lookup.getInstruction(op_code)
       if instruction:
         self.clocks.cycles += instruction.execute()
       else:
@@ -188,7 +193,7 @@ class Core(object):
                   (op_code == 0x8C) or # self.pc_state.ADC H
                   (op_code == 0x8D) or # self.pc_state.ADC L
                   (op_code == 0x8F)): # self.pc_state.ADC self.pc_state.A
-                self.pc_state.A = add8c(self.pc_state.A, *r[atPC[0]&0x7], self.pc_state.Fstatus.status.C);
+                self.pc_state.A = add8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.status.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
@@ -206,8 +211,8 @@ class Core(object):
                   (op_code == 0x94) or # SUB H
                   (op_code == 0x95) or # SUB L
                   (op_code == 0x97)): # SUB self.pc_state.A
-                self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,*r[atPC[0] & 0x7]);
-                self.pc_state.A = self.pc_state.A - *r[atPC[0] & 0x7];
+                self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.pc_state[atPC[0] & 0x7]);
+                self.pc_state.A = self.pc_state.A - self.pc_state[atPC[0] & 0x7];
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
@@ -226,7 +231,7 @@ class Core(object):
                   (op_code == 0x9C) or # Sself.pc_state.BC H
                   (op_code == 0x9D) or # Sself.pc_state.BC L
                   (op_code == 0x9F)): # Sself.pc_state.BC self.pc_state.A
-                self.pc_state.A = sub8c(self.pc_state.A, *r[atPC[0]&0x7], self.pc_state.Fstatus.status.C);
+                self.pc_state.A = sub8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.status.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
@@ -243,7 +248,7 @@ class Core(object):
                   (op_code == 0xA3) or # self.pc_state.AND E
                   (op_code == 0xA4) or # self.pc_state.AND H
                   (op_code == 0xA5)): # self.pc_state.AND L
-                self.pc_state.A = self.pc_state.A & *r[atPC[0]&0x7];
+                self.pc_state.A = self.pc_state.A & self.pc_state[atPC[0]&0x7];
                 self.pc_state.PC += 1
                 self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
 
@@ -397,9 +402,8 @@ class Core(object):
                          (extended_op_code == 0x44) or
                          (extended_op_code == 0x45) or
                          (extended_op_code == 0x47)):
-                        self.pc_state.Fstatus.status.Z = 
-                                   (*r[tmp8&0x7] >> ((tmp8 >> 3) & 7)) ^ 0x1;
-                        self.pc_state.Fstatus.status.PV = flagtables.FlagTables.calculateParity(*r[tmp8&0x7]);
+                        self.pc_state.Fstatus.status.Z = (self.pc_state[tmp8&0x7] >> ((tmp8 >> 3) & 7)) ^ 0x1;
+                        self.pc_state.Fstatus.status.PV = flagtables.FlagTables.calculateParity(self.pc_state[tmp8&0x7]);
                         self.pc_state.Fstatus.status.H = 1;
                         self.pc_state.Fstatus.status.N = 0;
                         self.pc_state.Fstatus.status.S = 0;
@@ -426,7 +430,7 @@ class Core(object):
                           (extended_op_code == 0x84) or
                           (extended_op_code == 0x85) or
                           (extended_op_code == 0x87)):
-                        *r[tmp8&0x7] = *r[tmp8&0x7] & ~(0x1 << ((tmp8 >> 3) & 7));
+                        self.pc_state[tmp8&0x7] = self.pc_state[tmp8&0x7] & ~(0x1 << ((tmp8 >> 3) & 7));
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 8;
                         return 0;
@@ -447,7 +451,7 @@ class Core(object):
                           (extended_op_code == 0xC4) or # SET b, H
                           (extended_op_code == 0xC5) or # SET b, L
                           (extended_op_code == 0xC7)): # SET b, self.pc_state.A
-                        *r[tmp8&0x7] = *r[tmp8&0x7] | (0x1 << ((tmp8 >> 3) & 7));
+                        self.pc_state[tmp8&0x7] = self.pc_state[tmp8&0x7] | (0x1 << ((tmp8 >> 3) & 7));
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 8;
                         return 0;
@@ -473,10 +477,9 @@ class Core(object):
                          (extended_op_code == 0x04) or # RLC H
                          (extended_op_code == 0x05) or # RLC L
                          (extended_op_code == 0x07)):  # RLC self.pc_state.A
-                        r8 = r[tmp8 & 0x7];
-                        *r8 = (*r8 << 1) | ((*r8 >> 7) & 0x1);
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r8);
-                        self.pc_state.Fstatus.status.C = *r8 & 0x1; # bit-7 of src = bit-0
+                        self.pc_state[tmp8 & 0x7] = (self.pc_state[tmp8 & 0x7] << 1) | ((self.pc_state[tmp8 & 0x7] >> 7) & 0x1);
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[tmp8 & 0x7]);
+                        self.pc_state.Fstatus.status.C = self.pc_state[tmp8 & 0x7] & 0x1; # bit-7 of src = bit-0
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
 
@@ -496,10 +499,9 @@ class Core(object):
                           (extended_op_code == 0x0C) or # RRC H
                           (extended_op_code == 0x0D) or # RRC L
                           (extended_op_code == 0x0F)): # RRC self.pc_state.A
-                        r8 = r[tmp8 & 0x7];
-                        *r8 = (*r8 >> 1) | ((*r8 & 0x1) << 7);
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r8);
-                        self.pc_state.Fstatus.status.C = (*r8 >> 7) & 0x1; # bit-0 of src
+                        self.pc_state[tmp8 & 0x7] = (self.pc_state[tmp8 & 0x7] >> 1) | ((self.pc_state[tmp8 & 0x7] & 0x1) << 7);
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[tmp8 & 0x7]);
+                        self.pc_state.Fstatus.status.C = (self.pc_state[tmp8 & 0x7] >> 7) & 0x1; # bit-0 of src
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
 
@@ -519,10 +521,9 @@ class Core(object):
                           (extended_op_code == 0x14) or # RL H
                           (extended_op_code == 0x15) or # RL L
                           (extended_op_code == 0x17)): # RL self.pc_state.A
-                        r8 = r[atPC[1] & 0x7];
-                        tmp8 = *r8;
-                        *r8 = (*r8 << 1) | (self.pc_state.Fstatus.status.C);
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r8);
+                        tmp8 = self.pc_state[atPC[1] & 0x7];
+                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] << 1) | (self.pc_state.Fstatus.status.C);
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
                         self.pc_state.Fstatus.status.C = (tmp8 >> 7) & 0x1;
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
@@ -535,10 +536,9 @@ class Core(object):
                           (extended_op_code == 0x1C) or # RR H
                           (extended_op_code == 0x1D) or # RR L
                           (extended_op_code == 0x1F)): # RR self.pc_state.A
-                        r8 = r[atPC[1] & 0x7];
-                        tmp8 = *r8;
-                        *r8 = (*r8 >> 1) | (self.pc_state.Fstatus.status.C << 7);
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r8);
+                        tmp8 = self.pc_state[atPC[1] & 0x7];
+                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] >> 1) | (self.pc_state.Fstatus.status.C << 7);
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
                         self.pc_state.Fstatus.status.C = tmp8 & 0x1;
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
@@ -551,10 +551,9 @@ class Core(object):
                           (extended_op_code == 0x24) or # SLA H
                           (extended_op_code == 0x25) or # SLA L
                           (extended_op_code == 0x27)): # SLA self.pc_state.A
-                        tmp8 = (*r[atPC[1] & 0x7] >> 7) & 0x1;
-                        *r[atPC[1] & 0x7] = 
-                                *r[atPC[1]&0x7] << 1;
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r[atPC[1]&0x7]);
+                        tmp8 = (self.pc_state[atPC[1] & 0x7] >> 7) & 0x1;
+                        self.pc_state[atPC[1] & 0x7] = self.pc_state[atPC[1]&0x7] << 1;
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1]&0x7]);
                         self.pc_state.Fstatus.status.C = tmp8;
 
                         self.pc_state.PC += 2;
@@ -577,11 +576,10 @@ class Core(object):
                           (extended_op_code == 0x2C) or # SRA H
                           (extended_op_code == 0x2D) or # SRA L
                           (extended_op_code == 0x2F)): # SRA self.pc_state.A
-                        r8 = r[atPC[1]&0x7];
-                        tmp8 = *r8;
-                        *r8 = (*r8 & 0x80) | ((*r8 >> 1) & 0x7F);
+                        tmp8 = self.pc_state[atPC[1] & 0x7];
+                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] & 0x80) | ((self.pc_state[atPC[1] & 0x7] >> 1) & 0x7F);
 
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r8);
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
                         self.pc_state.Fstatus.status.C = tmp8 & 0x1;
 
                         self.pc_state.PC += 2;
@@ -605,10 +603,9 @@ class Core(object):
                           (extended_op_code == 0x34) or # SLL H
                           (extended_op_code == 0x35) or # SLL L
                           (extended_op_code == 0x37)): # SLL self.pc_state.A
-                        tmp8 = (*r[atPC[1] & 0x7] >> 7) & 0x1;
-                        *r[atPC[1] & 0x7] = 
-                                *r[atPC[1]&0x7] << 1 | 0x1;
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r[atPC[1]&0x7]);
+                        tmp8 = (self.pc_state[atPC[1] & 0x7] >> 7) & 0x1;
+                        self.pc_state[atPC[1] & 0x7] = self.pc_state[atPC[1]&0x7] << 1 | 0x1;
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1]&0x7]);
                         self.pc_state.Fstatus.status.C = tmp8;
 
                         self.pc_state.PC += 2;
@@ -631,11 +628,10 @@ class Core(object):
                           (extended_op_code == 0x3C) or # SRL H
                           (extended_op_code == 0x3D) or # SRL L
                           (extended_op_code == 0x3F)): # SRL self.pc_state.A
-                        r8 = r[atPC[1]&0x7];
-                        tmp8 = *r8;
-                        *r8 = (*r8 >> 1) & 0x7F;
+                        tmp8 = self.pc_state[atPC[1] & 0x7];
+                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] >> 1) & 0x7F;
 
-                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(*r8);
+                        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
                         self.pc_state.Fstatus.status.C = tmp8 & 0x1;
 
                         self.pc_state.PC += 2;
@@ -652,7 +648,7 @@ class Core(object):
                         self.clocks.cycles += 15;
 
                     else:
-                        errors::warning("OP 0xCB n, value n unsupported");
+                        warning("OP 0xCB n, value n unsupported");
                         return -1;
 
                 # CALL Z, nn
@@ -776,7 +772,7 @@ class Core(object):
 
                 # IN self.pc_state.A, (N)
             elif (op_code == 0xDB):
-                self.pc_state.A = Ports::instance()->portRead(atPC[1]);
+                self.pc_state.A = ports.Ports.portRead(atPC[1]);
                 self.pc_state.PC += 2;
                 self.clocks.cycles += 11;
 
@@ -1112,9 +1108,9 @@ class Core(object):
 
             elif (op_code == 0xDD):
                 # Temporary, until `all instructions are covered'
-                instruction = self.instruction_store.getExtendedDD(&atPC[1]);
+                instruction = self.instruction_lookup.getExtendedDD(atPC[1]);# &atPC[1]);
                 if (instruction):
-                    self.clocks.cycles += instruction->execute(memory);
+                    self.clocks.cycles += instruction.execute(memory);
                 else:
                     extended_op_code = atPC[1]
 
@@ -1144,8 +1140,7 @@ class Core(object):
                     elif (extended_op_code == 0x34):
                         tmp16 = self.pc_state.IX + self._int_signed_char(atPC[2])
                         self.memory.write(tmp16, self.memory.read(tmp16) + 1);
-                        self.pc_state.F = (self.pc_state.F & Instruction::FLAG_MASK_INC8) | 
-                    flagtables.FlagTables.getStatusInc8(self.memory.read(tmp16));
+                        self.pc_state.F = (self.pc_state.F & instructions.Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(self.memory.read(tmp16));
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=23;
 
@@ -1153,7 +1148,7 @@ class Core(object):
                     elif (extended_op_code == 0x35):
                         tmp16 = self.pc_state.IX + self._int_signed_char(atPC[2])
                         self.memory.write(tmp16, self.memory.read(tmp16) - 1);
-                        self.pc_state.F = (self.pc_state.F & Instruction::FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(self.memory.read(tmp16));
+                        self.pc_state.F = (self.pc_state.F & instructions.Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(self.memory.read(tmp16));
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=23;
 
@@ -1172,10 +1167,9 @@ class Core(object):
                           (extended_op_code == 0x66) or
                           (extended_op_code == 0x6E) or
                           (extended_op_code == 0x7E)):
-                        *r[(atPC[1] >> 3) & 0x7] = 
-                                    self.memory.read(self.pc_state.IX + 
-                                          self._int_signed_char(atPC[2])
-                        self.pc_state.PC += 3;
+                        self.pc_state[(atPC[1] >> 3) & 0x7] = self.memory.read(self.pc_state.IX + self._int_signed_char(atPC[2]))
+                                                        
+                        self.pc_state.PC = self.pc_state.PC + 3;
                         self.clocks.cycles += 19;
 
                         # LD (self.pc_state.IX+d), r
@@ -1188,7 +1182,7 @@ class Core(object):
                           (extended_op_code == 0x77)):
                                           
                         self.memory.write(self.pc_state.IX + self._int_signed_char(atPC[2]),
-                                      *r[atPC[1] & 0x7]); 
+                                      self.pc_state[atPC[1] & 0x7]); 
                         self.pc_state.PC += 3;
                         self.clocks.cycles += 19;
 
@@ -1203,8 +1197,7 @@ class Core(object):
 
                         # self.pc_state.ADC (self.pc_state.IX + d)
                     elif (extended_op_code == 0x8E):
-                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IX + (int) (signed char)
-                                        atPC[2]), self.pc_state.Fstatus.status.C);
+                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IX + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.status.C);
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=19;
 
@@ -1260,7 +1253,7 @@ class Core(object):
 
                         if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.pc_state.IX + d)
                             tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1;
-                            self.pc_state.Fstatus.status.Z = tmp8 ^ 0x1;;
+                            self.pc_state.Fstatus.status.Z = tmp8 ^ 0x1;
                             self.pc_state.Fstatus.status.PV = flagtables.FlagTables.calculateParity(tmp8);
                             self.pc_state.Fstatus.status.H = 1;
                             self.pc_state.Fstatus.status.N = 0;
@@ -1272,7 +1265,7 @@ class Core(object):
                             tmp8 = tmp8 | (0x1 << ((t8 >> 3) & 0x7));
                             self.memory.write(tmp16,tmp8);
                         else:
-                            errors::unsupported("Instruction arg for 0xDD 0xCB");
+                            error("Instruction arg for 0xDD 0xCB");
 
                         self.pc_state.PC += 4;
 
@@ -1322,10 +1315,9 @@ class Core(object):
 
             elif (op_code == 0xFD):
                 # Temporary, until `all instructions are covered'
-                instruction = 
-                        self.instruction_store.getExtendedFD(&atPC[1]);
+                instruction = self.instruction_lookup.getExtendedFD(atPC[1]);# &atPC[1]);
                 if (instruction):
-                    self.clocks.cycles += instruction->execute(memory);
+                    self.clocks.cycles += instruction.execute(memory);
                 else:
                     extended_op_code = atPC[1]
 
@@ -1354,8 +1346,7 @@ class Core(object):
                     elif (extended_op_code == 0x34):
                         tmp16 = self.pc_state.IY + self._int_signed_char(atPC[2]);
                         self.memory.write(tmp16, self.memory.read(tmp16) + 1);
-                        self.pc_state.F = (self.pc_state.F & Instruction::FLAG_MASK_INC8) | 
-                    flagtables.FlagTables.getStatusInc8(self.memory.read(tmp16));
+                        self.pc_state.F = (self.pc_state.F & instructions.Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(self.memory.read(tmp16));
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=23;
 
@@ -1363,7 +1354,7 @@ class Core(object):
                     elif (extended_op_code == 0x35):
                         tmp16 = self.pc_state.IY + self._int_signed_char(atPC[2]);
                         self.memory.write(tmp16, self.memory.read(tmp16) - 1);
-                        self.pc_state.F = (self.pc_state.F & Instruction::FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(self.memory.read(tmp16));
+                        self.pc_state.F = (self.pc_state.F & instructions.Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(self.memory.read(tmp16));
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=23;
 
@@ -1382,8 +1373,7 @@ class Core(object):
                           (extended_op_code == 0x66) or
                           (extended_op_code == 0x6E) or
                           (extended_op_code == 0x7E)):
-                        *r[(atPC[1] >> 3) & 0x7] = 
-                                    self.memory.read(self.pc_state.IY + 
+                        self.pc_state[(atPC[1] >> 3) & 0x7] = self.memory.read(self.pc_state.IY + 
                                          self._int_signed_char(atPC[2]));
                         self.pc_state.PC += 3;
                         self.clocks.cycles += 19;
@@ -1397,7 +1387,7 @@ class Core(object):
                           (extended_op_code == 0x75) or # LD (self.pc_state.IY+d), L
                           (extended_op_code == 0x77)): # LD (self.pc_state.IY+d), self.pc_state.A
                         self.memory.write(self.pc_state.IY + self._int_signed_char(atPC[2]),
-                                      *r[atPC[1] & 0x7]); 
+                                      self.pc_state[atPC[1] & 0x7]); 
                         self.pc_state.PC += 3;
                         self.clocks.cycles += 19;
 
@@ -1412,8 +1402,7 @@ class Core(object):
 
                         # self.pc_state.ADC (self.pc_state.IY + d)
                     elif (extended_op_code == 0x8E):
-                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IY + (int) (signed char)
-                                        atPC[2]), self.pc_state.Fstatus.status.C);
+                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IY + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.status.C);
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=19;
 
@@ -1469,7 +1458,7 @@ class Core(object):
 
                         if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.pc_state.IY + d)
                             tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1;
-                            self.pc_state.Fstatus.status.Z = tmp8 ^ 0x1;;
+                            self.pc_state.Fstatus.status.Z = tmp8 ^ 0x1;
                             self.pc_state.Fstatus.status.PV = flagtables.FlagTables.calculateParity(tmp8);
                             self.pc_state.Fstatus.status.H = 1;
                             self.pc_state.Fstatus.status.N = 0;
@@ -1481,7 +1470,7 @@ class Core(object):
                             tmp8 = tmp8 | (0x1 << ((t8 >> 3) & 0x7));
                             self.memory.write(tmp16,tmp8);
                         else:
-                            errors::unsupported("Instruction arg for 0xFD 0xCB");
+                            error("Instruction arg for 0xFD 0xCB");
 
                         self.pc_state.PC += 4;
 
@@ -1532,9 +1521,9 @@ class Core(object):
               # Extended op_code
             elif (op_code == 0xED):
                 # Temporary, until `all instructions are covered'
-                instruction = self.instruction_store.getExtendedED(&atPC[1]);
+                instruction = self.instruction_lookup.getExtendedED(atPC[1]);# &atPC[1]);
                 if (instruction):
-                    self.clocks.cycles += instruction->execute(memory);
+                    self.clocks.cycles += instruction.execute(memory);
                 else:
                     extended_op_code = atPC[1]
                       # IN r, (C)
@@ -1545,7 +1534,7 @@ class Core(object):
                         (extended_op_code == 0x60) or
                         (extended_op_code == 0x68) or
                         (extended_op_code == 0x78)):
-                        *r[(atPC[1] >> 3) & 0x7] = Ports::instance()->portRead(self.pc_state.C);
+                        self.pc_state[(atPC[1] >> 3) & 0x7] = ports.Ports.portRead(self.pc_state.C);
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 12;
 
@@ -1557,7 +1546,7 @@ class Core(object):
                           (extended_op_code == 0x61) or # OUT (C), H
                           (extended_op_code == 0x69) or # OUT (C), L
                           (extended_op_code == 0x79)): # OUT (C), self.pc_state.A
-                        Ports::instance()->portWrite(self.pc_state.C, *r[(atPC[1] >> 3) & 0x7]);
+                        ports.Ports.portWrite(self.pc_state.C, self.pc_state[(atPC[1] >> 3) & 0x7]);
                         self.pc_state.PC += 2;
                         self.clocks.cycles +=3;
 
@@ -1642,7 +1631,10 @@ class Core(object):
                         self.pc_state.Fstatus.status.H = 0;
                         self.pc_state.Fstatus.status.PV = self.pc_state.IFF2;
                         self.pc_state.Fstatus.status.S = (self.pc_state.A & 0x80) >> 7;
-                        self.pc_state.Fstatus.status.Z = (self.pc_state.A == 0)?1:0;
+                        if (self.pc_state.A == 0):
+                            self.pc_state.Fstatus.status.Z = 1
+                        else:
+                            self.pc_state.Fstatus.status.Z = 0
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 9;
@@ -1668,7 +1660,10 @@ class Core(object):
                         self.pc_state.Fstatus.status.H = 0;
                         self.pc_state.Fstatus.status.PV = self.pc_state.IFF2;
                         self.pc_state.Fstatus.status.S = (self.pc_state.A & 0x80) >> 7;
-                        self.pc_state.Fstatus.status.Z = (self.pc_state.A == 0)?1:0;
+                        if (self.pc_state.A == 0):
+                            self.pc_state.Fstatus.status.Z = 1
+                        else:
+                            self.pc_state.Fstatus.status.Z = 0
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 9;
@@ -1738,7 +1733,10 @@ class Core(object):
                         self.pc_state.DE += 1
                         self.pc_state.HL += 1
                         self.pc_state.BC -= 1
-                        self.pc_state.Fstatus.status.PV = (self.pc_state.BC != 0) ? 1:0;
+                        if (self.pc_state.BC == 0):
+                            self.pc_state.Fstatus.status.PV = 1
+                        else:
+                            self.pc_state.Fstatus.status.PV = 0
                         self.pc_state.Fstatus.status.H = 0;
                         self.pc_state.Fstatus.status.N = 0;
                         self.pc_state.PC += 2;
@@ -1750,14 +1748,17 @@ class Core(object):
                         self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.memory.read(self.pc_state.HL));
                         self.pc_state.HL += 1
                         self.pc_state.BC -= 1
-                        self.pc_state.Fstatus.status.PV = (self.pc_state.BC != 0) ? 1:0;
+                        if (self.pc_state.BC == 0):
+                            self.pc_state.Fstatus.status.PV = 1
+                        else:
+                            self.pc_state.Fstatus.status.PV = 0
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 16;
 
                         # INI
                     elif (extended_op_code == 0xA2):
                         self.pc_state.B -= 1
-                        self.memory.write(self.pc_state.HL, Ports::instance()->portRead(self.pc_state.C));
+                        self.memory.write(self.pc_state.HL, ports.Ports.portRead(self.pc_state.C));
                         self.pc_state.HL += 1
                         self.pc_state.Fstatus.status.N = 1;
                         if (self.pc_state.B == 0):
@@ -1771,9 +1772,12 @@ class Core(object):
                         # OUTI
                     elif (extended_op_code == 0xA3):
                         self.pc_state.B -= 1
-                        Ports::instance()->portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
+                        ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                         self.pc_state.HL += 1
-                        self.pc_state.Fstatus.status.Z = (self.pc_state.B == 0) ? 1:0;
+                        if (self.pc_state.B == 0):
+                            self.pc_state.Fstatus.status.Z = 1
+                        else:
+                            self.pc_state.Fstatus.status.Z = 0
                         self.pc_state.Fstatus.status.N = 1;
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 16;
@@ -1781,9 +1785,12 @@ class Core(object):
                         # OUTD
                     elif (extended_op_code == 0xAB):
                         self.pc_state.B -= 1
-                        Ports::instance()->portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
+                        ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                         self.pc_state.HL -= 1
-                        self.pc_state.Fstatus.status.Z = (self.pc_state.B == 0) ? 1:0;
+                        if (self.pc_state.B == 0):
+                            self.pc_state.Fstatus.status.Z = 1
+                        else:
+                            self.pc_state.Fstatus.status.Z = 0
                         self.pc_state.Fstatus.status.N = 1;
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 16;
@@ -1819,7 +1826,7 @@ class Core(object):
                         self.pc_state.HL += 1
                         self.pc_state.Fstatus.status.C = tmp8; 
 
-                        if ((self.pc_state.BC == 0)||(self.pc_state.Fstatus.status.Z == 1)):
+                        if ((self.pc_state.BC == 0)or(self.pc_state.Fstatus.status.Z == 1)):
                             self.pc_state.Fstatus.status.PV = 0; 
                             self.pc_state.PC += 2;
                             self.clocks.cycles += 16;
@@ -1833,12 +1840,12 @@ class Core(object):
                     elif (extended_op_code == 0xB3):
                         if (self.pc_state.B >= 8):
                             self.pc_state.B -= 8;
-                            Ports::instance()->portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL,8), 8);
+                            ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL,8), 8);
                             self.pc_state.HL+= 8;
                             self.clocks.cycles += 168;
                         else:
                             self.pc_state.B -= 1
-                            Ports::instance()->portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
+                            ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                             self.pc_state.HL += 1
                             self.clocks.cycles += 21;
                         self.pc_state.Fstatus.status.S = 0; # Unknown
@@ -1868,8 +1875,8 @@ class Core(object):
 
 
                     else:
-I#                        std::cout << "Unsupported op_code 0xED 0x" << 
-I#                        std::hex << (int) atPC[1] << std::endl;
+#                        std::cout << "Unsupported op_code 0xED 0x" << 
+#                        std::hex << (int) atPC[1] << std::endl;
                         print("Unsupported op code ED %x"%(atPC[1]))
                         return -1;
 
@@ -1879,7 +1886,7 @@ I#                        std::hex << (int) atPC[1] << std::endl;
                 print("Unsupported op code %x"%(atPC[0]))
                 return -1;
 
-    return 0
+     return 0
 
     def _int_signed_char(self, value):
         # (int) (signed char)
