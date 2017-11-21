@@ -1,5 +1,6 @@
 import ctypes
 import flagtables
+import addressing
 
 class Instruction(object):
     FLAG_MASK_INC8 = 0x01; # Bits to leave unchanged
@@ -29,10 +30,9 @@ class JumpInstruction(Instruction):
 
 class MemoryReadInstruction(Instruction):
      
-    def __init__(self, clocks, pc_state, instruction_exec, memory, dst):
+    def __init__(self, clocks, pc_state, instruction_exec, memory):
         super(MemoryReadInstruction, self).__init__(clocks, pc_state, instruction_exec)
         self.memory = memory
-        self.dst = dst
         self.instruction_exec = instruction_exec
 
     def execute(self):
@@ -342,10 +342,13 @@ class InstructionExec(object):
 
       return 4;
 
+class LD_16_nn(object):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
     def LD_16_nn_exec(self, memory):
-#      self.r16 = memory.read16(self.pc_state.PC+1); 
-      self.dst = memory.read16(self.pc_state.PC+1); 
+      self.dst.set(memory.read16(self.pc_state.PC+1)); 
       self.pc_state.PC += 3;
-      print("LD_16_nn_exec")
       return 10;
 

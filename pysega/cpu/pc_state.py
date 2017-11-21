@@ -125,4 +125,5 @@ class PC_State(object):
             super(PC_State, self).__setattr__(name, value)
 
     def __str__(self):
-        return "TODO"
+        return "A:%x SP:%x B:%x C:%x D:%x E:%x HLHigh:%x HLLow:%x F:%x PCHigh:%x PCLow:%x SPHigh:%x SPLow:%x IXHigh:%x IXLow:%x IYHigh:%x IYLow:%x %s"%(self.A, self.SP, self.B,self.C,self.D,self.E,self.HLHigh,self.HLLow,self.F,self.PCHigh,self.PCLow,self.SPHigh,self.SPLow,self.IXHigh,self.IXLow,self.IYHigh,self.IYLow, self._F)
+

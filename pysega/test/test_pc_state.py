@@ -1,5 +1,6 @@
 import pysega.cpu.pc_state as pc_state
 import unittest
+import pysega.cpu.addressing as addressing
 
 class TestPC_State(unittest.TestCase):
     def test_pc_status(self):
@@ -62,6 +63,12 @@ class TestPC_State(unittest.TestCase):
         self.assertEqual(p[5], p.L)
         self.assertEqual(p[7], p.A)
         self.assertEqual(p[7], p.A)
+
+    def test_pc_status_ref_check(self):
+        p = pc_state.PC_State()
+        a1 = addressing.RegWrapper_E(p)
+        a1.set(3)
+        self.assertEqual(p.E, 3)
 
 if __name__ == '__main__':
     unittest.main()

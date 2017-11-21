@@ -54,7 +54,7 @@ class Core(object):
       atPC = self.memory.readMulti(self.pc_state.PC);
 #      std::cout << std::hex << (int) atPC[0] << " " << (int) self.pc_state.PC << std::endl;
       op_code = atPC[0]
-      print("%x %x (%x)"%(op_code, self.pc_state.PC, atPC[0]))
+      print("%x %x (%x) %s"%(op_code, self.pc_state.PC, atPC[0], self.pc_state))
 
       # This will raise an exception for unsupported op_code
       instruction = self.instruction_lookup.getInstruction(op_code)

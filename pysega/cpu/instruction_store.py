@@ -1,4 +1,5 @@
 from . import instructions
+import addressing
 
 class InstructionStore(object):
     def __init__(self, clocks, pc_state, instruction_exe):
@@ -13,9 +14,11 @@ class InstructionStore(object):
         self.instruction_fd_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
 
     def populate_instruction_map(self, clocks, pc_state, memory):
+        self._reg_wrapper_sp = addressing.RegWrapper_SP(pc_state)
         self._instruction_exec = instructions.InstructionExec(pc_state)
         self.instruction_lookup[0xC3] = instructions.JumpInstruction(clocks, pc_state, memory)
-        self.instruction_lookup[0x31] = instructions.MemoryReadInstruction(clocks, self.pc_state, self._instruction_exec.LD_16_nn_exec, memory, self.pc_state.SP); # LD DE, nn
+        ld_16_nn = instructions.LD_16_nn(pc_state, self._reg_wrapper_sp)
+        self.instruction_lookup[0x31] = instructions.MemoryReadInstruction(clocks, self.pc_state, ld_16_nn.LD_16_nn_exec, memory); # LD DE, nn
 # {
 #     // Initialise the maps used to generate the register lookup.
 #     initialiseRegisterLookup();
