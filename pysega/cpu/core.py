@@ -38,7 +38,6 @@ class Core(object):
 
     def step(self):
      op_code = self.memory.read(self.pc_state.PC)
-     print "%x"%(op_code)
      loop = True
     
 #    static uint16 tmp16;
@@ -54,14 +53,14 @@ class Core(object):
 
       atPC = self.memory.readMulti(self.pc_state.PC);
 #      std::cout << std::hex << (int) atPC[0] << " " << (int) self.pc_state.PC << std::endl;
-      print("%s %s"%(atPC[0], self.pc_state.PC))
+      op_code = atPC[0]
+      print("%x %x (%x)"%(op_code, self.pc_state.PC, atPC[0]))
 
       # This will raise an exception for unsupported op_code
       instruction = self.instruction_lookup.getInstruction(op_code)
       if instruction:
         self.clocks.cycles += instruction.execute()
       else:
-            op_code = atPC[0]
                 # EX self.pc_state.AF, self.pc_state.AF'
             if (op_code == 0x08):
                 tmp16 = self.pc_state.AF;

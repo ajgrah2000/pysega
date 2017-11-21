@@ -24,7 +24,19 @@ class JumpInstruction(Instruction):
 
     def execute(self):
         self.pc_state.PC = self.memory.read16(self.pc_state.PC + 1)
-        self.clocks.system_clock += 10
+#        self.clocks.system_clock += 10
+        return 10
+
+class MemoryReadInstruction(Instruction):
+     
+    def __init__(self, clocks, pc_state, instruction_exec, memory, dst):
+        super(MemoryReadInstruction, self).__init__(clocks, pc_state, instruction_exec)
+        self.memory = memory
+        self.dst = dst
+        self.instruction_exec = instruction_exec
+
+    def execute(self):
+        return self.instruction_exec(self.memory)
 
 class InstructionExec(object):
     def __init__(self, pc_state):
@@ -330,8 +342,10 @@ class InstructionExec(object):
 
       return 4;
 
-    def LD_16_nn_exec(memory):
-      r16= self.memory.read16(self.pc_state.PC+1); 
+    def LD_16_nn_exec(self, memory):
+#      self.r16 = memory.read16(self.pc_state.PC+1); 
+      self.dst = memory.read16(self.pc_state.PC+1); 
       self.pc_state.PC += 3;
+      print("LD_16_nn_exec")
       return 10;
 
