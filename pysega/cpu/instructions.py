@@ -28,15 +28,15 @@ class JumpInstruction(Instruction):
 #        self.clocks.system_clock += 10
         return 10
 
-class MemoryReadInstruction(Instruction):
-     
-    def __init__(self, clocks, pc_state, instruction_exec, memory):
-        super(MemoryReadInstruction, self).__init__(clocks, pc_state, instruction_exec)
-        self.memory = memory
-        self.instruction_exec = instruction_exec
-
-    def execute(self):
-        return self.instruction_exec(self.memory)
+#class MemoryReadInstruction(Instruction):
+#     
+#    def __init__(self, clocks, pc_state, instruction_exec, memory):
+#        super(MemoryReadInstruction, self).__init__(clocks, pc_state, instruction_exec)
+#        self.memory = memory
+#        self.instruction_exec = instruction_exec
+#
+#    def execute(self):
+#        return self.instruction_exec(self.memory)
 
 class InstructionExec(object):
     def __init__(self, pc_state):
@@ -286,6 +286,9 @@ class InstructionExec(object):
     
         return 4;
 
+class Load16BC(Instruction):
+    #{ public: int execute(Z80memory *memory); }; 
+
     def Load16BC_exec(memory):
       # Load 16-bit cpu_state->BC register
       # LD cpu_state->BC, 0x
@@ -295,60 +298,118 @@ class InstructionExec(object):
 
       return 10;
 
-    def LD_r_exec(memory):
-      # This can be optimised.
-      r = self.memory.read(self.pc_state.PC + 1);
-      self.pc_state.PC += 2;
-      return 7;
+# Load a 16-bit register with the value 'nn'
+class LD_16_nn(Instruction):
+    def __init__(self, pc_state, r16, memory):
+        self.pc_state = pc_state
+        self.r16 = r16
+        self.memory = memory
 
-# Load the 8 bit value 'n' into memory.
-    def LD_mem_n_exec(memory):
-      self.memory.write(addr, self.memory.read(self.pc_state.PC +1));
-      self.pc_state.PC += 2;
-
+    def execute(self):
+      self.r16.set(self.memory.read16(self.pc_state.PC+1)); 
+      self.pc_state.PC += 3;
       return 10;
 
-# Load the register into memory.
-    def LD_mem_r_exec(memory):
-      self.memory.write(addr, r);
-      self.pc_state.PC += 1;
+class LD_r_r(Instruction):
+    def __init__(self, pc_state, dst, src):
+        self.pc_state = pc_state
+        self.dst = dst
+        self.src = src
 
-      return 7;
-
-# Load the value at the address into a register.
-    def LD_r_mem_exec(memory):
-      r = self.memory.read(addr);
-      self.pc_state.PC += 1;
-      return 7;
-
-# Load the value at the address into a register.
-    def LD_r16_mem_exec(memory):
-      r = self.memory.read16(self.memory.read16(self.pc_state.PC+1));
-      self.pc_state.PC += 3;
-
-      return 20;
-
-# Load the value at the address into a register.
-    def LD_r8_mem_exec(memory):
-      r = self.memory.read(self.memory.read16(self.pc_state.PC+1));
-      self.pc_state.PC += 3;
-
-      return 13;
-
-# Load any register to any other register.
+    # Load any register to any other register.
     def LD_r_r_exec(memory):
       dst = src;
       self.pc_state.PC += 1;
 
       return 4;
 
-class LD_16_nn(object):
-    def __init__(self, pc_state, dst):
-        self.pc_state = pc_state
-        self.dst = dst
+# LD (16 REG), n
+# Load the value 'n' into the 16-bit address
+class LD_mem_n(Instruction):
+    def __init__(self, pc_state, addr):
+        sels.pc_state = pc_state
+        sels.addr = addr
 
-    def LD_16_nn_exec(self, memory):
-      self.dst.set(memory.read16(self.pc_state.PC+1)); 
-      self.pc_state.PC += 3;
+    # Load the 8 bit value 'n' into memory.
+    def LD_mem_n_exec(memory):
+      self.memory.write(addr, self.memory.read(self.pc_state.PC +1));
+      self.pc_state.PC += 2;
+
       return 10;
 
+class Instruction_r(Instruction):
+    # TODO
+    pass
+
+# LD (16 REG), r
+# The register r into the 16-bit address
+class LD_mem_r(Instruction_r):
+    # r - 8-bit
+    def __init__(self, pc_state, addr, r):
+      self.pc_state = pc_state
+      self.addr = addr
+      self.r = r
+
+    # Load the register into memory.
+    def LD_mem_r_exec(memory):
+      self.memory.write(addr, r);
+      self.pc_state.PC += 1;
+
+      return 7;
+
+# LD r, (16 REG)
+# Load the value from the 16-bit address into the register
+class LD_r_mem (Instruction):
+    # r - 8-bit
+    def __init__(self, pc_state, addr, r):
+      self.pc_state = pc_state
+      self.addr = addr
+      self.r = r
+
+    # Load the value at the address into a register.
+    def LD_r_mem_exec(memory):
+      r = self.memory.read(addr);
+      self.pc_state.PC += 1;
+      return 7;
+
+# LD r, (nn)
+# Load the value from the 16-bit address into the 16-bit register
+class LD_r16_mem(Instruction):
+    # r - 16-bit
+    def __init__(self, pc_state, addr, r):
+      self.pc_state = pc_state
+      self.r = r
+
+    # Load the value at the address into a register.
+    def LD_r16_mem_exec(memory):
+      r = self.memory.read16(self.memory.read16(self.pc_state.PC+1));
+      self.pc_state.PC += 3;
+
+      return 20;
+
+# LD r, (nn)
+# Load the value from the 16-bit address into the 8-bit register
+class LD_r8_mem(Instruction):
+    # r - 8-bit
+    def __init__(self, pc_state, addr, r):
+      self.pc_state = pc_state
+      self.r = r
+
+    # Load the value at the address into a register.
+    def LD_r8_mem_exec(memory):
+      r = self.memory.read(self.memory.read16(self.pc_state.PC+1));
+      self.pc_state.PC += 3;
+
+      return 13;
+
+class LD_r(Instruction_r):
+    # r - 8-bit
+    def __init__(self, pc_state, addr, r):
+      self.pc_state = pc_state
+      self.r = r
+
+    def LD_r_exec(memory):
+      # This can be optimised.
+      r = self.memory.read(self.pc_state.PC + 1);
+      self.pc_state.PC += 2;
+      return 7;
