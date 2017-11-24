@@ -17,8 +17,8 @@ class InstructionStore(object):
         self._reg_wrapper_sp = addressing.RegWrapper_SP(pc_state)
         self._reg_wrapper_de = addressing.RegWrapper_DE(pc_state)
         self._instruction_exec = instructions.InstructionExec(pc_state)
-        self.instruction_lookup[0xC3] = instructions.JumpInstruction(clocks, pc_state, memory)
-        self.instruction_lookup[0x31] = instructions.LD_16_nn(self.pc_state, self._reg_wrapper_sp, memory); # LD DE, nn
+        self.instruction_lookup[0xC3] = instructions.JumpInstruction(clocks, pc_state)
+        self.instruction_lookup[0x31] = instructions.LD_16_nn(self.pc_state, self._reg_wrapper_sp); # LD DE, nn
 
 # {
 #     // Initialise the maps used to generate the register lookup.

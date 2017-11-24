@@ -59,7 +59,7 @@ class Core(object):
       # This will raise an exception for unsupported op_code
       instruction = self.instruction_lookup.getInstruction(op_code)
       if instruction:
-        self.clocks.cycles += instruction.execute()
+        self.clocks.cycles += instruction.execute(self.memory)
       else:
                 # EX self.pc_state.AF, self.pc_state.AF'
             if (op_code == 0x08):
