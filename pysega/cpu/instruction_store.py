@@ -14,8 +14,17 @@ class InstructionStore(object):
         self.instruction_fd_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
 
     def populate_instruction_map(self, clocks, pc_state, memory):
+        self._reg_wrapper_a = addressing.RegWrapper_A(pc_state)
+        self._reg_wrapper_b = addressing.RegWrapper_B(pc_state)
+        self._reg_wrapper_c = addressing.RegWrapper_C(pc_state)
+        self._reg_wrapper_d = addressing.RegWrapper_D(pc_state)
+        self._reg_wrapper_e = addressing.RegWrapper_E(pc_state)
+        self._reg_wrapper_h = addressing.RegWrapper_H(pc_state)
+        self._reg_wrapper_l = addressing.RegWrapper_L(pc_state)
         self._reg_wrapper_sp = addressing.RegWrapper_SP(pc_state)
+        self._reg_wrapper_bc = addressing.RegWrapper_BC(pc_state)
         self._reg_wrapper_de = addressing.RegWrapper_DE(pc_state)
+        self._reg_wrapper_hl = addressing.RegWrapper_HL(pc_state)
         self._instruction_exec = instructions.InstructionExec(pc_state)
         self.instruction_lookup[0xC3] = instructions.JumpInstruction(clocks, pc_state)
         self.instruction_lookup[0x31] = instructions.LD_16_nn(self.pc_state, self._reg_wrapper_sp); # LD DE, nn
@@ -39,119 +48,119 @@ class InstructionStore(object):
 #         extendedCBInstructions[i] = NULL;
 #     }
 # 
-#     instructions[0x00] = new Noop();
-#     instructions[0x01] = new Load16BC();
-#     instructions[0x02] = new LD_mem_r(CPUState::instance()->BC, CPUState::instance()->A); // LD (BC), A
-#     instructions[0x03] = new INC_BC(); // INC cpu_state->BC
-#     instructions[0x04] = new INC_r(CPUState::instance()->B); // INC cpu_state->B
-# //    instructions[0x06] = new LD_r(CPUState::instance()->B);
-#     instructions[0x07] = new RLCA();  //RLCA
-#     instructions[0x09] = new ADD16(CPUState::instance()->HL,
-#                                    CPUState::instance()->BC,11);
-#     instructions[0x0A] = new LD_r_mem(CPUState::instance()->A, CPUState::instance()->BC); // LD A, (BC)
-#     instructions[0x0B] = new DEC_16(CPUState::instance()->BC, 6);
-#     instructions[0x0C] = new INC_r(CPUState::instance()->C); // INC C
-#     //instructions[0x0E] = new LD_r(CPUState::instance()->C); // LD C, n
-#     instructions[0x0F] = new RRCA();
-#     instructions[0x10] = new DJNZ(); // DJNZ n
-#     instructions[0x11] = new LD_16_nn(CPUState::instance()->DE); // LD DE, nn
-#     instructions[0x12] = new LD_mem_r(CPUState::instance()->DE, CPUState::instance()->A); // LD (DE), A
-#     instructions[0x21] = new LD_16_nn(CPUState::instance()->HL); // LD HL, nn
-#     instructions[0x2A] = new LD_r16_mem(CPUState::instance()->HL); // LD HL, (nn)
-#     instructions[0x31] = new LD_16_nn(CPUState::instance()->SP); // LD DE, nn
-#     instructions[0x13] = new INC_16(CPUState::instance()->DE, 6);
-#     instructions[0x14] = new INC_r(CPUState::instance()->D); // INC D
-#     //instructions[0x16] = new LD_r(CPUState::instance()->D); // LD D, n
-#     instructions[0x19] = new ADD16(CPUState::instance()->HL,
-#                                    CPUState::instance()->DE,11);
-#     instructions[0x1A] = new LD_r_mem(CPUState::instance()->A, CPUState::instance()->DE); // LD A, (DE)
-#     instructions[0x1B] = new DEC_16(CPUState::instance()->DE, 6);
-# 
-#     instructions[0x1C] = new INC_r(CPUState::instance()->E); // INC E
-#     //instructions[0x1E] = new LD_r(CPUState::instance()->E); // LD E, n
-# 
-#     instructions[0x20] = new JRNZe(); // JR NZ, e
-# 
-#     instructions[0x23] = new INC_16(CPUState::instance()->HL, 6);
-# 
-#     instructions[0x24] = new INC_r(CPUState::instance()->H); // INC H
-#     //instructions[0x26] = new LD_r(CPUState::instance()->H); // LD H, n
-#     instructions[0x28] = new JRZe(); // JR Z, e
-#     instructions[0x29] = new ADD16(CPUState::instance()->HL,
-#                                    CPUState::instance()->HL,11);
-#     instructions[0x2B] = new DEC_16(CPUState::instance()->HL, 6);
-# 
-#     instructions[0x2C] = new INC_r(CPUState::instance()->L); // INC L
-#     //instructions[0x2E] = new LD_r(CPUState::instance()->L); // LD L, n
-#     instructions[0x33] = new INC_16(CPUState::instance()->SP, 6);
-#     instructions[0x34] = new INC_HL(); // INC HL
-#     instructions[0x35] = new DEC_HL(); // DEC HL
-# 
-#     instructions[0x36] = new LD_mem_n(CPUState::instance()->HL); // LD (HL), n
-# 
-#     instructions[0x39] = new ADD16(CPUState::instance()->HL,
-#                                    CPUState::instance()->SP,11);
-# 
-#     instructions[0x3A] = new LD_r8_mem(CPUState::instance()->A); // LD A, (n)
-#     instructions[0x3B] = new DEC_16(CPUState::instance()->SP, 6);
-#     instructions[0x3C] = new INC_r(CPUState::instance()->A); // INC A
-#     //instructions[0x3E] = new LD_r(CPUState::instance()->A); // LD A, n
-# 
-#     instructions[0x70] = new LD_mem_r(CPUState::instance()->HL, CPUState::instance()->B); // LD (HL), B
-#     instructions[0x71] = new LD_mem_r(CPUState::instance()->HL, CPUState::instance()->C); // LD (HL), C
-#     instructions[0x72] = new LD_mem_r(CPUState::instance()->HL, CPUState::instance()->D); // LD (HL), D
-#     instructions[0x73] = new LD_mem_r(CPUState::instance()->HL, CPUState::instance()->E); // LD (HL), E
-#     instructions[0x74] = new LD_mem_r(CPUState::instance()->HL, CPUState::instance()->H); // LD (HL), H
-#     instructions[0x75] = new LD_mem_r(CPUState::instance()->HL, CPUState::instance()->L); // LD (HL), L
-#     instructions[0x77] = new LD_mem_r(CPUState::instance()->HL, CPUState::instance()->A); // LD (HL), A
-# 
-#     instructions[0x80] = new ADD_r(CPUState::instance()->B); // ADD r, cpu_state->A
-#     instructions[0x81] = new ADD_r(CPUState::instance()->C); // ADD r, cpu_state->A
-#     instructions[0x82] = new ADD_r(CPUState::instance()->D); // ADD r, cpu_state->A
-#     instructions[0x83] = new ADD_r(CPUState::instance()->E); // ADD r, cpu_state->A
-#     instructions[0x84] = new ADD_r(CPUState::instance()->H); // ADD r, cpu_state->A
-#     instructions[0x85] = new ADD_r(CPUState::instance()->L); // ADD r, cpu_state->A
-#     instructions[0x87] = new ADD_r(CPUState::instance()->A); // ADD r, cpu_state->A
-# 
-#     instructions[0xA0] = new AND_r(CPUState::instance()->B); // AND r, cpu_state->A
-#     instructions[0xA1] = new AND_r(CPUState::instance()->C); // AND r, cpu_state->A
-#     instructions[0xA2] = new AND_r(CPUState::instance()->D); // AND r, cpu_state->A
-#     instructions[0xA3] = new AND_r(CPUState::instance()->E); // AND r, cpu_state->A
-#     instructions[0xA4] = new AND_r(CPUState::instance()->H); // AND r, cpu_state->A
-#     instructions[0xA5] = new AND_r(CPUState::instance()->L); // AND r, cpu_state->A
-#     instructions[0xA7] = new AND_r(CPUState::instance()->A); // AND r, cpu_state->A
-# 
-#     instructions[0xA8] = new XOR_r(CPUState::instance()->B); // XOR r, cpu_state->A
-#     instructions[0xA9] = new XOR_r(CPUState::instance()->C); // XOR r, cpu_state->A
-#     instructions[0xAA] = new XOR_r(CPUState::instance()->D); // XOR r, cpu_state->A
-#     instructions[0xAB] = new XOR_r(CPUState::instance()->E); // XOR r, cpu_state->A
-#     instructions[0xAC] = new XOR_r(CPUState::instance()->H); // XOR r, cpu_state->A
-#     instructions[0xAD] = new XOR_r(CPUState::instance()->L); // XOR r, cpu_state->A
-#     instructions[0xAF] = new XOR_r(CPUState::instance()->A); // XOR r, cpu_state->A
-# 
-#     instructions[0xB0] = new OR_r(CPUState::instance()->B); // OR r, cpu_state->A
-#     instructions[0xB1] = new OR_r(CPUState::instance()->C); // OR r, cpu_state->A
-#     instructions[0xB2] = new OR_r(CPUState::instance()->D); // OR r, cpu_state->A
-#     instructions[0xB3] = new OR_r(CPUState::instance()->E); // OR r, cpu_state->A
-#     instructions[0xB4] = new OR_r(CPUState::instance()->H); // OR r, cpu_state->A
-#     instructions[0xB5] = new OR_r(CPUState::instance()->L); // OR r, cpu_state->A
-#     instructions[0xB7] = new OR_r(CPUState::instance()->A); // OR r, cpu_state->A
-# 
-#     instructions[0xB8] = new CP_r(CPUState::instance()->B); // CP r, cpu_state->A
-#     instructions[0xB9] = new CP_r(CPUState::instance()->C); // CP r, cpu_state->A
-#     instructions[0xBA] = new CP_r(CPUState::instance()->D); // CP r, cpu_state->A
-#     instructions[0xBB] = new CP_r(CPUState::instance()->E); // CP r, cpu_state->A
-#     instructions[0xBC] = new CP_r(CPUState::instance()->H); // CP r, cpu_state->A
-#     instructions[0xBD] = new CP_r(CPUState::instance()->L); // CP r, cpu_state->A
-#     instructions[0xBF] = new CP_r(CPUState::instance()->A); // CP r, cpu_state->A
-# 
-#     instructions[0xD3] = new OUT_n_A(); // OUT (n), cpu_state->A
-#     instructions[0xD2] = new JPNC(); // JP NC
-#     instructions[0xD9] = new EXX(); // EXX
-#     instructions[0xDA] = new JPCnn(); // JP C, nn
-# 
-#     instructions[0xE6] = new AND_n(); // AND n
-#     instructions[0xFE] = new CP_n(); // CP n
+        self.instruction_lookup[0x00] = instructions.Noop(pc_state);
+        self.instruction_lookup[0x01] = instructions.Load16BC(pc_state, self._reg_wrapper_bc);
+        self.instruction_lookup[0x02] = instructions.LD_mem_r(pc_state, self._reg_wrapper_bc, self._reg_wrapper_a); # LD (BC), A
+        self.instruction_lookup[0x03] = instructions.INC_BC(pc_state); # INC cpu_state->BC
+        self.instruction_lookup[0x04] = instructions.INC_r(pc_state, self._reg_wrapper_b); # INC cpu_state->B
+        self.instruction_lookup[0x06] = instructions.LD_r(pc_state, self._reg_wrapper_b);
+        self.instruction_lookup[0x07] = instructions.RLCA(pc_state);  #RLCA
+        self.instruction_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
+                                       self._reg_wrapper_bc,11);
+        self.instruction_lookup[0x0A] = instructions.LD_r_mem(pc_state, self._reg_wrapper_a, self._reg_wrapper_bc); # LD A, (BC)
+        self.instruction_lookup[0x0B] = instructions.DEC_16(pc_state, self._reg_wrapper_bc, 6);
+        self.instruction_lookup[0x0C] = instructions.INC_r(pc_state, self._reg_wrapper_c); # INC C
+        self.instruction_lookup[0x0E] = instructions.LD_r(pc_state, self._reg_wrapper_c); # LD C, n
+        self.instruction_lookup[0x0F] = instructions.RRCA(pc_state);
+        self.instruction_lookup[0x10] = instructions.DJNZ(pc_state); # DJNZ n
+        self.instruction_lookup[0x11] = instructions.LD_16_nn(pc_state, self._reg_wrapper_de); # LD DE, nn
+        self.instruction_lookup[0x12] = instructions.LD_mem_r(pc_state, self._reg_wrapper_de, self._reg_wrapper_a); # LD (DE), A
+        self.instruction_lookup[0x21] = instructions.LD_16_nn(pc_state, self._reg_wrapper_hl); # LD HL, nn
+        self.instruction_lookup[0x2A] = instructions.LD_r16_mem(pc_state, self._reg_wrapper_hl); # LD HL, (nn)
+        self.instruction_lookup[0x31] = instructions.LD_16_nn(pc_state, self._reg_wrapper_sp); # LD DE, nn
+        self.instruction_lookup[0x13] = instructions.INC_16(pc_state, self._reg_wrapper_de, 6);
+        self.instruction_lookup[0x14] = instructions.INC_r(pc_state, self._reg_wrapper_d); # INC D
+        self.instruction_lookup[0x16] = instructions.LD_r(pc_state, self._reg_wrapper_d); # LD D, n
+        self.instruction_lookup[0x19] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
+                                       self._reg_wrapper_de,11);
+        self.instruction_lookup[0x1A] = instructions.LD_r_mem(pc_state, self._reg_wrapper_a, self._reg_wrapper_de); # LD A, (DE)
+        self.instruction_lookup[0x1B] = instructions.DEC_16(pc_state, self._reg_wrapper_de, 6);
+ 
+        self.instruction_lookup[0x1C] = instructions.INC_r(pc_state, self._reg_wrapper_e); # INC E
+        self.instruction_lookup[0x1E] = instructions.LD_r(pc_state, self._reg_wrapper_e); # LD E, n
+ 
+        self.instruction_lookup[0x20] = instructions.JRNZe(pc_state); # JR NZ, e
+ 
+        self.instruction_lookup[0x23] = instructions.INC_16(pc_state, self._reg_wrapper_hl, 6);
+ 
+        self.instruction_lookup[0x24] = instructions.INC_r(pc_state, self._reg_wrapper_h); # INC H
+        self.instruction_lookup[0x26] = instructions.LD_r(pc_state, self._reg_wrapper_h); # LD H, n
+        self.instruction_lookup[0x28] = instructions.JRZe(pc_state); # JR Z, e
+        self.instruction_lookup[0x29] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
+                                       self._reg_wrapper_hl,11);
+        self.instruction_lookup[0x2B] = instructions.DEC_16(pc_state, self._reg_wrapper_hl, 6);
+ 
+        self.instruction_lookup[0x2C] = instructions.INC_r(pc_state, self._reg_wrapper_l); # INC L
+        self.instruction_lookup[0x2E] = instructions.LD_r(pc_state, self._reg_wrapper_l); # LD L, n
+        self.instruction_lookup[0x33] = instructions.INC_16(pc_state, self._reg_wrapper_sp, 6);
+        self.instruction_lookup[0x34] = instructions.INC_HL(pc_state); # INC HL
+        self.instruction_lookup[0x35] = instructions.DEC_HL(pc_state); # DEC HL
+ 
+        self.instruction_lookup[0x36] = instructions.LD_mem_n(pc_state, self._reg_wrapper_hl); # LD (HL), n
+ 
+        self.instruction_lookup[0x39] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
+                                       self._reg_wrapper_sp,11);
+ 
+        self.instruction_lookup[0x3A] = instructions.LD_r8_mem(pc_state, self._reg_wrapper_a); # LD A, (n)
+        self.instruction_lookup[0x3B] = instructions.DEC_16(pc_state, self._reg_wrapper_sp, 6);
+        self.instruction_lookup[0x3C] = instructions.INC_r(pc_state, self._reg_wrapper_a); # INC A
+        self.instruction_lookup[0x3E] = instructions.LD_r(pc_state, self._reg_wrapper_a); # LD A, n
+ 
+        self.instruction_lookup[0x70] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_b); # LD (HL), B
+        self.instruction_lookup[0x71] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_c); # LD (HL), C
+        self.instruction_lookup[0x72] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_d); # LD (HL), D
+        self.instruction_lookup[0x73] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_e); # LD (HL), E
+        self.instruction_lookup[0x74] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_h); # LD (HL), H
+        self.instruction_lookup[0x75] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_l); # LD (HL), L
+        self.instruction_lookup[0x77] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_a); # LD (HL), A
+ 
+        self.instruction_lookup[0x80] = instructions.ADD_r(pc_state, self._reg_wrapper_b); # ADD r, cpu_state->A
+        self.instruction_lookup[0x81] = instructions.ADD_r(pc_state, self._reg_wrapper_c); # ADD r, cpu_state->A
+        self.instruction_lookup[0x82] = instructions.ADD_r(pc_state, self._reg_wrapper_d); # ADD r, cpu_state->A
+        self.instruction_lookup[0x83] = instructions.ADD_r(pc_state, self._reg_wrapper_e); # ADD r, cpu_state->A
+        self.instruction_lookup[0x84] = instructions.ADD_r(pc_state, self._reg_wrapper_h); # ADD r, cpu_state->A
+        self.instruction_lookup[0x85] = instructions.ADD_r(pc_state, self._reg_wrapper_l); # ADD r, cpu_state->A
+        self.instruction_lookup[0x87] = instructions.ADD_r(pc_state, self._reg_wrapper_a); # ADD r, cpu_state->A
+ 
+        self.instruction_lookup[0xA0] = instructions.AND_r(pc_state, self._reg_wrapper_b); # AND r, cpu_state->A
+        self.instruction_lookup[0xA1] = instructions.AND_r(pc_state, self._reg_wrapper_c); # AND r, cpu_state->A
+        self.instruction_lookup[0xA2] = instructions.AND_r(pc_state, self._reg_wrapper_d); # AND r, cpu_state->A
+        self.instruction_lookup[0xA3] = instructions.AND_r(pc_state, self._reg_wrapper_e); # AND r, cpu_state->A
+        self.instruction_lookup[0xA4] = instructions.AND_r(pc_state, self._reg_wrapper_h); # AND r, cpu_state->A
+        self.instruction_lookup[0xA5] = instructions.AND_r(pc_state, self._reg_wrapper_l); # AND r, cpu_state->A
+        self.instruction_lookup[0xA7] = instructions.AND_r(pc_state, self._reg_wrapper_a); # AND r, cpu_state->A
+ 
+        self.instruction_lookup[0xA8] = instructions.XOR_r(pc_state, self._reg_wrapper_b); # XOR r, cpu_state->A
+        self.instruction_lookup[0xA9] = instructions.XOR_r(pc_state, self._reg_wrapper_c); # XOR r, cpu_state->A
+        self.instruction_lookup[0xAA] = instructions.XOR_r(pc_state, self._reg_wrapper_d); # XOR r, cpu_state->A
+        self.instruction_lookup[0xAB] = instructions.XOR_r(pc_state, self._reg_wrapper_e); # XOR r, cpu_state->A
+        self.instruction_lookup[0xAC] = instructions.XOR_r(pc_state, self._reg_wrapper_h); # XOR r, cpu_state->A
+        self.instruction_lookup[0xAD] = instructions.XOR_r(pc_state, self._reg_wrapper_l); # XOR r, cpu_state->A
+        self.instruction_lookup[0xAF] = instructions.XOR_r(pc_state, self._reg_wrapper_a); # XOR r, cpu_state->A
+ 
+        self.instruction_lookup[0xB0] = instructions.OR_r(pc_state, self._reg_wrapper_b); # OR r, cpu_state->A
+        self.instruction_lookup[0xB1] = instructions.OR_r(pc_state, self._reg_wrapper_c); # OR r, cpu_state->A
+        self.instruction_lookup[0xB2] = instructions.OR_r(pc_state, self._reg_wrapper_d); # OR r, cpu_state->A
+        self.instruction_lookup[0xB3] = instructions.OR_r(pc_state, self._reg_wrapper_e); # OR r, cpu_state->A
+        self.instruction_lookup[0xB4] = instructions.OR_r(pc_state, self._reg_wrapper_h); # OR r, cpu_state->A
+        self.instruction_lookup[0xB5] = instructions.OR_r(pc_state, self._reg_wrapper_l); # OR r, cpu_state->A
+        self.instruction_lookup[0xB7] = instructions.OR_r(pc_state, self._reg_wrapper_a); # OR r, cpu_state->A
+ 
+        self.instruction_lookup[0xB8] = instructions.CP_r(pc_state, self._reg_wrapper_b); # CP r, cpu_state->A
+        self.instruction_lookup[0xB9] = instructions.CP_r(pc_state, self._reg_wrapper_c); # CP r, cpu_state->A
+        self.instruction_lookup[0xBA] = instructions.CP_r(pc_state, self._reg_wrapper_d); # CP r, cpu_state->A
+        self.instruction_lookup[0xBB] = instructions.CP_r(pc_state, self._reg_wrapper_e); # CP r, cpu_state->A
+        self.instruction_lookup[0xBC] = instructions.CP_r(pc_state, self._reg_wrapper_h); # CP r, cpu_state->A
+        self.instruction_lookup[0xBD] = instructions.CP_r(pc_state, self._reg_wrapper_l); # CP r, cpu_state->A
+        self.instruction_lookup[0xBF] = instructions.CP_r(pc_state, self._reg_wrapper_a); # CP r, cpu_state->A
+ 
+        self.instruction_lookup[0xD3] = instructions.OUT_n_A(pc_state); # OUT (n), cpu_state->A
+        self.instruction_lookup[0xD2] = instructions.JPNC(pc_state); # JP NC
+        self.instruction_lookup[0xD9] = instructions.EXX(pc_state); # EXX
+        self.instruction_lookup[0xDA] = instructions.JPCnn(pc_state); # JP C, nn
+ 
+        self.instruction_lookup[0xE6] = instructions.AND_n(pc_state); # AND n
+        self.instruction_lookup[0xFE] = instructions.CP_n(pc_state); # CP n
 # 
 #     DEC_R dec_r;
 #     dec_r.reg8 = 0x05;

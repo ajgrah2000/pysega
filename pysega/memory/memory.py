@@ -59,12 +59,12 @@ class Memory(object):
     def read(self, address):
         return self._memory_map_ref[address >> self.UPPERSHIFT][address & self.LOWERMASK]
 
-    def read(self, address, length):
+    def readArray(self, address, length):
 
         result = [0] * length
 
         for i in range(length):
-            result[i] = read(address + i)
+            result[i] = self.read(address + i)
 
         return result
 

@@ -1,7 +1,12 @@
 class Ports(object):
     @staticmethod
-    def portRead(self, byte_address):
+    def portRead(byte_address):
         pass
 
-    def portWrite(self, byte_address, value):
+    @staticmethod
+    def portWrite(byte_address, value):
+        pass
+
+    @staticmethod
+    def portMultiWrite(byte_address, data, length):
         pass

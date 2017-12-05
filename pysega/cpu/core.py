@@ -3,6 +3,7 @@ from . import instructions
 from . import instruction_store
 from . import pc_state
 from .. import ports
+from . import flagtables
 
 class Core(object):
     """
@@ -19,6 +20,8 @@ class Core(object):
         self.instruction_lookup = instruction_store.InstructionStore(self.clocks, self.pc_state, self.instruction_exe)
 
         self._nextPossibleInterupt = 0
+
+        flagtables.FlagTables.init()
 
     def get_save_state(self):
         # TODO
@@ -79,10 +82,10 @@ class Core(object):
                 # RLA
             elif (op_code == 0x17):
                 tmp8 = self.pc_state.A;
-                self.pc_state.A = (self.pc_state.A << 1) | (self.pc_state.Fstatus.status.C);
-                self.pc_state.Fstatus.status.C = (tmp8 & 0x80) >> 7;
-                self.pc_state.Fstatus.status.H = 0;
-                self.pc_state.Fstatus.status.N = 0;
+                self.pc_state.A = (self.pc_state.A << 1) | (self.pc_state.Fstatus.C);
+                self.pc_state.Fstatus.C = (tmp8 & 0x80) >> 7;
+                self.pc_state.Fstatus.H = 0;
+                self.pc_state.Fstatus.N = 0;
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
@@ -97,10 +100,10 @@ class Core(object):
                 # RRA
             elif (op_code == 0x1F):
                 tmp8 = self.pc_state.A;
-                self.pc_state.A = (self.pc_state.A >> 1) | (self.pc_state.Fstatus.status.C << 7);
-                self.pc_state.Fstatus.status.C = tmp8 & 0x1;
-                self.pc_state.Fstatus.status.H = 0;
-                self.pc_state.Fstatus.status.N = 0;
+                self.pc_state.A = (self.pc_state.A >> 1) | (self.pc_state.Fstatus.C << 7);
+                self.pc_state.Fstatus.C = tmp8 & 0x1;
+                self.pc_state.Fstatus.H = 0;
+                self.pc_state.Fstatus.N = 0;
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
@@ -114,7 +117,7 @@ class Core(object):
 
                 # Really need to put this into a table
             elif (op_code == 0x27):
-                if (self.pc_state.Fstatus.status.N == 0): # self.pc_state.Addition instruction
+                if (self.pc_state.Fstatus.N == 0): # self.pc_state.Addition instruction
                     calculateDAAAdd();
                 else: # Subtraction instruction
                     calculateDAASub();
@@ -123,8 +126,8 @@ class Core(object):
 
                 # CPL
             elif (op_code == 0x2F):
-                self.pc_state.Fstatus.status.H = 1;
-                self.pc_state.Fstatus.status.N = 1;
+                self.pc_state.Fstatus.H = 1;
+                self.pc_state.Fstatus.N = 1;
                 self.pc_state.A ^= 0xFF;
                 self.pc_state.PC += 1
 
@@ -132,7 +135,7 @@ class Core(object):
 
                 # JR NC, e
             elif (op_code == 0x30):
-                if (self.pc_state.Fstatus.status.C == 0):
+                if (self.pc_state.Fstatus.C == 0):
 #                    self.pc_state.PC += (int) (signed char) atPC[1];
                     self.pc_state.PC += self._int_signed_char(atPC[1])
                     self.clocks.cycles+=5;
@@ -150,15 +153,15 @@ class Core(object):
 
                 # SCF
             elif (op_code == 0x37):
-                 self.pc_state.Fstatus.status.H = 0;
-                 self.pc_state.Fstatus.status.N = 0;
-                 self.pc_state.Fstatus.status.C = 1;
+                 self.pc_state.Fstatus.H = 0;
+                 self.pc_state.Fstatus.N = 0;
+                 self.pc_state.Fstatus.C = 1;
                  self.pc_state.PC += 1
                  self.clocks.cycles += 4;
 
                 # JR C, e
             elif (op_code == 0x38):
-                if (self.pc_state.Fstatus.status.C == 1):
+                if (self.pc_state.Fstatus.C == 1):
 #                    self.pc_state.PC += (int) (signed char) atPC[1];
                     self.pc_state.PC += self._int_signed_char(atPC[1])
                     self.clocks.cycles+=5;
@@ -168,9 +171,9 @@ class Core(object):
 
                 # CCF
             elif (op_code == 0x3F):
-                self.pc_state.Fstatus.status.H = self.pc_state.Fstatus.status.C;
-                self.pc_state.Fstatus.status.N = 0;
-                self.pc_state.Fstatus.status.C = 1-self.pc_state.Fstatus.status.C; #Invert carry flag
+                self.pc_state.Fstatus.H = self.pc_state.Fstatus.C;
+                self.pc_state.Fstatus.N = 0;
+                self.pc_state.Fstatus.C = 1-self.pc_state.Fstatus.C; #Invert carry flag
                 self.pc_state.PC += 1
                 self.clocks.cycles += 4;
 
@@ -192,13 +195,13 @@ class Core(object):
                   (op_code == 0x8C) or # self.pc_state.ADC H
                   (op_code == 0x8D) or # self.pc_state.ADC L
                   (op_code == 0x8F)): # self.pc_state.ADC self.pc_state.A
-                self.pc_state.A = add8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.status.C);
+                self.pc_state.A = add8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
                 # self.pc_state.ADC (self.pc_state.HL)
             elif (op_code == 0x8E):
-                self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.status.C);
+                self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=7;
 
@@ -230,13 +233,13 @@ class Core(object):
                   (op_code == 0x9C) or # Sself.pc_state.BC H
                   (op_code == 0x9D) or # Sself.pc_state.BC L
                   (op_code == 0x9F)): # Sself.pc_state.BC self.pc_state.A
-                self.pc_state.A = sub8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.status.C);
+                self.pc_state.A = sub8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
                 # Sself.pc_state.BC (self.pc_state.HL)
             elif (op_code == 0x9E):
-                self.pc_state.A = sub8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.status.C);
+                self.pc_state.A = sub8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=7;
 
@@ -291,7 +294,7 @@ class Core(object):
 
                 # RET NZ
             elif (op_code == 0xC0):
-                if (self.pc_state.Fstatus.status.Z == 0):
+                if (self.pc_state.Fstatus.Z == 0):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -314,7 +317,7 @@ class Core(object):
 
                 # JP NZ, nn
             elif (op_code == 0xC2):
-                if (self.pc_state.Fstatus.status.Z == 0):
+                if (self.pc_state.Fstatus.Z == 0):
                     self.pc_state.PC = self.memory.read16(self.pc_state.PC+1);
                 else:
                     self.pc_state.PC += 3;
@@ -330,7 +333,7 @@ class Core(object):
                 # CALL NZ, nn
             elif (op_code == 0xC4):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.Z == 0):
+                if (self.pc_state.Fstatus.Z == 0):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -371,7 +374,7 @@ class Core(object):
 
                 # RET Z
             elif (op_code == 0xC8):
-                if (self.pc_state.Fstatus.status.Z == 1):
+                if (self.pc_state.Fstatus.Z == 1):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -383,7 +386,7 @@ class Core(object):
 
                 # JP Z, nn
             elif (op_code == 0xCA):
-                if (self.pc_state.Fstatus.status.Z == 1):
+                if (self.pc_state.Fstatus.Z == 1):
                     self.pc_state.PC = self.memory.read16(self.pc_state.PC+1);
                 else:
                     self.pc_state.PC += 3;
@@ -401,22 +404,22 @@ class Core(object):
                          (extended_op_code == 0x44) or
                          (extended_op_code == 0x45) or
                          (extended_op_code == 0x47)):
-                        self.pc_state.Fstatus.status.Z = (self.pc_state[tmp8&0x7] >> ((tmp8 >> 3) & 7)) ^ 0x1;
-                        self.pc_state.Fstatus.status.PV = flagtables.FlagTables.calculateParity(self.pc_state[tmp8&0x7]);
-                        self.pc_state.Fstatus.status.H = 1;
-                        self.pc_state.Fstatus.status.N = 0;
-                        self.pc_state.Fstatus.status.S = 0;
+                        self.pc_state.Fstatus.Z = (self.pc_state[tmp8&0x7] >> ((tmp8 >> 3) & 7)) ^ 0x1;
+                        self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(self.pc_state[tmp8&0x7]);
+                        self.pc_state.Fstatus.H = 1;
+                        self.pc_state.Fstatus.N = 0;
+                        self.pc_state.Fstatus.S = 0;
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 8;
                         return 0;
 
                     # self.pc_state.Bit b, (self.pc_state.HL) 
                     elif (extended_op_code == 0x46):
-                        self.pc_state.Fstatus.status.Z = (self.memory.read(self.pc_state.HL) >> 
+                        self.pc_state.Fstatus.Z = (self.memory.read(self.pc_state.HL) >> 
                                             ((tmp8 >> 3) & 7)) ^ 0x1;
-                        self.pc_state.Fstatus.status.H = 1;
-                        self.pc_state.Fstatus.status.N = 0;
-                        self.pc_state.Fstatus.status.S = 0;
+                        self.pc_state.Fstatus.H = 1;
+                        self.pc_state.Fstatus.N = 0;
+                        self.pc_state.Fstatus.S = 0;
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 12;
                         return 0;
@@ -478,7 +481,7 @@ class Core(object):
                          (extended_op_code == 0x07)):  # RLC self.pc_state.A
                         self.pc_state[tmp8 & 0x7] = (self.pc_state[tmp8 & 0x7] << 1) | ((self.pc_state[tmp8 & 0x7] >> 7) & 0x1);
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[tmp8 & 0x7]);
-                        self.pc_state.Fstatus.status.C = self.pc_state[tmp8 & 0x7] & 0x1; # bit-7 of src = bit-0
+                        self.pc_state.Fstatus.C = self.pc_state[tmp8 & 0x7] & 0x1; # bit-7 of src = bit-0
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
 
@@ -486,7 +489,7 @@ class Core(object):
                         tmp8 = self.memory.read(self.pc_state.HL);
                         self.memory.write(self.pc_state.HL, (tmp8 << 1) | ((tmp8 >> 7) & 0x1));
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.memory.read(self.pc_state.HL));
-                        self.pc_state.Fstatus.status.C = (tmp8 >> 7) & 0x1; # bit-7 of src
+                        self.pc_state.Fstatus.C = (tmp8 >> 7) & 0x1; # bit-7 of src
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=15;
 
@@ -500,7 +503,7 @@ class Core(object):
                           (extended_op_code == 0x0F)): # RRC self.pc_state.A
                         self.pc_state[tmp8 & 0x7] = (self.pc_state[tmp8 & 0x7] >> 1) | ((self.pc_state[tmp8 & 0x7] & 0x1) << 7);
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[tmp8 & 0x7]);
-                        self.pc_state.Fstatus.status.C = (self.pc_state[tmp8 & 0x7] >> 7) & 0x1; # bit-0 of src
+                        self.pc_state.Fstatus.C = (self.pc_state[tmp8 & 0x7] >> 7) & 0x1; # bit-0 of src
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
 
@@ -508,7 +511,7 @@ class Core(object):
                         tmp8 = self.memory.read(self.pc_state.HL);
                         self.memory.write(self.pc_state.HL,(tmp8 >> 1) | ((tmp8 & 0x1) << 7));
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.memory.read(self.pc_state.HL));
-                        self.pc_state.Fstatus.status.C = tmp8 & 0x1; # bit-0 of src
+                        self.pc_state.Fstatus.C = tmp8 & 0x1; # bit-0 of src
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
 
@@ -521,9 +524,9 @@ class Core(object):
                           (extended_op_code == 0x15) or # RL L
                           (extended_op_code == 0x17)): # RL self.pc_state.A
                         tmp8 = self.pc_state[atPC[1] & 0x7];
-                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] << 1) | (self.pc_state.Fstatus.status.C);
+                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] << 1) | (self.pc_state.Fstatus.C);
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
-                        self.pc_state.Fstatus.status.C = (tmp8 >> 7) & 0x1;
+                        self.pc_state.Fstatus.C = (tmp8 >> 7) & 0x1;
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
 
@@ -536,9 +539,9 @@ class Core(object):
                           (extended_op_code == 0x1D) or # RR L
                           (extended_op_code == 0x1F)): # RR self.pc_state.A
                         tmp8 = self.pc_state[atPC[1] & 0x7];
-                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] >> 1) | (self.pc_state.Fstatus.status.C << 7);
+                        self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] >> 1) | (self.pc_state.Fstatus.C << 7);
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
-                        self.pc_state.Fstatus.status.C = tmp8 & 0x1;
+                        self.pc_state.Fstatus.C = tmp8 & 0x1;
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=8;
 
@@ -553,7 +556,7 @@ class Core(object):
                         tmp8 = (self.pc_state[atPC[1] & 0x7] >> 7) & 0x1;
                         self.pc_state[atPC[1] & 0x7] = self.pc_state[atPC[1]&0x7] << 1;
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1]&0x7]);
-                        self.pc_state.Fstatus.status.C = tmp8;
+                        self.pc_state.Fstatus.C = tmp8;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 8;
@@ -562,7 +565,7 @@ class Core(object):
                         tmp8 = (self.memory.read(self.pc_state.HL) >> 7) & 0x1;
                         self.memory.write(self.pc_state.HL, self.memory.read(self.pc_state.HL) << 1);
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.memory.read(self.pc_state.HL));
-                        self.pc_state.Fstatus.status.C = tmp8;
+                        self.pc_state.Fstatus.C = tmp8;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 15;
@@ -579,7 +582,7 @@ class Core(object):
                         self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] & 0x80) | ((self.pc_state[atPC[1] & 0x7] >> 1) & 0x7F);
 
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
-                        self.pc_state.Fstatus.status.C = tmp8 & 0x1;
+                        self.pc_state.Fstatus.C = tmp8 & 0x1;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 8;
@@ -589,7 +592,7 @@ class Core(object):
                         self.memory.write(self.pc_state.HL, (tmp8 & 0x80) | ((tmp8 >> 1) & 0x7F));
 
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.memory.read(self.pc_state.HL));
-                        self.pc_state.Fstatus.status.C = tmp8 & 0x1;
+                        self.pc_state.Fstatus.C = tmp8 & 0x1;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 15;
@@ -605,7 +608,7 @@ class Core(object):
                         tmp8 = (self.pc_state[atPC[1] & 0x7] >> 7) & 0x1;
                         self.pc_state[atPC[1] & 0x7] = self.pc_state[atPC[1]&0x7] << 1 | 0x1;
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1]&0x7]);
-                        self.pc_state.Fstatus.status.C = tmp8;
+                        self.pc_state.Fstatus.C = tmp8;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 8;
@@ -614,7 +617,7 @@ class Core(object):
                         tmp8 = (self.memory.read(self.pc_state.HL) >> 7) & 0x1;
                         self.memory.write(self.pc_state.HL, self.memory.read(self.pc_state.HL) << 1 | 0x1);
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.memory.read(self.pc_state.HL));
-                        self.pc_state.Fstatus.status.C = tmp8;
+                        self.pc_state.Fstatus.C = tmp8;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 15;
@@ -631,7 +634,7 @@ class Core(object):
                         self.pc_state[atPC[1] & 0x7] = (self.pc_state[atPC[1] & 0x7] >> 1) & 0x7F;
 
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state[atPC[1] & 0x7]);
-                        self.pc_state.Fstatus.status.C = tmp8 & 0x1;
+                        self.pc_state.Fstatus.C = tmp8 & 0x1;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 8;
@@ -641,7 +644,7 @@ class Core(object):
                         self.memory.write(self.pc_state.HL, (tmp8 >> 1) & 0x7F);
 
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.memory.read(self.pc_state.HL));
-                        self.pc_state.Fstatus.status.C = tmp8 & 0x1;
+                        self.pc_state.Fstatus.C = tmp8 & 0x1;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 15;
@@ -653,7 +656,7 @@ class Core(object):
                 # CALL Z, nn
             elif (op_code == 0xCC):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.Z == 1):
+                if (self.pc_state.Fstatus.Z == 1):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -677,7 +680,7 @@ class Core(object):
 
                 # self.pc_state.ADC nn
             elif (op_code == 0xCE):
-                self.pc_state.A = add8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.status.C);
+                self.pc_state.A = add8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.C);
                 self.pc_state.PC+=2;
                 self.clocks.cycles+=4;
 
@@ -695,7 +698,7 @@ class Core(object):
 
                 # RET NC
             elif (op_code == 0xD0):
-                if (self.pc_state.Fstatus.status.C == 0):
+                if (self.pc_state.Fstatus.C == 0):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -717,7 +720,7 @@ class Core(object):
                 # CALL NC, nn  
             elif (op_code == 0xD4):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.C == 0):
+                if (self.pc_state.Fstatus.C == 0):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -759,7 +762,7 @@ class Core(object):
                 
                 # RET C
             elif (op_code == 0xD8):
-                if (self.pc_state.Fstatus.status.C == 1):
+                if (self.pc_state.Fstatus.C == 1):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -778,7 +781,7 @@ class Core(object):
                 # Call C, nn
             elif (op_code == 0xDC):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.C == 1):
+                if (self.pc_state.Fstatus.C == 1):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -790,7 +793,7 @@ class Core(object):
 
                 # Sself.pc_state.BC n 
             elif (op_code == 0xDE):
-                self.pc_state.A = sub8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.status.C);
+                self.pc_state.A = sub8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.C);
                 self.pc_state.PC+=2;
                 self.clocks.cycles+=7;
 
@@ -808,7 +811,7 @@ class Core(object):
 
                 # RET PO  
             elif (op_code == 0xE0):
-                if (self.pc_state.Fstatus.status.PV == 0):
+                if (self.pc_state.Fstatus.PV == 0):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -831,7 +834,7 @@ class Core(object):
 
                 # JP PO, nn   Parity Odd 
             elif (op_code == 0xE2):
-                if (self.pc_state.Fstatus.status.PV == 0):
+                if (self.pc_state.Fstatus.PV == 0):
                     self.pc_state.PC = self.memory.read16(self.pc_state.PC+1);
                 else:
                     self.pc_state.PC += 3;
@@ -852,7 +855,7 @@ class Core(object):
                 # CALL PO, nn 
             elif (op_code == 0xE4):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.PV == 0):
+                if (self.pc_state.Fstatus.PV == 0):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -887,7 +890,7 @@ class Core(object):
 
                 # RET PE  
             elif (op_code == 0xE8):
-                if (self.pc_state.Fstatus.status.PV == 1):
+                if (self.pc_state.Fstatus.PV == 1):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -905,7 +908,7 @@ class Core(object):
 
                 # JP PE, nn   Parity Even 
             elif (op_code == 0xEA):
-                if (self.pc_state.Fstatus.status.PV == 1):
+                if (self.pc_state.Fstatus.PV == 1):
                     self.pc_state.PC = self.memory.read16(self.pc_state.PC+1);
                 else:
                     self.pc_state.PC += 3;
@@ -923,7 +926,7 @@ class Core(object):
                 # CALL PE, nn
             elif (op_code == 0xEC):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.PV == 1):
+                if (self.pc_state.Fstatus.PV == 1):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -954,7 +957,7 @@ class Core(object):
 
                 # RET P, if Positive
             elif (op_code == 0xF0):
-                if (self.pc_state.Fstatus.status.S == 0):
+                if (self.pc_state.Fstatus.S == 0):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -977,7 +980,7 @@ class Core(object):
 
                 # JP P, nn    if Positive
             elif (op_code == 0xF2):
-                if (self.pc_state.Fstatus.status.S == 0):
+                if (self.pc_state.Fstatus.S == 0):
                     self.pc_state.PC = self.memory.read16(self.pc_state.PC+1);
                 else:
                     self.pc_state.PC += 3;
@@ -996,7 +999,7 @@ class Core(object):
                 # CALL P, nn  if Positive
             elif (op_code == 0xF4):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.S == 0):
+                if (self.pc_state.Fstatus.S == 0):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -1037,7 +1040,7 @@ class Core(object):
 
                 # RET M  if Negative
             elif (op_code == 0xF8):
-                if (self.pc_state.Fstatus.status.S == 1):
+                if (self.pc_state.Fstatus.S == 1):
                     self.pc_state.PCLow  = self.memory.read(self.pc_state.SP);
                     self.pc_state.SP += 1
                     self.pc_state.PCHigh = self.memory.read(self.pc_state.SP);
@@ -1055,7 +1058,7 @@ class Core(object):
 
                 # JP M, nn    if Negative
             elif (op_code == 0xFA):
-                if (self.pc_state.Fstatus.status.S == 1):
+                if (self.pc_state.Fstatus.S == 1):
                     self.pc_state.PC = self.memory.read16(self.pc_state.PC+1);
                 else:
                     self.pc_state.PC += 3;
@@ -1082,7 +1085,7 @@ class Core(object):
                 # CALL M, nn  if Negative
             elif (op_code == 0xFC):
                 self.pc_state.PC += 3;
-                if (self.pc_state.Fstatus.status.S == 1):
+                if (self.pc_state.Fstatus.S == 1):
                     self.pc_state.SP -= 1
                     self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
                     self.pc_state.SP -= 1
@@ -1196,7 +1199,7 @@ class Core(object):
 
                         # self.pc_state.ADC (self.pc_state.IX + d)
                     elif (extended_op_code == 0x8E):
-                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IX + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.status.C);
+                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IX + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.C);
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=19;
 
@@ -1252,11 +1255,11 @@ class Core(object):
 
                         if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.pc_state.IX + d)
                             tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1;
-                            self.pc_state.Fstatus.status.Z = tmp8 ^ 0x1;
-                            self.pc_state.Fstatus.status.PV = flagtables.FlagTables.calculateParity(tmp8);
-                            self.pc_state.Fstatus.status.H = 1;
-                            self.pc_state.Fstatus.status.N = 0;
-                            self.pc_state.Fstatus.status.S = 0;
+                            self.pc_state.Fstatus.Z = tmp8 ^ 0x1;
+                            self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(tmp8);
+                            self.pc_state.Fstatus.H = 1;
+                            self.pc_state.Fstatus.N = 0;
+                            self.pc_state.Fstatus.S = 0;
                         elif ((t8 & 0xC7) == 0x86): # RES b, (self.pc_state.IX + d)
                             tmp8 = tmp8 & ~(0x1 << ((t8 >> 3) & 0x7));
                             self.memory.write(tmp16,tmp8);
@@ -1401,7 +1404,7 @@ class Core(object):
 
                         # self.pc_state.ADC (self.pc_state.IY + d)
                     elif (extended_op_code == 0x8E):
-                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IY + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.status.C);
+                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IY + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.C);
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=19;
 
@@ -1457,11 +1460,11 @@ class Core(object):
 
                         if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.pc_state.IY + d)
                             tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1;
-                            self.pc_state.Fstatus.status.Z = tmp8 ^ 0x1;
-                            self.pc_state.Fstatus.status.PV = flagtables.FlagTables.calculateParity(tmp8);
-                            self.pc_state.Fstatus.status.H = 1;
-                            self.pc_state.Fstatus.status.N = 0;
-                            self.pc_state.Fstatus.status.S = 0;
+                            self.pc_state.Fstatus.Z = tmp8 ^ 0x1;
+                            self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(tmp8);
+                            self.pc_state.Fstatus.H = 1;
+                            self.pc_state.Fstatus.N = 0;
+                            self.pc_state.Fstatus.S = 0;
                         elif ((t8 & 0xC7) == 0x86): # RES b, (self.pc_state.IY + d)
                             tmp8 = tmp8 & ~(0x1 << ((t8 >> 3) & 0x7));
                             self.memory.write(tmp16,tmp8);
@@ -1551,7 +1554,7 @@ class Core(object):
 
                       # Sself.pc_state.BC self.pc_state.HL, self.pc_state.BC
                     elif (extended_op_code == 0x42):
-                        self.pc_state.HL = sub16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.status.C);
+                        self.pc_state.HL = sub16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 15;
@@ -1579,7 +1582,7 @@ class Core(object):
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.BC
                     elif (extended_op_code == 0x4A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.status.C);
+                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=15;
 
@@ -1603,7 +1606,7 @@ class Core(object):
                                 
                       # Sself.pc_state.BC self.pc_state.HL, self.pc_state.DE
                     elif (extended_op_code == 0x52):
-                        self.pc_state.HL = sub16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.status.C);
+                        self.pc_state.HL = sub16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 4;
@@ -1626,21 +1629,21 @@ class Core(object):
                         # LD self.pc_state.A, I
                     elif (extended_op_code == 0x57):
                         self.pc_state.A = self.pc_state.I;
-                        self.pc_state.Fstatus.status.N = 0;
-                        self.pc_state.Fstatus.status.H = 0;
-                        self.pc_state.Fstatus.status.PV = self.pc_state.IFF2;
-                        self.pc_state.Fstatus.status.S = (self.pc_state.A & 0x80) >> 7;
+                        self.pc_state.Fstatus.N = 0;
+                        self.pc_state.Fstatus.H = 0;
+                        self.pc_state.Fstatus.PV = self.pc_state.IFF2;
+                        self.pc_state.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
                         if (self.pc_state.A == 0):
-                            self.pc_state.Fstatus.status.Z = 1
+                            self.pc_state.Fstatus.Z = 1
                         else:
-                            self.pc_state.Fstatus.status.Z = 0
+                            self.pc_state.Fstatus.Z = 0
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 9;
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.DE
                     elif (extended_op_code == 0x5A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.status.C);
+                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=4;
 
@@ -1655,14 +1658,14 @@ class Core(object):
                     elif (extended_op_code == 0x5F):
                         self.pc_state.R =  (self.pc_state.R & 0x80) | ((self.clocks.cycles + self.pc_state.R + 1) & 0x7F);
                         self.pc_state.A = self.pc_state.R;
-                        self.pc_state.Fstatus.status.N = 0;
-                        self.pc_state.Fstatus.status.H = 0;
-                        self.pc_state.Fstatus.status.PV = self.pc_state.IFF2;
-                        self.pc_state.Fstatus.status.S = (self.pc_state.A & 0x80) >> 7;
+                        self.pc_state.Fstatus.N = 0;
+                        self.pc_state.Fstatus.H = 0;
+                        self.pc_state.Fstatus.PV = self.pc_state.IFF2;
+                        self.pc_state.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
                         if (self.pc_state.A == 0):
-                            self.pc_state.Fstatus.status.Z = 1
+                            self.pc_state.Fstatus.Z = 1
                         else:
-                            self.pc_state.Fstatus.status.Z = 0
+                            self.pc_state.Fstatus.Z = 0
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 9;
@@ -1684,16 +1687,16 @@ class Core(object):
                                ((self.memory.read(self.pc_state.HL) >> 4) & 0xF) | 
                                ((tmp8 << 4) & 0xF0));
 
-                        tmp8 = self.pc_state.Fstatus.status.C;
+                        tmp8 = self.pc_state.Fstatus.C;
                         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
-                        self.pc_state.Fstatus.status.C = tmp8;
+                        self.pc_state.Fstatus.C = tmp8;
 
                         self.pc_state.PC+=2;
                         self.clocks.cycles += 18;
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.HL
                     elif (extended_op_code == 0x6A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.HL, self.pc_state.Fstatus.status.C);
+                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.HL, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=4;
 
@@ -1715,7 +1718,7 @@ class Core(object):
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.SP
                     elif (extended_op_code == 0x7A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.SP, self.pc_state.Fstatus.status.C);
+                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.SP, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=15;
 
@@ -1733,11 +1736,11 @@ class Core(object):
                         self.pc_state.HL += 1
                         self.pc_state.BC -= 1
                         if (self.pc_state.BC == 0):
-                            self.pc_state.Fstatus.status.PV = 1
+                            self.pc_state.Fstatus.PV = 1
                         else:
-                            self.pc_state.Fstatus.status.PV = 0
-                        self.pc_state.Fstatus.status.H = 0;
-                        self.pc_state.Fstatus.status.N = 0;
+                            self.pc_state.Fstatus.PV = 0
+                        self.pc_state.Fstatus.H = 0;
+                        self.pc_state.Fstatus.N = 0;
                         self.pc_state.PC += 2;
 
                         self.clocks.cycles += 16;
@@ -1748,9 +1751,9 @@ class Core(object):
                         self.pc_state.HL += 1
                         self.pc_state.BC -= 1
                         if (self.pc_state.BC == 0):
-                            self.pc_state.Fstatus.status.PV = 1
+                            self.pc_state.Fstatus.PV = 1
                         else:
-                            self.pc_state.Fstatus.status.PV = 0
+                            self.pc_state.Fstatus.PV = 0
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 16;
 
@@ -1759,11 +1762,11 @@ class Core(object):
                         self.pc_state.B -= 1
                         self.memory.write(self.pc_state.HL, ports.Ports.portRead(self.pc_state.C));
                         self.pc_state.HL += 1
-                        self.pc_state.Fstatus.status.N = 1;
+                        self.pc_state.Fstatus.N = 1;
                         if (self.pc_state.B == 0):
-                            self.pc_state.Fstatus.status.Z = 1;
+                            self.pc_state.Fstatus.Z = 1;
                         else:
-                            self.pc_state.Fstatus.status.Z = 0;
+                            self.pc_state.Fstatus.Z = 0;
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 16;
@@ -1774,10 +1777,10 @@ class Core(object):
                         ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                         self.pc_state.HL += 1
                         if (self.pc_state.B == 0):
-                            self.pc_state.Fstatus.status.Z = 1
+                            self.pc_state.Fstatus.Z = 1
                         else:
-                            self.pc_state.Fstatus.status.Z = 0
-                        self.pc_state.Fstatus.status.N = 1;
+                            self.pc_state.Fstatus.Z = 0
+                        self.pc_state.Fstatus.N = 1;
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 16;
 
@@ -1787,10 +1790,10 @@ class Core(object):
                         ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                         self.pc_state.HL -= 1
                         if (self.pc_state.B == 0):
-                            self.pc_state.Fstatus.status.Z = 1
+                            self.pc_state.Fstatus.Z = 1
                         else:
-                            self.pc_state.Fstatus.status.Z = 0
-                        self.pc_state.Fstatus.status.N = 1;
+                            self.pc_state.Fstatus.Z = 0
+                        self.pc_state.Fstatus.N = 1;
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 16;
 
@@ -1809,28 +1812,28 @@ class Core(object):
                             self.pc_state.HL += 1
                             self.clocks.cycles += 21;
 
-                        self.pc_state.Fstatus.status.H = 0;
-                        self.pc_state.Fstatus.status.PV = 0;
-                        self.pc_state.Fstatus.status.N = 1; # hmmm, not sure
+                        self.pc_state.Fstatus.H = 0;
+                        self.pc_state.Fstatus.PV = 0;
+                        self.pc_state.Fstatus.N = 1; # hmmm, not sure
                         if (self.pc_state.BC == 0):
-                            self.pc_state.Fstatus.status.N = 0;
+                            self.pc_state.Fstatus.N = 0;
                             self.pc_state.PC += 2;
                             self.clocks.cycles -=5;
 
                         # CPIR
                     elif (extended_op_code == 0xB1):
                         self.pc_state.BC -= 1
-                        tmp8 = self.pc_state.Fstatus.status.C;
+                        tmp8 = self.pc_state.Fstatus.C;
                         self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.memory.read(self.pc_state.HL));
                         self.pc_state.HL += 1
-                        self.pc_state.Fstatus.status.C = tmp8; 
+                        self.pc_state.Fstatus.C = tmp8; 
 
-                        if ((self.pc_state.BC == 0)or(self.pc_state.Fstatus.status.Z == 1)):
-                            self.pc_state.Fstatus.status.PV = 0; 
+                        if ((self.pc_state.BC == 0)or(self.pc_state.Fstatus.Z == 1)):
+                            self.pc_state.Fstatus.PV = 0; 
                             self.pc_state.PC += 2;
                             self.clocks.cycles += 16;
                         else:
-                            self.pc_state.Fstatus.status.PV = 1; 
+                            self.pc_state.Fstatus.PV = 1; 
                             self.clocks.cycles += 21;
 
                         # Should speed this function up a bit
@@ -1839,7 +1842,7 @@ class Core(object):
                     elif (extended_op_code == 0xB3):
                         if (self.pc_state.B >= 8):
                             self.pc_state.B -= 8;
-                            ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL,8), 8);
+                            ports.Ports.portMultiWrite(self.pc_state.C, self.memory.readArray(self.pc_state.HL,8), 8);
                             self.pc_state.HL+= 8;
                             self.clocks.cycles += 168;
                         else:
@@ -1847,13 +1850,13 @@ class Core(object):
                             ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                             self.pc_state.HL += 1
                             self.clocks.cycles += 21;
-                        self.pc_state.Fstatus.status.S = 0; # Unknown
-                        self.pc_state.Fstatus.status.H = 0; # Unknown
-                        self.pc_state.Fstatus.status.PV = 0; # Unknown
-                        self.pc_state.Fstatus.status.N = 1;
-                        self.pc_state.Fstatus.status.Z = 0;
+                        self.pc_state.Fstatus.S = 0; # Unknown
+                        self.pc_state.Fstatus.H = 0; # Unknown
+                        self.pc_state.Fstatus.PV = 0; # Unknown
+                        self.pc_state.Fstatus.N = 1;
+                        self.pc_state.Fstatus.Z = 0;
                         if (self.pc_state.B == 0):
-                            self.pc_state.Fstatus.status.Z = 1;
+                            self.pc_state.Fstatus.Z = 1;
                             self.pc_state.PC += 2;
                             self.clocks.cycles -= 5;
 
@@ -1866,9 +1869,9 @@ class Core(object):
                         if (self.pc_state.BC == 0):
                             self.pc_state.PC += 2;
                             self.clocks.cycles += 16;
-                            self.pc_state.Fstatus.status.N = 0;
-                            self.pc_state.Fstatus.status.H = 0;
-                            self.pc_state.Fstatus.status.PV = 0;
+                            self.pc_state.Fstatus.N = 0;
+                            self.pc_state.Fstatus.H = 0;
+                            self.pc_state.Fstatus.PV = 0;
                         else:
                             self.clocks.cycles += 21;
 

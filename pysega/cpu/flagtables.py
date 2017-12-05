@@ -1,4 +1,4 @@
-
+from . import pc_state
 class FlagTables(object):
     MAXBYTE = 256
 #    _flagTableInc8[MAXBYTE];
@@ -12,14 +12,14 @@ class FlagTables(object):
 
     @staticmethod
     def init():
-      FlagTables._flagTableInc8 = [None] * MAXBYTE
-      FlagTables._flagTableDec8 = [None] * MAXBYTE
+      FlagTables._flagTableInc8 = [None] * FlagTables.MAXBYTE
+      FlagTables._flagTableDec8 = [None] * FlagTables.MAXBYTE
 
-      FlagTables._flagTableOr = [None] * MAXBYTE
-      FlagTables._flagTableAnd = [None] * MAXBYTE
+      FlagTables._flagTableOr = [None] * FlagTables.MAXBYTE
+      FlagTables._flagTableAnd = [None] * FlagTables.MAXBYTE
 
-      FlagTables._flagTableAdd = [[None] * MAXBYTE] * MAXBYTE
-      FlagTables._flagTableSub = [[None] * MAXBYTE] * MAXBYTE
+      FlagTables._flagTableAdd = [[None] * FlagTables.MAXBYTE] * FlagTables.MAXBYTE
+      FlagTables._flagTableSub = [[None] * FlagTables.MAXBYTE] * FlagTables.MAXBYTE
 
       FlagTables._createStatusInc8Table();
       FlagTables._createStatusDec8Table();
@@ -32,51 +32,51 @@ class FlagTables(object):
       status = pc_state.PC_StatusFlags()
       status.value = 0
 
-      status.status.N = 0
-      status.status.C = 0
+      status.N = 0
+      status.C = 0
 
       for i in range(FlagTables.MAXBYTE):
           if (i & 0x80): # Is negative
-            status.status.S  = 1 # Is negative
+            status.S  = 1 # Is negative
           else:
-            status.status.S  = 0 # Is negative
+            status.S  = 0 # Is negative
           if (i==0): # Is zero
-            status.status.Z  = 1 # Is zero
+            status.Z  = 1 # Is zero
           else:
-            status.status.Z  = 0 # Is zero
+            status.Z  = 0 # Is zero
           if ((i & 0xF) == 0): # Half carry 
-            status.status.H  = 1 # Half carry 
+            status.H  = 1 # Half carry 
           else:
-            status.status.H  = 0 # Half carry 
+            status.H  = 0 # Half carry 
           if (i==0x80): # Was 7F
-            status.status.PV = 1 # Was 7F
+            status.PV = 1 # Was 7F
           else:
-            status.status.PV = 0 # Was 7F
+            status.PV = 0 # Was 7F
 
           FlagTables._flagTableInc8[i] = status.value
 
       # Dec 8
       status.value = 0
-      status.status.N = 1
-      status.status.C = 0 # Carry unchanged, set to 0 to allow OR 
+      status.N = 1
+      status.C = 0 # Carry unchanged, set to 0 to allow OR 
 
       for i in range(FlagTables.MAXBYTE):
           if (i & 0x80): # Is negative
-            status.status.S  = 1 # Is negative
+            status.S  = 1 # Is negative
           else:
-            status.status.S  = 0 # Is negative
+            status.S  = 0 # Is negative
           if (i==0): # Is zero
-            status.status.Z  = 1 # Is zero
+            status.Z  = 1 # Is zero
           else:
-            status.status.Z  = 0 # Is zero
+            status.Z  = 0 # Is zero
           if ((i & 0xF) == 0xF): # Half borrow
-            status.status.H  = 1 # Half borrow
+            status.H  = 1 # Half borrow
           else:
-            status.status.H  = 0 # Half borrow
+            status.H  = 0 # Half borrow
           if (i==0x7F): # Was 80 
-            status.status.PV = 1 # Was 80 
+            status.PV = 1 # Was 80 
           else:
-            status.status.PV = 0 # Was 80 
+            status.PV = 0 # Was 80 
 
           FlagTables._flagTableDec8[i] = status.value;
 
@@ -86,26 +86,26 @@ class FlagTables(object):
       status = pc_state.PC_StatusFlags()
       status.value = 0;
   
-      status.status.N = 0;
-      status.status.C = 0;
+      status.N = 0;
+      status.C = 0;
   
       for i in range(FlagTables.MAXBYTE):
           if (i & 0x80): # Is negative
-            status.status.S = 1 # Is negative
+            status.S = 1 # Is negative
           else:
-            status.status.S = 0 # Is negative
+            status.S = 0 # Is negative
           if (i==0): # Is zero
-            status.status.Z  = 1 # Is zero
+            status.Z  = 1 # Is zero
           else:
-            status.status.Z  = 0 # Is zero
+            status.Z  = 0 # Is zero
           if ((i & 0xF) == 0): # Half carry 
-            status.status.H  = 1 # Half carry 
+            status.H  = 1 # Half carry 
           else:
-            status.status.H  = 0 # Half carry 
+            status.H  = 0 # Half carry 
           if (i==0x80): # Was 7F
-            status.status.PV = 1 # Was 7F
+            status.PV = 1 # Was 7F
           else:
-            status.status.PV = 0 # Was 7F
+            status.PV = 0 # Was 7F
   
           FlagTables._flagTableInc8[i] = status.value;
 
@@ -115,26 +115,26 @@ class FlagTables(object):
       status = pc_state.PC_StatusFlags()
       status.value = 0
   
-      status.status.N = 0
-      status.status.C = 0 # Carry unchanged, set to 0 to allow OR 
+      status.N = 0
+      status.C = 0 # Carry unchanged, set to 0 to allow OR 
   
       for i in range(FlagTables.MAXBYTE):
           if (i & 0x80): # Is negative
-            status.status.S  = 1 # Is negative
+            status.S  = 1 # Is negative
           else:
-            status.status.S  = 0 # Is negative
+            status.S  = 0 # Is negative
           if (i==0): # Is zero
-            status.status.Z  = 1 # Is zero
+            status.Z  = 1 # Is zero
           else:
-            status.status.Z  = 0 # Is zero
+            status.Z  = 0 # Is zero
           if ((i & 0xF) == 0xF): # Half borrow
-            status.status.H  = 1 # Half borrow
+            status.H  = 1 # Half borrow
           else:
-            status.status.H  = 0 # Half borrow
+            status.H  = 0 # Half borrow
           if (i==0x7F): # Was 80 
-            status.status.PV = 1 # Was 80 
+            status.PV = 1 # Was 80 
           else:
-            status.status.PV = 0 # Was 80 
+            status.PV = 0 # Was 80 
   
           FlagTables._flagTableDec8[i] = status.value;
 
@@ -147,17 +147,17 @@ class FlagTables(object):
       for i in range(FlagTables.MAXBYTE):
           status.value = 0
   
-          status.status.PV = FlagTables._calculateParity(i)
+          status.PV = FlagTables._calculateParity(i)
 
           if (i == 0): # Zero
-            status.status.Z = 1 # Zero
+            status.Z = 1 # Zero
           else:
-            status.status.Z = 0 # Zero
+            status.Z = 0 # Zero
 
           if (i & 0x80): # Sign
-            status.status.S = 1 # Sign
+            status.S = 1 # Sign
           else:
-            status.status.S = 0 # Sign
+            status.S = 0 # Sign
   
           FlagTables._flagTableOr[i] = status.value;
 
@@ -170,17 +170,17 @@ class FlagTables(object):
       for i in range(FlagTables.MAXBYTE):
           status.value = 0;
   
-          status.status.H = 1;
-          status.status.PV = FlagTables._calculateParity(i);
+          status.H = 1;
+          status.PV = FlagTables._calculateParity(i);
           if (i == 0):
-            status.status.Z = 1 # Zero
+            status.Z = 1 # Zero
           else:
-            status.status.Z = 0 # Zero
+            status.Z = 0 # Zero
 
           if (i & 0x80): # Sign
-            status.status.S = 1 # Sign
+            status.S = 1 # Sign
           else:
-            status.status.S = 0 # Sign
+            status.S = 0 # Sign
   
           FlagTables._flagTableAnd[i] = status.value;
 
@@ -199,28 +199,28 @@ class FlagTables(object):
   
               status.value = 0; 
               if (rc & 0x80):
-                  status.status.S  = 1
+                  status.S  = 1
               else:
-                  status.status.S  = 0
+                  status.S  = 0
               if (rc == 0):    # result zero
-                  status.status.Z  = 1    # result zero
+                  status.Z  = 1    # result zero
               else:
-                  status.status.Z  = 0    # result zero
+                  status.Z  = 0    # result zero
               if (hr & 0x10):
-                  status.status.H  = 1
+                  status.H  = 1
               else:
-                  status.status.H  = 0
+                  status.H  = 0
               if (rc != r):   # overflow
-                  status.status.PV = 1   # overflow
+                  status.PV = 1   # overflow
               else:
-                  status.status.PV = 0   # overflow
-              status.status.N  = 0;
+                  status.PV = 0   # overflow
+              status.N  = 0;
               r  = (i & 0xFF) + (j & 0xFF) # r  = ((char) i & 0xFF) + ((char) j & 0xFF);
               
               if (r & 0x100): #  Not sure about this one
-                  status.status.C  = 1
+                  status.C  = 1
               else:
-                  status.status.C  = 0
+                  status.C  = 0
   
               FlagTables._flagTableAdd[i][j] = status.value;
 
@@ -241,30 +241,30 @@ class FlagTables(object):
                 hr  = (i & 0xF) - (j & 0xF)
                 status.value = 0
                 if (rc & 0x80):
-                    status.status.S  = 1
+                    status.S  = 1
                 else:
-                    status.status.S  = 0
+                    status.S  = 0
 
                 if (r == 0):    # result zero
-                  status.status.Z  = 1    # result zero
+                  status.Z  = 1    # result zero
                 else:
-                  status.status.Z  = 0    # result zero
+                  status.Z  = 0    # result zero
                 if (hr & 0x10):
-                  status.status.H  = 1
+                  status.H  = 1
                 else:
-                  status.status.H  = 0
+                  status.H  = 0
                 if (rc != r):   # overflow
-                  status.status.PV = 1   # overflow
+                  status.PV = 1   # overflow
                 else:
-                  status.status.PV = 0   # overflow
+                  status.PV = 0   # overflow
 
-                status.status.N  = 1
+                status.N  = 1
 
                 r  = (i & 0xFF) - (j & 0xFF) # r  = ((char) i & 0xFF) - ((char) j & 0xFF);
                 if (r & 0x100): # cpu_state->Borrow (?) 
-                  status.status.C  = 1 # cpu_state->Borrow (?) 
+                  status.C  = 1 # cpu_state->Borrow (?) 
                 else:
-                  status.status.C  = 0 # cpu_state->Borrow (?) 
+                  status.C  = 0 # cpu_state->Borrow (?) 
     
                 FlagTables._flagTableSub[i][j] = status.value
 
