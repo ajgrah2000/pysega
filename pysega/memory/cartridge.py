@@ -35,7 +35,13 @@ class GenericCartridge(object):
         pass
 
     def read(self, address):
+        print("cart: %x %x %d %d %d" % (self.current_bank, address, len(self.cartridge_banks), len(self.cartridge_banks[self.current_bank]), self.cartridge_banks[self.current_bank][0x197]))
+        a = self.current_bank
+        b = int(address)
+        print "%x %x"%(a,b)
+        print "Blah", self.cartridge_banks[0][0x197], self.cartridge_banks[0][b]
         data = self.cartridge_banks[self.current_bank][address]
+        print data
         return data
 
     def write(self, address, data):
@@ -61,6 +67,7 @@ class GenericCartridge(object):
                     # If the bank is short, pad it with zeros.
                     bank += bytearray('\000'.encode() * (self.bank_size-bytes_read))
 
+#                bank += bytearray('\000'.encode() * (0x10000))
                 self.max_cartridge[self.num_banks] = bytearray(bank)
 
                 self.num_banks += 1

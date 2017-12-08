@@ -395,6 +395,7 @@ class Core(object):
 
             elif (op_code == 0xCB):
                     extended_op_code = atPC[1] & 0xC7;
+                    print "(Extended) %x"%extended_op_code
 
                     # self.pc_state.Bit b, r
                     if  ((extended_op_code == 0x40) or

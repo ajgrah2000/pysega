@@ -161,56 +161,39 @@ class InstructionStore(object):
  
         self.instruction_lookup[0xE6] = instructions.AND_n(pc_state); # AND n
         self.instruction_lookup[0xFE] = instructions.CP_n(pc_state); # CP n
-# 
-#     DEC_R dec_r;
-#     dec_r.reg8 = 0x05;
+
+        self.instruction_lookup[0x05] = instructions.DEC_r(pc_state, self._reg_wrapper_b); # DEC B
+        self.instruction_lookup[0x0d] = instructions.DEC_r(pc_state, self._reg_wrapper_c); # DEC C
+        self.instruction_lookup[0x15] = instructions.DEC_r(pc_state, self._reg_wrapper_d); # DEC D
+        self.instruction_lookup[0x1d] = instructions.DEC_r(pc_state, self._reg_wrapper_e); # DEC E
+        self.instruction_lookup[0x25] = instructions.DEC_r(pc_state, self._reg_wrapper_h); # DEC H
+        self.instruction_lookup[0x2d] = instructions.DEC_r(pc_state, self._reg_wrapper_l); # DEC L
+        self.instruction_lookup[0x3d] = instructions.DEC_r(pc_state, self._reg_wrapper_a); # DEC A
 # 
 #     LD_R_MEM ld_r_hl;
 #     ld_r_hl.reg8 = 0x46;
+        self.instruction_lookup[0x46] = instructions.LD_r_mem(pc_state, self._reg_wrapper_b, self._reg_wrapper_hl); # LD_r_mem B
+        self.instruction_lookup[0x4e] = instructions.LD_r_mem(pc_state, self._reg_wrapper_c, self._reg_wrapper_hl); # LD_r_mem C
+        self.instruction_lookup[0x56] = instructions.LD_r_mem(pc_state, self._reg_wrapper_d, self._reg_wrapper_hl); # LD_r_mem D
+        self.instruction_lookup[0x5e] = instructions.LD_r_mem(pc_state, self._reg_wrapper_e, self._reg_wrapper_hl); # LD_r_mem E
+        self.instruction_lookup[0x66] = instructions.LD_r_mem(pc_state, self._reg_wrapper_h, self._reg_wrapper_hl); # LD_r_mem H
+        self.instruction_lookup[0x6e] = instructions.LD_r_mem(pc_state, self._reg_wrapper_l, self._reg_wrapper_hl); # LD_r_mem L
+        self.instruction_lookup[0x7e] = instructions.LD_r_mem(pc_state, self._reg_wrapper_a, self._reg_wrapper_hl); # LD_r_mem A
 # 
 #     LD_R_MEM ld_r_n;
 #     ld_r_n.reg8 = 0x06;
-# 
-#     register_lookup_Type::iterator it_r1 = register_lookup.begin();
-#     for (it_r1 = register_lookup.begin();
-#          it_r1 != register_lookup.end();
-#          ++it_r1)
-#     {
-#         dec_r.r = it_r1->first;
-#         ld_r_hl.r = it_r1->first;
-#         ld_r_n.r = it_r1->first;
-#         instructions[dec_r.reg8] = new DEC_r(*(it_r1->second)); // DEC r
-#         instructions[ld_r_hl.reg8] = new LD_r_mem(*(it_r1->second), CPUState::instance()->HL); // LD r, (HL)
-#         instructions[ld_r_n.reg8] = new LD_r(*(it_r1->second)); // LD C, n
-#     }
-# 
-#     // Generate all of the standard register load instructions
-#     //
-#     // LD r, r'
-#     //
-#     LD_Struct ld;
-#     ld.reg8 = 0x40;
-# 
-#     it_r1 = register_lookup.begin();
-#     register_lookup_Type::iterator it_r2 = register_lookup.begin();
-#     for (it_r1 = register_lookup.begin();
-#          it_r1 != register_lookup.end();
-#          ++it_r1)
-#     {
-#         for (it_r2 = register_lookup.begin();
-#              it_r2 != register_lookup.end();
-#              ++it_r2)
-#         {
-#             ld.r1 = it_r1->first;
-#             ld.r2 = it_r2->first;
-# 
-#             int instruction_code = ld.reg8;
-# 
-#             instructions[instruction_code] = new LD_r_r(*(it_r1->second), *(it_r2->second));
-#         }
-#     }
-# 
-# 
+        self.instruction_lookup[0x06] = instructions.LD_r(pc_state, self._reg_wrapper_b); # LD_r B
+        self.instruction_lookup[0x0e] = instructions.LD_r(pc_state, self._reg_wrapper_c); # LD_r C
+        self.instruction_lookup[0x16] = instructions.LD_r(pc_state, self._reg_wrapper_d); # LD_r D
+        self.instruction_lookup[0x1e] = instructions.LD_r(pc_state, self._reg_wrapper_e); # LD_r E
+        self.instruction_lookup[0x26] = instructions.LD_r(pc_state, self._reg_wrapper_h); # LD_r H
+        self.instruction_lookup[0x2e] = instructions.LD_r(pc_state, self._reg_wrapper_l); # LD_r L
+        self.instruction_lookup[0x3e] = instructions.LD_r(pc_state, self._reg_wrapper_a); # LD_r A
+
+        for (i1, r1) in [(0, self._reg_wrapper_b), (1, self._reg_wrapper_c), (2, self._reg_wrapper_d), (3, self._reg_wrapper_e), (4, self._reg_wrapper_h), (5, self._reg_wrapper_l), (7, self._reg_wrapper_a)]:
+          for (i2, r2) in [(0, self._reg_wrapper_b), (1, self._reg_wrapper_c), (2, self._reg_wrapper_d), (3, self._reg_wrapper_e), (4, self._reg_wrapper_h), (5, self._reg_wrapper_l), (7, self._reg_wrapper_a)]:
+            self.instruction_lookup[0x40 + i1 + (i2 * 8)] = instructions.LD_r_r(pc_state, r1, r2) 
+
 #     instructions[0xC9] = new RET(); // RET
 # 
 #     initialiseExtendedFD();

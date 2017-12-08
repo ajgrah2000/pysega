@@ -195,6 +195,9 @@ void InstructionStore::initialise()
         instructions[dec_r.reg8] = new DEC_r(*(it_r1->second)); // DEC r
         instructions[ld_r_hl.reg8] = new LD_r_mem(*(it_r1->second), CPUState::instance()->HL); // LD r, (HL)
         instructions[ld_r_n.reg8] = new LD_r(*(it_r1->second)); // LD C, n
+        std::cout << "Store: " << std::hex << (int) dec_r.reg8 << 
+                     " " << (int) ld_r_hl.reg8 << 
+                     " " << (int) ld_r_n.reg8 << std::endl;
     }
 
     // Generate all of the standard register load instructions
@@ -220,6 +223,7 @@ void InstructionStore::initialise()
             int instruction_code = ld.reg8;
 
             instructions[instruction_code] = new LD_r_r(*(it_r1->second), *(it_r2->second));
+        std::cout << "Store: " << std::hex << (int) instruction_code << std::endl;
         }
     }
 

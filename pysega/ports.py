@@ -1,7 +1,8 @@
 class Ports(object):
     @staticmethod
     def portRead(byte_address):
-        pass
+        print "portRead not implemented."
+        return 0
 
     @staticmethod
     def portWrite(byte_address, value):

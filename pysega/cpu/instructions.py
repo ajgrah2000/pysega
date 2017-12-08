@@ -448,7 +448,7 @@ class LD_r_r(Instruction):
 
     # Load any register to any other register.
     def execute(self, memory):
-      dst = src;
+      self.dst = self.src;
       self.pc_state.PC += 1;
 
       return 4;
