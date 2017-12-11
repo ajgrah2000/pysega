@@ -290,7 +290,7 @@ class FlagTables(object):
 
     @staticmethod
     def getStatusSub(value1, value2):
-      return FlagTables._flagTableSub[value1][value2]
+      return FlagTables._flagTableSub[int(value1)][int(value2)]
 
     # Determine the parity flag (even = 1, odd = 0)
     @staticmethod

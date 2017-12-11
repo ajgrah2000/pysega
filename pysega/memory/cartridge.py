@@ -7,6 +7,7 @@ class GenericCartridge(object):
     NUM_RAM_PAGES = 2
     BANK_SIZE     = 0x4000
     MAX_BANKS     = 64;
+    LOWERMASK  = 0x03FFF
 
     def __init__(self, 
                  file_name, 
@@ -35,13 +36,7 @@ class GenericCartridge(object):
         pass
 
     def read(self, address):
-        print("cart: %x %x %d %d %d" % (self.current_bank, address, len(self.cartridge_banks), len(self.cartridge_banks[self.current_bank]), self.cartridge_banks[self.current_bank][0x197]))
-        a = self.current_bank
-        b = int(address)
-        print "%x %x"%(a,b)
-        print "Blah", self.cartridge_banks[0][0x197], self.cartridge_banks[0][b]
-        data = self.cartridge_banks[self.current_bank][address]
-        print data
+        data = self.cartridge_banks[self.current_bank][address & GenericCartridge.LOWERMASK]
         return data
 
     def write(self, address, data):
@@ -76,7 +71,7 @@ class GenericCartridge(object):
             self.cartridge_banks = [[]] * self.num_banks
 
             for i in range(self.num_banks):
-              self.cartridge_banks[i] = self.max_cartridge[i]
+              self.cartridge_banks[i] = [x for x in self.max_cartridge[i]]
 
             # Set default bank
             self.current_bank = 0

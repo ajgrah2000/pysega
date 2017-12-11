@@ -8,10 +8,13 @@ class RegWrapperGeneric(RegWrapper):
         super(RegWrapperGeneric, self).__init__(pc_state)
         self._reg_string = reg_string
 
+    def __int__(self):
+        return self.get()
+
     def set(self, value):
         self.pc_state.__setattr__(self._reg_string, value)
 
-    def get(self, value):
+    def get(self):
         return self.pc_state.__getattribute__(self._reg_string)
 
 class RegWrapper_A(RegWrapperGeneric):

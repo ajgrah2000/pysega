@@ -72,4 +72,8 @@ class VDP(object):
         print("getNextInterupt Not implemented")
         return 0
 
+    def pollInterupts(self, cycles):
+        print("pollInteruptsNot implemented")
+        return True
+
 

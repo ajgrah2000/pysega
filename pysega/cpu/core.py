@@ -39,9 +39,12 @@ class Core(object):
     def initialise(self):
         self.instruction_lookup.populate_instruction_map(self.clocks, self.pc_state, self.memory)
 
-    def step(self):
+    def interupt(self):
+        print "interupt not implemented"
+        pass
+
+    def step(self, loop=True):
      op_code = self.memory.read(self.pc_state.PC)
-     loop = True
     
 #    static uint16 tmp16;
 #    static uint8 tmp8, t8;
@@ -1072,15 +1075,15 @@ class Core(object):
                 self.pc_state.PC += 1
 
                 # Process next instruction before enabling interupts
-                step(false); # Single step, no loop
+                self.step(False); # Single step, no loop
 
                 self.pc_state.IFF1 = 1;
                 self.pc_state.IFF2 = 1;
                 self.clocks.cycles+=4;
 
                   # Check for any pending interupts
-                if (self.interuptor.pollInterupts(self.clocks.cycles) == true):
-                    interupt();
+                if (self.interuptor.pollInterupts(self.clocks.cycles) == True):
+                    self.interupt()
 
 
                 # CALL M, nn  if Negative

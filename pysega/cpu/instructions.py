@@ -171,7 +171,7 @@ class CP_r(Instruction_r):
         self.r = r
 
     def execute(self, memory):
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,r);
+        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.r);
         self.pc_state.PC += 1
     
         return 4;

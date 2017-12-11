@@ -41,7 +41,12 @@ class PC_State(object):
     """
     eight_bit_registers = ['A', 'B', 'C', 'D', 'E', 'HLHigh', 'HLLow', 'F', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow']
 
+    sixteen_bit_shadow_registers = ['BC_', 'DE_', 'HL_', 'AF_']
+
     sixteen_bit_registers = ['PC', 'SP', 'IX', 'IY', 'HL']
+
+    sixteen_bit_split_registers = ['BC', 'DE', 'AF']
+
     def __init__(self):
 
         self.Fstatus =  PC_StatusFlags()
@@ -51,6 +56,12 @@ class PC_State(object):
             super(PC_State, self).__setattr__(name, 0)
 
         for name in PC_State.sixteen_bit_registers:
+            super(PC_State, self).__setattr__(name, 0)
+
+        for name in PC_State.sixteen_bit_split_registers:
+            super(PC_State, self).__setattr__(name, 0)
+
+        for name in PC_State.sixteen_bit_shadow_registers:
             super(PC_State, self).__setattr__(name, 0)
 
         self.I      = 0
@@ -112,6 +123,10 @@ class PC_State(object):
             return super(PC_State, self).__getattribute__(name) & 0xFF
         elif name in PC_State.sixteen_bit_registers:
             return super(PC_State, self).__getattribute__("%sHigh"%(name)) * 256 + super(PC_State, self).__getattribute__("%sLow"%(name))
+        elif name in PC_State.sixteen_bit_split_registers:
+            return super(PC_State, self).__getattribute__(name[0]) * 256 + super(PC_State, self).__getattribute__(name[1])
+        elif name in PC_State.sixteen_bit_shadow_registers:
+            return super(PC_State, self).__getattribute__(name)
         else:
             return super(PC_State, self).__getattribute__(name)
 
@@ -121,6 +136,11 @@ class PC_State(object):
         elif name in PC_State.sixteen_bit_registers:
             super(PC_State, self).__setattr__("%sHigh"%(name), value/256 & 0xFF)
             super(PC_State, self).__setattr__("%sLow"%(name),  value % 256)
+        elif name in PC_State.sixteen_bit_split_registers:
+            super(PC_State, self).__setattr__(name[0], value/256 & 0xFF)
+            super(PC_State, self).__setattr__(name[1],  value % 256)
+        elif name in PC_State.sixteen_bit_shadow_registers:
+            super(PC_State, self).__setattr__(name, value)
         else:
             super(PC_State, self).__setattr__(name, value)
 
