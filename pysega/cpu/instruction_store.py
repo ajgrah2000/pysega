@@ -192,7 +192,7 @@ class InstructionStore(object):
 
         for (i1, r1) in [(0, self._reg_wrapper_b), (1, self._reg_wrapper_c), (2, self._reg_wrapper_d), (3, self._reg_wrapper_e), (4, self._reg_wrapper_h), (5, self._reg_wrapper_l), (7, self._reg_wrapper_a)]:
           for (i2, r2) in [(0, self._reg_wrapper_b), (1, self._reg_wrapper_c), (2, self._reg_wrapper_d), (3, self._reg_wrapper_e), (4, self._reg_wrapper_h), (5, self._reg_wrapper_l), (7, self._reg_wrapper_a)]:
-            self.instruction_lookup[0x40 + i1 + (i2 * 8)] = instructions.LD_r_r(pc_state, r1, r2) 
+            self.instruction_lookup[0x40 + i1 + (i2 * 8)] = instructions.LD_r_r(pc_state, r2, r1) 
 
 #     instructions[0xC9] = new RET(); // RET
 # 

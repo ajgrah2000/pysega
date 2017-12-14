@@ -11,6 +11,13 @@ class RegWrapperGeneric(RegWrapper):
     def __int__(self):
         return self.get()
 
+    def __add__(self, value):
+        self.set(self.get() + value)
+        return self
+
+    def __and__(self, value):
+        return self.get() & value
+
     def set(self, value):
         self.pc_state.__setattr__(self._reg_string, value)
 

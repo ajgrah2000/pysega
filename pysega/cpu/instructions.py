@@ -243,7 +243,7 @@ class INC_r(Instruction_r):
         self.r = r
 
     def execute(self, memory):
-        r += 1
+        self.r += 1
         self.pc_state.F = (self.pc_state.F & FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(r);
         self.pc_state.PC += 1
     
@@ -282,7 +282,7 @@ class DEC_r(Instruction_r):
         self.r = r
 
     def execute(self, memory):
-        r -= 1;
+        self.r -= 1;
         self.pc_state.F = (self.pc_state.F & FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(r);
         self.pc_state.PC += 1
     
@@ -448,7 +448,7 @@ class LD_r_r(Instruction):
 
     # Load any register to any other register.
     def execute(self, memory):
-      self.dst = self.src;
+      self.dst.set(self.src);
       self.pc_state.PC += 1;
 
       return 4;
@@ -494,7 +494,7 @@ class LD_r_mem (Instruction):
 
     # Load the value at the address into a register.
     def execute(self, memory):
-      r = memory.read(addr);
+      self.r.set(memory.read(addr));
       self.pc_state.PC += 1;
       return 7;
 
@@ -508,7 +508,7 @@ class LD_r16_mem(Instruction):
 
     # Load the value at the address into a register.
     def execute(self, memory):
-      r = memory.read16(memory.read16(self.pc_state.PC+1));
+      self.r.set(memory.read16(memory.read16(self.pc_state.PC+1)));
       self.pc_state.PC += 3;
 
       return 20;
@@ -523,7 +523,7 @@ class LD_r8_mem(Instruction):
 
     # Load the value at the address into a register.
     def execute(self, memory):
-      r = memory.read(memory.read16(self.pc_state.PC+1));
+      self.r.set(memory.read(memory.read16(self.pc_state.PC+1)));
       self.pc_state.PC += 3;
 
       return 13;
@@ -536,6 +536,6 @@ class LD_r(Instruction_r):
 
     def execute(self, memory):
       # This can be optimised.
-      r = memory.read(self.pc_state.PC + 1);
+      self.r.set(memory.read(self.pc_state.PC + 1));
       self.pc_state.PC += 2;
       return 7;

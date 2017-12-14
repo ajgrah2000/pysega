@@ -56,7 +56,8 @@ int Z80core::step(bool loop)
     }
 
     atPC = memory->readMulti(cpu_state->PC);
-    std::cout << std::hex << (int) atPC[0] << " " << (int) cpu_state->PC << std::endl;
+    std::cout << std::hex << (int) atPC[0] << " " << (int) cpu_state->PC << " (" << (int) atPC[0] << ") ";
+    cpu_state->printState();
 
     InstructionInterface *instruction = 
             InstructionStore::instance()->getInstruction(atPC);
