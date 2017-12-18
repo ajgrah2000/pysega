@@ -39,13 +39,13 @@ class PC_StatusFlags(object):
 class PC_State(object):
     """ Initially, an ineficient but convinient representation of PC State.
     """
-    eight_bit_registers = ['A', 'B', 'C', 'D', 'E', 'HLHigh', 'HLLow', 'F', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow']
+    eight_bit_registers = ['A', 'B', 'C', 'D', 'E', 'H', 'L', 'F', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow']
 
     sixteen_bit_shadow_registers = ['BC_', 'DE_', 'HL_', 'AF_']
 
-    sixteen_bit_registers = ['PC', 'SP', 'IX', 'IY', 'HL']
+    sixteen_bit_registers = ['PC', 'SP', 'IX', 'IY']
 
-    sixteen_bit_split_registers = ['BC', 'DE', 'AF']
+    sixteen_bit_split_registers = ['BC', 'DE', 'AF', 'HL']
 
     def __init__(self):
 
@@ -145,5 +145,5 @@ class PC_State(object):
             super(PC_State, self).__setattr__(name, value)
 
     def __str__(self):
-        return "A:%x SP:%x B:%x C:%x D:%x E:%x HLHigh:%x HLLow:%x F:%x PCHigh:%x PCLow:%x SPHigh:%x SPLow:%x IXHigh:%x IXLow:%x IYHigh:%x IYLow:%x %s"%(self.A, self.SP, self.B,self.C,self.D,self.E,self.HLHigh,self.HLLow,self.F,self.PCHigh,self.PCLow,self.SPHigh,self.SPLow,self.IXHigh,self.IXLow,self.IYHigh,self.IYLow, self._F)
+        return "A:%x SP:%x B:%x C:%x D:%x E:%x H:%x L:%x F:%x PCHigh:%x PCLow:%x SPHigh:%x SPLow:%x IXHigh:%x IXLow:%x IYHigh:%x IYLow:%x %s"%(self.A, self.SP, self.B,self.C,self.D,self.E,self.H,self.L,self.Fstatus.value,self.PCHigh,self.PCLow,self.SPHigh,self.SPLow,self.IXHigh,self.IXLow,self.IYHigh,self.IYLow, self.Fstatus)
 

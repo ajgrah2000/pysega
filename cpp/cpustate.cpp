@@ -57,9 +57,9 @@ void CPUState::printState(void)
     std::cout << " C:" << (int) C;
     std::cout << " D:" << (int) D;
     std::cout << " E:" << (int) E;
-    std::cout << " HLHigh:" << (int) H;
-    std::cout << " HLLow:" << (int) L;
-    std::cout << " F:";
+    std::cout << " H:" << (int) H;
+    std::cout << " L:" << (int) L;
+    std::cout << " F:" << (int) (Fstatus.value);
     std::cout << " PCHigh:" << (int) ((PC >> 8) & 0xFF);
     std::cout << " PCLow:"  << (int) ((PC) & 0xFF);
     std::cout << " SPHigh:" << (int) ((SP >> 8) & 0xFF);
@@ -68,6 +68,15 @@ void CPUState::printState(void)
     std::cout << " IXLow:"  << (int) (IX & 0xFF);
     std::cout << " IYHigh:" << (int) ((IY >> 8) & 0xFF);
     std::cout << " IYLow:"  << (int) (IY & 0xFF);
+    std::cout <<  " (C:" << (int) (Fstatus.status.C);
+    std::cout <<  " N:" << (int)  (Fstatus.status.N);
+    std::cout <<  " PV:" << (int)  (Fstatus.status.PV);
+    std::cout <<  " X1:" << (int)  (Fstatus.status.X1);
+    std::cout <<  " H:" << (int)  (Fstatus.status.H);
+    std::cout <<  " X2:" << (int)  (Fstatus.status.X2);
+    std::cout <<  " Z:" << (int)  (Fstatus.status.Z);
+    std::cout <<  " S:" << (int)  (Fstatus.status.S);
+    std::cout <<  ")";
     std::cout << std::endl;
 //       std::cout << "(C:0 N:0 PV:0 X1:0 H:0 X2:0 Z:0 S:0)
 

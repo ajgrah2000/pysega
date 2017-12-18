@@ -15,6 +15,10 @@ class RegWrapperGeneric(RegWrapper):
         self.set(self.get() + value)
         return self
 
+    def __sub__(self, value):
+        self.set(self.get() - value)
+        return self
+
     def __and__(self, value):
         return self.get() & value
 

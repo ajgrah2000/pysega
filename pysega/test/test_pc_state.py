@@ -9,9 +9,9 @@ class TestPC_State(unittest.TestCase):
         p.A = p.A + 1
         p.A = p.A + 255
         self.assertEqual(p.A, 1)
-        p.HLHigh = p.HLHigh + 1
-        p.HLHigh = p.HLHigh + 257
-        self.assertEqual(p.HLHigh, 2)
+        p.H = p.H + 1
+        p.H = p.H + 257
+        self.assertEqual(p.H, 2)
         self.assertEqual(p.HL, 512)
         self.assertEqual(p.IX, 0)
         p.IX = 259

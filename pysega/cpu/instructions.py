@@ -72,9 +72,9 @@ class RRCA(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.Fstatus.status.C = self.pc_state.A & 0x1;
-        self.pc_state.Fstatus.status.HLHigh = 0;
-        self.pc_state.Fstatus.status.N = 0;
+        self.pc_state.Fstatus.C = self.pc_state.A & 0x1;
+        self.pc_state.Fstatus.H = 0;
+        self.pc_state.Fstatus.N = 0;
         self.pc_state.A = (self.pc_state.A >> 1) | ((self.pc_state.A & 0x1) << 7);
         self.pc_state.PC += 1
 
@@ -184,7 +184,7 @@ class JRZe(Instruction):
     def execute(self, memory):
         cycles = 7
     
-        if (self.pc_state.Fstatus.status.Z == 1):
+        if (self.pc_state.Fstatus.Z == 1):
             atPC = memory.readMulti(self.pc_state.PC);
             self.pc_state.PC += atPC[1] & 0xFF #(int) (signed char) atPC[1]; 
             cycles+=5;
@@ -199,7 +199,7 @@ class JPNC(Instruction):
 
     # JP NC, e
     def execute(self, memory):
-         if (self.pc_state.Fstatus.status.C == 0):
+         if (self.pc_state.Fstatus.C == 0):
              self.pc_state.PC = memory.read16(self.pc_state.PC+1);
          else:
              self.pc_state.PC += 3;
@@ -213,7 +213,7 @@ class JPCnn(Instruction):
 
     # JP C, nn
     def execute(self, memory):
-         if (self.pc_state.Fstatus.status.C == 1):
+         if (self.pc_state.Fstatus.C == 1):
              self.pc_state.PC = memory.read16(self.pc_state.PC+1);
          else:
              self.pc_state.PC += 3;
@@ -228,7 +228,7 @@ class JRNZe(Instruction):
     def execute(self, memory):
         cycles = 7;
     
-        if (self.pc_state.Fstatus.status.Z == 0):
+        if (self.pc_state.Fstatus.Z == 0):
             atPC = memory.readMulti(self.pc_state.PC);
             self.pc_state.PC += atPC[1] & 0xFF # (int) (signed char) atPC[1]; 
             cycles+=5;
@@ -244,7 +244,7 @@ class INC_r(Instruction_r):
 
     def execute(self, memory):
         self.r += 1
-        self.pc_state.F = (self.pc_state.F & FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(r);
+        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(self.r.get());
         self.pc_state.PC += 1
     
         return 4;
@@ -283,7 +283,7 @@ class DEC_r(Instruction_r):
 
     def execute(self, memory):
         self.r -= 1;
-        self.pc_state.F = (self.pc_state.F & FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(r);
+        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(self.r.get());
         self.pc_state.PC += 1
     
         return 4;
@@ -306,7 +306,7 @@ class INC_HL(Instruction):
     # INC (self.pc_state.HL)
     def execute(self, memory):
         memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) + 1);
-        self.pc_state.F = (self.pc_state.F & FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(memory.read(self.pc_state.HL));
+        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(memory.read(self.pc_state.HL));
         self.pc_state.PC  += 1
         return 11;
 
@@ -316,7 +316,7 @@ class DEC_HL(Instruction):
 
     def execute(self, memory):
         memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) - 1)
-        self.pc_state.F = (self.pc_state.F & FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(memory.read(self.pc_state.HL));
+        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(memory.read(self.pc_state.HL));
         self.pc_state.PC  += 1
         return 11;
 
@@ -330,7 +330,11 @@ class DJNZ(Instruction):
     
         self.pc_state.B -= 1;
         if (self.pc_state.B != 0):
-            self.pc_state.PC += memory.read(self.pc_state.PC + 1) #(int) (signed char) memory.read(self.pc_state.PC + 1);
+            tmp8 = memory.read(self.pc_state.PC + 1) #(int) (signed char) memory.read(self.pc_state.PC + 1);
+            if (tmp8 & 0x80):
+              self.pc_state.PC += memory.read(self.pc_state.PC + 1) + 0xFF00 #(int) (signed char) memory.read(self.pc_state.PC + 1);
+            else:
+              self.pc_state.PC += memory.read(self.pc_state.PC + 1) #(int) (signed char) memory.read(self.pc_state.PC + 1);
             cycles += 5
     
         self.pc_state.PC += 2
@@ -369,16 +373,16 @@ class ADD16(Instruction):
     
         r = (dst & 0xFFF) + (add & 0xFFF);
         if (r & 0x1000): # Half carry
-          self.pc_state.Fstatus.status.HLHigh = 1 # Half carry
+          self.pc_state.Fstatus.H = 1 # Half carry
         else:
-          self.pc_state.Fstatus.status.HLHigh = 0 # Half carry
-        self.pc_state.Fstatus.status.N = 0;
+          self.pc_state.Fstatus.H = 0 # Half carry
+        self.pc_state.Fstatus.N = 0;
     
         r = (dst & 0xFFFF) + (add & 0xFFFF);
         if (r & 0x10000): # Carry
-          self.pc_state.Fstatus.status.C = 1 # Carry
+          self.pc_state.Fstatus.C = 1 # Carry
         else:
-          self.pc_state.Fstatus.status.C = 0 # Carry
+          self.pc_state.Fstatus.C = 0 # Carry
     
         dst += add;
     
@@ -403,9 +407,9 @@ class RLCA(Instruction):
 
     def execute(self, memory):
         self.pc_state.A = (self.pc_state.A << 1) | ((self.pc_state.A >> 7) & 0x1);
-        self.pc_state.Fstatus.status.C = self.pc_state.A & 0x1;
-        self.pc_state.Fstatus.status.N = 0;
-        self.pc_state.Fstatus.status.HLHigh = 0;
+        self.pc_state.Fstatus.C = self.pc_state.A & 0x1;
+        self.pc_state.Fstatus.N = 0;
+        self.pc_state.Fstatus.H = 0;
         self.pc_state.PC += 1
         return 4;
 
