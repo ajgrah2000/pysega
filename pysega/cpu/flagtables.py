@@ -18,8 +18,8 @@ class FlagTables(object):
       FlagTables._flagTableOr = [None] * FlagTables.MAXBYTE
       FlagTables._flagTableAnd = [None] * FlagTables.MAXBYTE
 
-      FlagTables._flagTableAdd = [[None] * FlagTables.MAXBYTE] * FlagTables.MAXBYTE
-      FlagTables._flagTableSub = [[None] * FlagTables.MAXBYTE] * FlagTables.MAXBYTE
+      FlagTables._flagTableAdd = [[None for i in range(FlagTables.MAXBYTE)] for j in range(FlagTables.MAXBYTE)]
+      FlagTables._flagTableSub = [[None for i in range(FlagTables.MAXBYTE)] for j in range(FlagTables.MAXBYTE)]
 
       FlagTables._createStatusInc8Table();
       FlagTables._createStatusDec8Table();

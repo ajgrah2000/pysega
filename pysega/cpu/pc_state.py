@@ -119,7 +119,9 @@ class PC_State(object):
         pass
 
     def __getattribute__(self, name):
-        if name in PC_State.eight_bit_registers:
+        if name == 'F':
+            return self.Fstatus.value
+        elif name in PC_State.eight_bit_registers:
             return super(PC_State, self).__getattribute__(name) & 0xFF
         elif name in PC_State.sixteen_bit_registers:
             return super(PC_State, self).__getattribute__("%sHigh"%(name)) * 256 + super(PC_State, self).__getattribute__("%sLow"%(name))
@@ -131,7 +133,9 @@ class PC_State(object):
             return super(PC_State, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
-        if name in self.eight_bit_registers:
+        if name == 'F':
+            self.Fstatus.value = value & 0xFF
+        elif name in self.eight_bit_registers:
             super(PC_State, self).__setattr__(name, value & 0xFF)
         elif name in PC_State.sixteen_bit_registers:
             super(PC_State, self).__setattr__("%sHigh"%(name), value/256 & 0xFF)
