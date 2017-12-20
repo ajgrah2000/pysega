@@ -2,6 +2,12 @@ import ctypes
 import flagtables
 import addressing
 
+def signed_char_to_int(value):
+    result = value
+    if (value & 0x80):
+        result = value + 0xFF00
+    return result
+
 class Instruction(object):
     FLAG_MASK_INC8 = 0x01; # Bits to leave unchanged
     FLAG_MASK_DEC8 = 0x01; # Bits to leave unchanged
@@ -186,7 +192,7 @@ class JRZe(Instruction):
     
         if (self.pc_state.Fstatus.Z == 1):
             atPC = memory.readMulti(self.pc_state.PC);
-            self.pc_state.PC += atPC[1] & 0xFF #(int) (signed char) atPC[1]; 
+            self.pc_state.PC += signed_char_to_int(atPC[1] & 0xFF) #(int) (signed char) atPC[1]; 
             cycles+=5;
 
         self.pc_state.PC += 2;
@@ -230,7 +236,7 @@ class JRNZe(Instruction):
     
         if (self.pc_state.Fstatus.Z == 0):
             atPC = memory.readMulti(self.pc_state.PC);
-            self.pc_state.PC += atPC[1] & 0xFF # (int) (signed char) atPC[1]; 
+            self.pc_state.PC += signed_char_to_int(atPC[1] & 0xFF) # (int) (signed char) atPC[1]; 
             cycles+=5;
     
         self.pc_state.PC += 2;
@@ -330,11 +336,8 @@ class DJNZ(Instruction):
     
         self.pc_state.B -= 1;
         if (self.pc_state.B != 0):
-            tmp8 = memory.read(self.pc_state.PC + 1) #(int) (signed char) memory.read(self.pc_state.PC + 1);
-            if (tmp8 & 0x80):
-              self.pc_state.PC += memory.read(self.pc_state.PC + 1) + 0xFF00 #(int) (signed char) memory.read(self.pc_state.PC + 1);
-            else:
-              self.pc_state.PC += memory.read(self.pc_state.PC + 1) #(int) (signed char) memory.read(self.pc_state.PC + 1);
+
+            self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC + 1)) #(int) (signed char) memory.read(self.pc_state.PC + 1);
             cycles += 5
     
         self.pc_state.PC += 2
