@@ -1,4 +1,11 @@
 from . import pc_state
+
+def signed_char_to_int(value):
+    result = value
+    if (value & 0x80):
+        result = value + 0xFF00
+    return result
+
 class FlagTables(object):
     MAXBYTE = 256
 #    _flagTableInc8[MAXBYTE];
@@ -236,9 +243,10 @@ class FlagTables(object):
     
         for i in range(FlagTables.MAXBYTE):
             for j in range(FlagTables.MAXBYTE):
-                r  = (i & 0xFF) - (j & 0xFF) #r  = (char) i - (char) j;
-                rc = ((i & 0xFF) - (j & 0xFF)) & 0xFF # rc = (char) i - (char) j;
+                r  = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFFFF#r  = (char) i - (char) j;
+                rc = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFF # rc = (char) i - (char) j;
                 hr  = (i & 0xF) - (j & 0xF)
+                print "%x %x %x %x"%(r, rc, i, j)
                 status.value = 0
                 if (rc & 0x80):
                     status.S  = 1
@@ -253,10 +261,21 @@ class FlagTables(object):
                   status.H  = 1
                 else:
                   status.H  = 0
-                if (rc != r):   # overflow
-                  status.PV = 1   # overflow
-                else:
-                  status.PV = 0   # overflow
+
+#                if (rc != r):   # overflow
+#                  status.PV = 1   # overflow
+#                else:
+#                  status.PV = 0   
+
+                # overflow
+                status.PV = 0
+                if ((i < 0) and (j > 0)):
+                    if (j >= (0x80 - (i ^ 0xff))):
+                        status.PV = 1
+
+                if ((i >= 0) and (j < 0)):
+                    if ((i + 1) >= (((0x80 - (j ^ 0xff))) & 0xFF)):
+                        status.PV = 1
 
                 status.N  = 1
 

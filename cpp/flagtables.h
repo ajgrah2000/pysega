@@ -35,5 +35,6 @@ class FlagTables
 
             static unsigned char flagTableAdd[MAXBYTE][MAXBYTE];
             static unsigned char flagTableSub[MAXBYTE][MAXBYTE];
+            static bool initialised;
 };
 #endif

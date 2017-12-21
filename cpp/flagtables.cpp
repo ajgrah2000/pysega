@@ -1,4 +1,5 @@
 #include "flagtables.h"
+#include <iostream>
 
 unsigned char FlagTables::flagTableInc8[MAXBYTE];
 unsigned char FlagTables::flagTableDec8[MAXBYTE];
@@ -9,45 +10,51 @@ unsigned char FlagTables::flagTableAnd[MAXBYTE];
 unsigned char FlagTables::flagTableAdd[MAXBYTE][MAXBYTE];
 unsigned char FlagTables::flagTableSub[MAXBYTE][MAXBYTE];
 
+bool FlagTables::initialised = false;
+
 void FlagTables::init()
 {
-    createStatusInc8Table();
-    createStatusDec8Table();
-    createStatusOrTable();
-    createStatusAndTable();
-    createStatusAddTable();
-    createStatusSubTable();
-
-    // Inc 8
-    Status status;
-    status.value = 0;
-
-    status.status.N = 0;
-    status.status.C = 0;
-
-    for (unsigned int i =0; i < MAXBYTE; i++)
+    if (false == initialised)
     {
-        status.status.S  = (i & 0x80) ? 1:0; // Is negative
-        status.status.Z  = (i==0) ? 1:0; // Is zero
-        status.status.H  = ((i & 0xF) == 0) ? 1:0; // Half carry 
-        status.status.PV = (i==0x80) ? 1:0; // Was 7F
+        createStatusInc8Table();
+        createStatusDec8Table();
+        createStatusOrTable();
+        createStatusAndTable();
+        createStatusAddTable();
+        createStatusSubTable();
 
-        flagTableInc8[i] = status.value;
-    }
+        // Inc 8
+        Status status;
+        status.value = 0;
 
-    // Dec 8
-    status.value = 0;
-    status.status.N = 1;
-    status.status.C = 0; // Carry unchanged, set to 0 to allow OR 
+        status.status.N = 0;
+        status.status.C = 0;
 
-    for (unsigned int i =0; i < MAXBYTE; i++)
-    {
-        status.status.S  = (i & 0x80) ? 1:0; // Is negative
-        status.status.Z  = (i==0) ? 1:0; // Is zero
-        status.status.H  = ((i & 0xF) == 0xF) ? 1:0; // Half borrow
-        status.status.PV = (i==0x7F) ? 1:0; // Was 80 
+        for (unsigned int i =0; i < MAXBYTE; i++)
+        {
+            status.status.S  = (i & 0x80) ? 1:0; // Is negative
+            status.status.Z  = (i==0) ? 1:0; // Is zero
+            status.status.H  = ((i & 0xF) == 0) ? 1:0; // Half carry 
+            status.status.PV = (i==0x80) ? 1:0; // Was 7F
 
-        flagTableDec8[i] = status.value;
+            flagTableInc8[i] = status.value;
+        }
+
+        // Dec 8
+        status.value = 0;
+        status.status.N = 1;
+        status.status.C = 0; // Carry unchanged, set to 0 to allow OR 
+
+        for (unsigned int i =0; i < MAXBYTE; i++)
+        {
+            status.status.S  = (i & 0x80) ? 1:0; // Is negative
+            status.status.Z  = (i==0) ? 1:0; // Is zero
+            status.status.H  = ((i & 0xF) == 0xF) ? 1:0; // Half borrow
+            status.status.PV = (i==0x7F) ? 1:0; // Was 80 
+
+            flagTableDec8[i] = status.value;
+        }
+        initialised = true;
     }
 }
 
@@ -171,6 +178,7 @@ void FlagTables::createStatusSubTable(void)
     {
         for (unsigned int j = 0; j < MAXBYTE; j++)
         {
+            unsigned int t = 0;
             r  = (char) i - (char) j;
             rc = (char) i - (char) j;
             hr  = ((char) i & 0xF) - ((char) j & 0xF);
@@ -179,6 +187,32 @@ void FlagTables::createStatusSubTable(void)
             status.status.Z  = (r == 0) ? 1:0; // result zero
             status.status.H  = (hr & 0x10) ? 1:0;
             status.status.PV = (rc != r) ? 1:0; // overflow
+            if (((char) i < 0) && ((char) j > 0))
+            {
+                if (j >= (0x80 - (i ^ 0xff)))
+                {
+                    t = 1;
+                }
+            }
+
+            if (((char) i >= 0) && ((char) j < 0))
+            {
+                if ((i + 1) >= (((0x80 - (j ^ 0xff))) & 0xFF))
+                {
+                    t = 1;
+                }
+            }
+
+            if (t != status.status.PV)
+            {
+                std::cout << "Hmm:" << (int) (i  & 0xFF)<< ", " << (int) (j & 0xFF) << std::endl;
+            }
+
+            if (rc != r)
+            {
+//                std::cout << "PV:" << (int) (i  & 0xFF)<< ", " << (int) (j & 0xFF) << std::endl;
+            }
+
             status.status.N  = 1;
             r  = ((char) i & 0xFF) - ((char) j & 0xFF);
             status.status.C  = (r & 0x100) ? 1:0; // cpu_state->Borrow (?) 
