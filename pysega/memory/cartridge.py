@@ -40,7 +40,7 @@ class GenericCartridge(object):
         return data
 
     def write(self, address, data):
-        pass
+        self.cartridge_banks[self.current_bank][address & GenericCartridge.LOWERMASK] = data
 
     def _load_cartridge(self, filename):
         total_bytes_read = 0

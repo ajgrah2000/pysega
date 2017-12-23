@@ -246,7 +246,6 @@ class FlagTables(object):
                 r  = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFFFF#r  = (char) i - (char) j;
                 rc = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFF # rc = (char) i - (char) j;
                 hr  = (i & 0xF) - (j & 0xF)
-                print "%x %x %x %x"%(r, rc, i, j)
                 status.value = 0
                 if (rc & 0x80):
                     status.S  = 1

@@ -48,7 +48,7 @@ class InstructionStore(object):
 #         extendedCBInstructions[i] = NULL;
 #     }
 # 
-        self.instruction_lookup[0x00] = instructions.Noop(pc_state);
+        self.instruction_lookup[0x00] = instructions.Noop(self.clocks, pc_state);
         self.instruction_lookup[0x01] = instructions.Load16BC(pc_state, self._reg_wrapper_bc);
         self.instruction_lookup[0x02] = instructions.LD_mem_r(pc_state, self._reg_wrapper_bc, self._reg_wrapper_a); # LD (BC), A
         self.instruction_lookup[0x03] = instructions.INC_BC(pc_state); # INC cpu_state->BC
@@ -194,7 +194,7 @@ class InstructionStore(object):
           for (i2, r2) in [(0, self._reg_wrapper_b), (1, self._reg_wrapper_c), (2, self._reg_wrapper_d), (3, self._reg_wrapper_e), (4, self._reg_wrapper_h), (5, self._reg_wrapper_l), (7, self._reg_wrapper_a)]:
             self.instruction_lookup[0x40 + i1 + (i2 * 8)] = instructions.LD_r_r(pc_state, r2, r1) 
 
-#     instructions[0xC9] = new RET(); // RET
+        self.instruction_lookup[0xC9] = instructions.RET(pc_state); # RET
 # 
 #     initialiseExtendedFD();
 #     initialiseExtendedED();

@@ -48,13 +48,15 @@ class Instruction_r(Instruction):
     pass
 
 class Noop(Instruction):
-    def __init__(self, pc_state):
+    def __init__(self, clocks, pc_state):
         self.pc_state = pc_state
+        self.clocks = clocks
 
     def execute(self, data):
         """NOP"""
         self.pc_state.PC = self.pc_state.PC + 1
         self.clocks.system_clock += 4
+        return 4;
 
 class OUT_n_A(Instruction):
     def __init__(self, pc_state):
@@ -165,7 +167,6 @@ class CP_n(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-    
         self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A, memory.read(self.pc_state.PC +1));
         self.pc_state.PC += 2;
     
@@ -177,7 +178,6 @@ class CP_r(Instruction_r):
         self.r = r
 
     def execute(self, memory):
-        print "CP_r", self.pc_state.A,self.r.get()
         self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.r);
         self.pc_state.PC += 1
     
@@ -264,10 +264,10 @@ class INC_16(Instruction):
         self.pcInc = pcInc
 
     def execute(self, memory):
-      r += 1
-      self.pc_state.PC += pcInc;
+      self.r += 1
+      self.pc_state.PC += self.pcInc;
   
-      return cycles;
+      return self.cycles;
 
 class DEC_16(Instruction):
     def __init__(self, pc_state, r, cycles, pcInc = 1):
@@ -277,10 +277,10 @@ class DEC_16(Instruction):
         self.pcInc = pcInc
 
     def execute(self, memory):
-        r -= 1;
-        self.pc_state.PC += pcInc;
+        self.r -= 1;
+        self.pc_state.PC += self.pcInc;
     
-        return cycles;
+        return self.cycles;
     
 
 class DEC_r(Instruction_r):
@@ -367,32 +367,30 @@ class ADD16(Instruction):
         self.add = add
         self.cycles = cycles
         self.pcInc = pcInc
-        self.cycles = cycles
-        self.pcInc = pcInc
 
     def execute(self, memory):
         #static int32 r;
     
-        r =  dst + add;
+        r =  self.dst + self.add;
     
-        r = (dst & 0xFFF) + (add & 0xFFF);
+        r = (self.dst & 0xFFF) + (self.add & 0xFFF);
         if (r & 0x1000): # Half carry
           self.pc_state.Fstatus.H = 1 # Half carry
         else:
           self.pc_state.Fstatus.H = 0 # Half carry
         self.pc_state.Fstatus.N = 0;
     
-        r = (dst & 0xFFFF) + (add & 0xFFFF);
+        r = (self.dst & 0xFFFF) + (self.add & 0xFFFF);
         if (r & 0x10000): # Carry
           self.pc_state.Fstatus.C = 1 # Carry
         else:
           self.pc_state.Fstatus.C = 0 # Carry
     
-        dst += add;
+        self.dst += self.add;
     
-        self.pc_state.PC += pcInc;
+        self.pc_state.PC += self.pcInc;
     
-        return cycles;
+        return self.cycles;
 
 class ADD_r(Instruction):
     def __init__(self, pc_state, src):
@@ -470,7 +468,7 @@ class LD_mem_n(Instruction):
 
     # Load the 8 bit value 'n' into memory.
     def execute(self, memory):
-      memory.write(addr, memory.read(self.pc_state.PC +1));
+      memory.write(self.addr, memory.read(self.pc_state.PC +1));
       self.pc_state.PC += 2;
 
       return 10;
@@ -486,7 +484,7 @@ class LD_mem_r(Instruction_r):
 
     # Load the register into memory.
     def execute(self, memory):
-      memory.write(addr, r);
+      memory.write(self.addr, self.r);
       self.pc_state.PC += 1;
 
       return 7;
@@ -495,14 +493,14 @@ class LD_mem_r(Instruction_r):
 # Load the value from the 16-bit address into the register
 class LD_r_mem (Instruction):
     # r - 8-bit
-    def __init__(self, pc_state, addr, r):
+    def __init__(self, pc_state, r, addr):
       self.pc_state = pc_state
       self.addr = addr
       self.r = r
 
     # Load the value at the address into a register.
     def execute(self, memory):
-      self.r.set(memory.read(addr));
+      self.r.set(memory.read(self.addr));
       self.pc_state.PC += 1;
       return 7;
 

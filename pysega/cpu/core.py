@@ -1895,6 +1895,8 @@ class Core(object):
      return 0
 
     def _int_signed_char(self, value):
-        # (int) (signed char)
-        return value & 0xFF
+        result = value
+        if (value & 0x80):
+            result = value + 0xFF00
+        return result
 
