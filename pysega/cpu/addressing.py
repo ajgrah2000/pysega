@@ -71,3 +71,15 @@ class RegWrapper_DE(RegWrapperGeneric):
 class RegWrapper_HL(RegWrapperGeneric):
     def __init__(self, pc_state):
         super(RegWrapper_HL, self).__init__(pc_state, "HL")
+
+class RegWrapper_IX(RegWrapperGeneric):
+    def __init__(self, pc_state):
+        super(RegWrapper_IX, self).__init__(pc_state, "IX")
+
+class RegWrapper_IY(RegWrapperGeneric):
+    def __init__(self, pc_state):
+        super(RegWrapper_IY, self).__init__(pc_state, "IY")
+
+class RegWrapper_SP(RegWrapperGeneric):
+    def __init__(self, pc_state):
+        super(RegWrapper_SP, self).__init__(pc_state, "SP")

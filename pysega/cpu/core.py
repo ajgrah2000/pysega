@@ -399,7 +399,6 @@ class Core(object):
             elif (op_code == 0xCB):
                     tmp8 = atPC[1]
                     extended_op_code = tmp8 & 0xC7;
-                    print "(Extended) %x"%extended_op_code
 
                     # self.pc_state.Bit b, r
                     if  ((extended_op_code == 0x40) or
@@ -1117,11 +1116,9 @@ class Core(object):
                 # Temporary, until `all instructions are covered'
                 instruction = self.instruction_lookup.getExtendedDD(atPC[1]);# &atPC[1]);
                 if (instruction):
-                    print "(Extended - lookup) %x"%(atPC[1])
-                    self.clocks.cycles += instruction.execute(memory);
+                    self.clocks.cycles += instruction.execute(self.memory);
                 else:
                     extended_op_code = atPC[1]
-                    print "(Extended) %x"%(extended_op_code)
 
                     # LD self.pc_state.IX, nn
                     if (extended_op_code == 0x21):
@@ -1326,7 +1323,7 @@ class Core(object):
                 # Temporary, until `all instructions are covered'
                 instruction = self.instruction_lookup.getExtendedFD(atPC[1]);# &atPC[1]);
                 if (instruction):
-                    self.clocks.cycles += instruction.execute(memory);
+                    self.clocks.cycles += instruction.execute(self.memory);
                 else:
                     extended_op_code = atPC[1]
 
@@ -1532,7 +1529,7 @@ class Core(object):
                 # Temporary, until `all instructions are covered'
                 instruction = self.instruction_lookup.getExtendedED(atPC[1]);# &atPC[1]);
                 if (instruction):
-                    self.clocks.cycles += instruction.execute(memory);
+                    self.clocks.cycles += instruction.execute(self.memory);
                 else:
                     extended_op_code = atPC[1]
                       # IN r, (C)

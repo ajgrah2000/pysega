@@ -8,23 +8,38 @@ class InstructionStore(object):
         self.instruction_exe = instruction_exe
 #        self.instruction_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
         self.instruction_lookup = [None] * 256
-        self.instruction_cb_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
-        self.instruction_dd_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
-        self.instruction_ed_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
-        self.instruction_fd_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
+        self.instruction_cb_lookup = [None] * 256
+        self.instruction_dd_lookup = [None] * 256
+        self.instruction_ed_lookup = [None] * 256
+        self.instruction_fd_lookup = [None] * 256
 
     def populate_instruction_map(self, clocks, pc_state, memory):
-        self._reg_wrapper_a = addressing.RegWrapper_A(pc_state)
-        self._reg_wrapper_b = addressing.RegWrapper_B(pc_state)
-        self._reg_wrapper_c = addressing.RegWrapper_C(pc_state)
-        self._reg_wrapper_d = addressing.RegWrapper_D(pc_state)
-        self._reg_wrapper_e = addressing.RegWrapper_E(pc_state)
-        self._reg_wrapper_h = addressing.RegWrapper_H(pc_state)
-        self._reg_wrapper_l = addressing.RegWrapper_L(pc_state)
+        self._initialise_register_wrappers(pc_state)
+
+        self._populate_core_instruction_map(clocks, pc_state, memory)
+        self._populate_extended_fd_instruction_map(clocks, pc_state, memory)
+        self._populate_extended_ed_instruction_map(clocks, pc_state, memory)
+        self._populate_extended_dd_instruction_map(clocks, pc_state, memory)
+        self._populate_extended_cb_instruction_map(clocks, pc_state, memory)
+
+    def _initialise_register_wrappers(self, pc_state):
+        self._reg_wrapper_a  = addressing.RegWrapper_A(pc_state)
+        self._reg_wrapper_b  = addressing.RegWrapper_B(pc_state)
+        self._reg_wrapper_c  = addressing.RegWrapper_C(pc_state)
+        self._reg_wrapper_d  = addressing.RegWrapper_D(pc_state)
+        self._reg_wrapper_e  = addressing.RegWrapper_E(pc_state)
+        self._reg_wrapper_h  = addressing.RegWrapper_H(pc_state)
+        self._reg_wrapper_l  = addressing.RegWrapper_L(pc_state)
         self._reg_wrapper_sp = addressing.RegWrapper_SP(pc_state)
         self._reg_wrapper_bc = addressing.RegWrapper_BC(pc_state)
         self._reg_wrapper_de = addressing.RegWrapper_DE(pc_state)
         self._reg_wrapper_hl = addressing.RegWrapper_HL(pc_state)
+        self._reg_wrapper_ix = addressing.RegWrapper_IX(pc_state)
+        self._reg_wrapper_iy = addressing.RegWrapper_IY(pc_state)
+        self._reg_wrapper_sp = addressing.RegWrapper_SP(pc_state)
+
+    def _populate_core_instruction_map(self, clocks, pc_state, memory):
+
         self._instruction_exec = instructions.InstructionExec(pc_state)
         self.instruction_lookup[0xC3] = instructions.JumpInstruction(clocks, pc_state)
         self.instruction_lookup[0x31] = instructions.LD_16_nn(self.pc_state, self._reg_wrapper_sp); # LD DE, nn
@@ -195,12 +210,39 @@ class InstructionStore(object):
             self.instruction_lookup[0x40 + i1 + (i2 * 8)] = instructions.LD_r_r(pc_state, r2, r1) 
 
         self.instruction_lookup[0xC9] = instructions.RET(pc_state); # RET
-# 
-#     initialiseExtendedFD();
-#     initialiseExtendedED();
-#     initialiseExtendedDD();
-#     initialiseExtendedCB();
-# }
+
+    def _populate_extended_fd_instruction_map(self, clocks, pc_state, memory):
+        self.instruction_fd_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_iy,
+                                       self._reg_wrapper_bc,15,2);
+        self.instruction_fd_lookup[0x19] = instructions.ADD16(pc_state, self._reg_wrapper_iy,
+                                       self._reg_wrapper_de,15,2);
+        self.instruction_fd_lookup[0x23] = instructions.INC_16(pc_state, self._reg_wrapper_iy,
+                                       10,2);
+        self.instruction_fd_lookup[0x29] = instructions.ADD16(pc_state, self._reg_wrapper_iy,
+                                       self._reg_wrapper_iy,15,2);
+        self.instruction_fd_lookup[0x2B] = instructions.DEC_16(pc_state, self._reg_wrapper_iy, 10,2);
+        self.instruction_fd_lookup[0x39] = instructions.ADD16(pc_state, self._reg_wrapper_iy,
+                                       self._reg_wrapper_sp,15,2);
+
+    def _populate_extended_ed_instruction_map(self, clocks, pc_state, memory):
+        pass
+
+    def _populate_extended_dd_instruction_map(self, clocks, pc_state, memory):
+        self.instruction_dd_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_ix,
+                                       self._reg_wrapper_bc,15,2);
+        self.instruction_dd_lookup[0x19] = instructions.ADD16(pc_state, self._reg_wrapper_ix,
+                                       self._reg_wrapper_de,15,2);
+        self.instruction_dd_lookup[0x23] = instructions.INC_16(pc_state, self._reg_wrapper_ix,
+                                       10,2);
+        self.instruction_dd_lookup[0x29] = instructions.ADD16(pc_state, self._reg_wrapper_ix,
+                                       self._reg_wrapper_ix,15,2);
+        self.instruction_dd_lookup[0x2B] = instructions.DEC_16(pc_state, self._reg_wrapper_ix, 10,2);
+        self.instruction_dd_lookup[0x39] = instructions.ADD16(pc_state, self._reg_wrapper_ix,
+                                       self._reg_wrapper_sp,15,2);
+
+    def _populate_extended_cb_instruction_map(self, clocks, pc_state, memory):
+        pass
+
     def getInstruction(self, op_code):
       instruction = None
       if self.instruction_lookup[op_code]:
@@ -216,18 +258,18 @@ class InstructionStore(object):
 
     def getExtendedDD(self, dd_op_code):
       instruction = None
-      if dd_op_code in self.instruction_dd_lookup:
+      if self.instruction_dd_lookup[dd_op_code]:
           instruction = self.instruction_dd_lookup[dd_op_code]
       return instruction
 
     def getExtendedED(self, ed_op_code):
       instruction = None
-      if ed_op_code in self.instruction_ed_lookup:
+      if self.instruction_ed_lookup[ed_op_code]:
           instruction = self.instruction_ed_lookup[ed_op_code]
       return instruction
 
     def getExtendedFD(self, fd_op_code):
       instruction = None
-      if fd_op_code in self.instruction_fd_lookup:
+      if self.instruction_ed_lookup[fd_op_code]:
           instruction = self.instruction_fd_lookup[fd_op_code]
       return instruction
