@@ -371,7 +371,7 @@ class ADD16(Instruction):
     def execute(self, memory):
         #static int32 r;
     
-        r =  self.dst + self.add;
+        r =  int(self.dst) + int(self.add);
     
         r = (self.dst & 0xFFF) + (self.add & 0xFFF);
         if (r & 0x1000): # Half carry

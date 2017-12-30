@@ -194,13 +194,9 @@ class FlagTables(object):
     @staticmethod
     def _createStatusAddTable():
       status = pc_state.PC_StatusFlags()
-      # int16 r;
-      # int8 rc;
-      # int8 hr;
   
       for i in range(FlagTables.MAXBYTE):
           for j in range(FlagTables.MAXBYTE):
-              r  = (i & 0xFF) + (j & 0xFF) # (char) i + (char) j;
               rc = ((i & 0xFF) + (j & 0xFF)) & 0xFF
               hr = (i & 0xF) + (j & 0xF);
   
@@ -217,10 +213,16 @@ class FlagTables(object):
                   status.H  = 1
               else:
                   status.H  = 0
-              if (rc != r):   # overflow
-                  status.PV = 1   # overflow
-              else:
-                  status.PV = 0   # overflow
+
+              # overflow
+              status.PV = 0
+              if ((i < 0x80) and (j < 0x80)):
+                  if(((i & 0xFF) + (j & 0xFF)) >= 0x80):
+                    status.PV = 1
+              if ((i >= 0x80) and (j >= 0x80)):
+                  if(((i ^ 0xFF) + (j ^ 0xFF) + 1) >= 0x80):
+                    status.PV = 1
+
               status.N  = 0;
               r  = (i & 0xFF) + (j & 0xFF) # r  = ((char) i & 0xFF) + ((char) j & 0xFF);
               
@@ -228,6 +230,8 @@ class FlagTables(object):
                   status.C  = 1
               else:
                   status.C  = 0
+
+#              print "%x %x, r=%x, rc=%x %s"%(i, j, r, rc, status)
   
               FlagTables._flagTableAdd[i][j] = status.value;
 
@@ -260,11 +264,6 @@ class FlagTables(object):
                   status.H  = 1
                 else:
                   status.H  = 0
-
-#                if (rc != r):   # overflow
-#                  status.PV = 1   # overflow
-#                else:
-#                  status.PV = 0   
 
                 # overflow
                 status.PV = 0

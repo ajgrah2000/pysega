@@ -191,6 +191,7 @@ int ADD16::execute(Z80memory *memory)
 
     r =  dst + add;
 
+//    std::cout << std::dec << dst << std::hex << "(" << dst << ") " <<  std::dec << add <<  std::hex << "(" << add << ")" << std::endl; 
     r = (dst & 0xFFF) + (add & 0xFFF);
     cpu_state->Fstatus.status.H = (r & 0x1000) ? 1:0; // Half carry
     cpu_state->Fstatus.status.N = 0;

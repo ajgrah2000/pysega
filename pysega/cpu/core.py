@@ -1117,9 +1117,11 @@ class Core(object):
                 # Temporary, until `all instructions are covered'
                 instruction = self.instruction_lookup.getExtendedDD(atPC[1]);# &atPC[1]);
                 if (instruction):
+                    print "(Extended - lookup) %x"%(atPC[1])
                     self.clocks.cycles += instruction.execute(memory);
                 else:
                     extended_op_code = atPC[1]
+                    print "(Extended) %x"%(extended_op_code)
 
                     # LD self.pc_state.IX, nn
                     if (extended_op_code == 0x21):
