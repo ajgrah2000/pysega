@@ -154,7 +154,7 @@ class FlagTables(object):
       for i in range(FlagTables.MAXBYTE):
           status.value = 0
   
-          status.PV = FlagTables._calculateParity(i)
+          status.PV = FlagTables.calculateParity(i)
 
           if (i == 0): # Zero
             status.Z = 1 # Zero
@@ -178,7 +178,7 @@ class FlagTables(object):
           status.value = 0;
   
           status.H = 1;
-          status.PV = FlagTables._calculateParity(i);
+          status.PV = FlagTables.calculateParity(i);
           if (i == 0):
             status.Z = 1 # Zero
           else:
@@ -304,7 +304,7 @@ class FlagTables(object):
 
     @staticmethod
     def getStatusAdd(value1, value2):
-      return FlagTables._flagTableAdd[value1][value2]
+      return FlagTables._flagTableAdd[int(value1)][int(value2)]
 
     @staticmethod
     def getStatusSub(value1, value2):
@@ -312,7 +312,7 @@ class FlagTables(object):
 
     # Determine the parity flag (even = 1, odd = 0)
     @staticmethod
-    def _calculateParity(a):
+    def calculateParity(a):
 
       # Calculate Parity
       p = 1

@@ -397,7 +397,8 @@ class Core(object):
                 self.clocks.cycles += 10;
 
             elif (op_code == 0xCB):
-                    extended_op_code = atPC[1] & 0xC7;
+                    tmp8 = atPC[1]
+                    extended_op_code = tmp8 & 0xC7;
                     print "(Extended) %x"%extended_op_code
 
                     # self.pc_state.Bit b, r

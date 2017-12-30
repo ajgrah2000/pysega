@@ -12,7 +12,7 @@ class RegWrapperGeneric(RegWrapper):
         return self.get()
 
     def __add__(self, value):
-        self.set(self.get() + value)
+        self.set(self.get() + int(value))
         return self
 
     def __sub__(self, value):
