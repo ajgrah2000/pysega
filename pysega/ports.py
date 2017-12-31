@@ -1,3 +1,5 @@
+import errors
+
 class Port(object):
     def __init__(self, read_func, write_func = None):
         self._write_func = write_func
@@ -20,11 +22,18 @@ class Ports(object):
         self.ports[port_address] = Port(read_func, write_func)
 
     def portRead(self, port_address):
-        return self.ports[port_address].read()
+        if (self.ports[port_address]):
+            return self.ports[port_address].read()
+        else:
+            errors.unsupported("Unsupported port address %s"%(port_address))
+            return 0
 
     def portWrite(self, port_address, value):
-        return self.ports[port_address].write(value)
+        if (self.ports[port_address]):
+            self.ports[port_address].write(value)
+        else:
+            errors.unsupported("Unsupported port address %s"%(port_address))
 
     def portMultiWrite(self, port_address, data, length):
-        print "PORT Multi write not implemented."
-        pass
+        for i in range(length):
+            self.portWrite(port_address, data[i])

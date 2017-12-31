@@ -18,11 +18,11 @@ class DummyJoystick(object):
     def __init__(self):
         pass
 
-    def readPort1(self, value):
+    def readPort1(self):
         print "Joystic port 1 not implemented"
         return 0
 
-    def readPort2(self, value):
+    def readPort2(self):
         print "Joystic port 2 not implemented"
         return 0
 

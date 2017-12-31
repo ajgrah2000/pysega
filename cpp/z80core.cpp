@@ -48,6 +48,7 @@ int Z80core::step(bool loop)
     do
     {
 
+        std::cout << std::dec << cycles << " " << nextPossibleInterupt << std::endl;
         // Check for any possible interupts
     if (cycles >= nextPossibleInterupt)
     {
@@ -56,6 +57,7 @@ int Z80core::step(bool loop)
     }
 
     atPC = memory->readMulti(cpu_state->PC);
+    std::cout << std::dec << cycles << " ";
     std::cout << std::hex << (int) atPC[0] << " " << (int) cpu_state->PC << " (" << (int) atPC[0] << ") ";
     cpu_state->printState();
 

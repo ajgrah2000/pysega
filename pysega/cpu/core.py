@@ -3,12 +3,16 @@ from . import instructions
 from . import instruction_store
 from . import pc_state
 from . import flagtables
+from .. import errors
 
 class Core(object):
     """
         CPU Core - Contains op code mappings.
     """
+    IRQIM1ADDR = 0x38;
+
     def __init__(self, clocks, memory, pc_state, ports, interuptor):
+
         self.clocks     = clocks
         self.memory     = memory
         self.pc_state   = pc_state
@@ -40,8 +44,18 @@ class Core(object):
         self.instruction_lookup.populate_instruction_map(self.clocks, self.pc_state, self.memory)
 
     def interupt(self):
-        print "interupt not implemented"
-        pass
+        if (self.pc_state.IFF1 == 1):
+            if (self.pc_state.IM == 1):
+                self.pc_state.SP -= 1;
+                self.memory.write(self.pc_state.SP, self.pc_state.PCHigh);
+                self.pc_state.SP -= 1;
+                self.memory.write(self.pc_state.SP, self.pc_state.PCLow);
+                self.pc_state.PC = self.IRQIM1ADDR;
+
+                # Disable maskable interupts
+                self.pc_state.IFF1 = 0;
+            else:
+                errors.unsupported("interupt mode not supported");
 
     def step(self, loop=True):
      op_code = self.memory.read(self.pc_state.PC)
@@ -50,9 +64,11 @@ class Core(object):
 #    static uint8 tmp8, t8;
 #    static const Byte *atPC;
 
-     while loop:
+     while True:
 
           # Check for any possible interupts
+      print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
+
       if (self.clocks.cycles >= self._nextPossibleInterupt):
           self.interuptor.setCycle(self.clocks.cycles);
           self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
@@ -60,7 +76,7 @@ class Core(object):
       atPC = self.memory.readMulti(self.pc_state.PC);
 #      std::cout << std::hex << (int) atPC[0] << " " << (int) self.pc_state.PC << std::endl;
       op_code = atPC[0]
-      print("%x %x (%x) %s"%(op_code, self.pc_state.PC, atPC[0], self.pc_state))
+      print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, atPC[0], self.pc_state))
 
       # This will raise an exception for unsupported op_code
       instruction = self.instruction_lookup.getInstruction(op_code)
@@ -1892,6 +1908,8 @@ class Core(object):
                 print("Unsupported op code %x"%(atPC[0]))
                 return -1;
 
+      if (False == loop):
+          break
      return 0
 
     def _int_signed_char(self, value):

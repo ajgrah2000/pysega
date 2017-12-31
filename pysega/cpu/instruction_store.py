@@ -45,25 +45,6 @@ class InstructionStore(object):
         self.instruction_lookup[0xC3] = instructions.JumpInstruction(clocks, pc_state)
         self.instruction_lookup[0x31] = instructions.LD_16_nn(self.pc_state, self._reg_wrapper_sp); # LD DE, nn
 
-# {
-#     // Initialise the maps used to generate the register lookup.
-#     initialiseRegisterLookup();
-# 
-#     instructions = new InstructionInterface *[0xff];
-#     extendedFDInstructions = new InstructionInterface *[0xff];
-#     extendedEDInstructions = new InstructionInterface *[0xff];
-#     extendedDDInstructions = new InstructionInterface *[0xff];
-#     extendedCBInstructions = new InstructionInterface *[0xff];
-# 
-#     for (int i = 0; i < 0xff; i++)
-#     {
-#         instructions[i] = NULL;
-#         extendedFDInstructions[i] = NULL;
-#         extendedEDInstructions[i] = NULL;
-#         extendedDDInstructions[i] = NULL;
-#         extendedCBInstructions[i] = NULL;
-#     }
-# 
         self.instruction_lookup[0x00] = instructions.Noop(self.clocks, pc_state);
         self.instruction_lookup[0x01] = instructions.Load16BC(pc_state, self._reg_wrapper_bc);
         self.instruction_lookup[0x02] = instructions.LD_mem_r(pc_state, self._reg_wrapper_bc, self._reg_wrapper_a); # LD (BC), A
