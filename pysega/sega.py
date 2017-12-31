@@ -28,7 +28,7 @@ class Sega(object):
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
 
-        self.vdp.setInterupt(self.core.interupt) # This can probably be decoupled.
+        self.vdp.setInterupt(self.core) # This can probably be decoupled.
 
         self.core.initialise()
         self.configure_ports(self.ports)

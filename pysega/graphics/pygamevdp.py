@@ -80,8 +80,6 @@ class PygameVDP(vdp.VDP):
       pygame.display.flip()
 
     def _draw_using_numpy_array(self):
-        print len(self._display_lines)
-        print len(self._display_lines[0])
         pygame.surfarray.blit_array(self._background, self._display_lines.transpose())
 
     def _draw_using_pixel_array(self):

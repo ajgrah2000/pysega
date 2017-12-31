@@ -8,6 +8,9 @@ class DummyJoystick(object):
     def setYpos(self, vcounter):
         pass
 
+    def getXpos(self, vcounter):
+        return 0
+
     def readPort1(self):
         print "Joystic port 1 not implemented"
         return 0
