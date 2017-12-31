@@ -41,7 +41,9 @@ class PC_State(object):
     """
     eight_bit_registers = ['A', 'B', 'C', 'D', 'E', 'H', 'L', 'F', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow']
 
-    sixteen_bit_shadow_registers = ['BC_', 'DE_', 'HL_', 'AF_']
+    sixteen_bit_shadow_registers = ['BC_', 'DE_', 'HL_']
+
+    eight_bit_shadow_registers = ['A_', 'F_']
 
     sixteen_bit_registers = ['PC', 'SP', 'IX', 'IY']
 
@@ -62,6 +64,9 @@ class PC_State(object):
             super(PC_State, self).__setattr__(name, 0)
 
         for name in PC_State.sixteen_bit_shadow_registers:
+            super(PC_State, self).__setattr__(name, 0)
+
+        for name in PC_State.eight_bit_shadow_registers:
             super(PC_State, self).__setattr__(name, 0)
 
         self.I      = 0

@@ -14,18 +14,6 @@ class DummySound(object):
         print "Sound port not implemented"
         pass
 
-class DummyJoystick(object):
-    def __init__(self):
-        pass
-
-    def readPort1(self):
-        print "Joystic port 1 not implemented"
-        return 0
-
-    def readPort2(self):
-        print "Joystic port 2 not implemented"
-        return 0
-
 class Sega(object):
     def __init__(self, Graphics, audio, cpu):
         self.clocks    = clocks.Clock()
@@ -33,12 +21,14 @@ class Sega(object):
         self.ports     = ports.Ports()
         self.inputs    = inputs.Input()
         self.sound     = DummySound()
-        self.joystick   = DummyJoystick()
+        self.joystick  = inputs.DummyJoystick()
         self.memory    = memory.Memory()
         self.memory    = memory.Memory()
         self.z80memory = z80memory.Z80Memory(self.clocks, self.inputs)
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
+
+        self.vdp.setInterupt(self.core.interupt) # This can probably be decoupled.
 
         self.core.initialise()
         self.configure_ports(self.ports)

@@ -85,9 +85,12 @@ class Core(object):
       else:
                 # EX self.pc_state.AF, self.pc_state.AF'
             if (op_code == 0x08):
-                tmp16 = self.pc_state.AF;
-                self.pc_state.AF = self.pc_state.AF_;
-                self.pc_state.AF_ = tmp16;
+                tmpa = self.pc_state.A;
+                tmpf = self.pc_state.F;
+                self.pc_state.A = self.pc_state.A_;
+                self.pc_state.F = self.pc_state.F_;
+                self.pc_state.A_ = tmpa;
+                self.pc_state.F_ = tmpf;
 
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;

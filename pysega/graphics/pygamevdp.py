@@ -25,6 +25,11 @@ class PygameColors(vdp.Colors):
 class PygameVDP(vdp.VDP):
     """ GUI layer for vdp.
     """
+
+    # Scaled 'blit' size.
+    BLIT_WIDTH  = vdp.VDP.FRAME_WIDTH  * vdp.VDP.PIXEL_WIDTH 
+    BLIT_HEIGHT = vdp.VDP.FRAME_HEIGHT * vdp.VDP.PIXEL_HEIGHT
+
     def __init__(self, *args):
         # 'default_color' is used by vdp init, need to set before super
         self.default_color = 0
@@ -49,7 +54,7 @@ class PygameVDP(vdp.VDP):
         # Handle events on diplay draw
         for event in pygame.event.get():
           self.inputs.handle_events(event)
-          self.sound.handle_events(event)
+          #self.sound.handle_events(event)
 
     def driver_open_display(self):
       pygame.init()
@@ -75,6 +80,8 @@ class PygameVDP(vdp.VDP):
       pygame.display.flip()
 
     def _draw_using_numpy_array(self):
+        print len(self._display_lines)
+        print len(self._display_lines[0])
         pygame.surfarray.blit_array(self._background, self._display_lines.transpose())
 
     def _draw_using_pixel_array(self):
