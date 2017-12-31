@@ -4,21 +4,74 @@ from .memory import cartridge
 from .graphics import vdp
 from . import clocks
 from . import inputs
+from . import ports
+
+class DummySound(object):
+    def __init__(self):
+        pass
+
+    def writePort(self, value):
+        print "Sound port not implemented"
+        pass
+
+class DummyJoystick(object):
+    def __init__(self):
+        pass
+
+    def readPort1(self, value):
+        print "Joystic port 1 not implemented"
+        return 0
+
+    def readPort2(self, value):
+        print "Joystic port 2 not implemented"
+        return 0
 
 class Sega(object):
     def __init__(self, Graphics, audio, cpu):
         self.clocks    = clocks.Clock()
         self.pc_state  = cpu.pc_state.PC_State()
+        self.ports     = ports.Ports()
         self.inputs    = inputs.Input()
+        self.sound     = DummySound()
+        self.joystick   = DummyJoystick()
+        self.memory    = memory.Memory()
         self.memory    = memory.Memory()
         self.z80memory = z80memory.Z80Memory(self.clocks, self.inputs)
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
-        self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.vdp)
+        self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
 
         self.core.initialise()
+        self.configure_ports(self.ports)
 
     def set_palette(self, palette_type):
         self.vdp.set_palette(palette_type)
+
+    def configure_ports(self, ports):
+        # Add the vdp `BF' port to BF plus all the mirror ports
+        # BF is the vdp control port
+        for i in range(0x81, 0xC0, 2):
+            ports.addDeviceToPort(i, self.vdp.readPortBF, self.vdp.writePortBF);
+    
+        # Add the vdp `BE' port to BE plus all the mirror ports
+        # BF is the vdp data port
+        for i in range(0x80, 0xC0,2):
+            ports.addDeviceToPort(i, self.vdp.readPortBE, self.vdp.writePortBE)
+    
+        # Add the vdp and sound to port `7E' plus all the mirror ports
+        # 7E is the vdp vCounter and sound port
+        for i in range(0x40, 0x80, 2):
+            ports.addDeviceToPort(i, self.vdp.readPort7E);
+            ports.addDeviceToPort(i, None, self.sound.writePort);
+    
+        # Add the vdp and sound to port `7F' plus all the mirror ports
+        # 7& is the vdp hCounter and sound port
+        for i in range(0x41, 0x80, 2):
+            ports.addDeviceToPort(i, self.vdp.readPort7F);
+            ports.addDeviceToPort(i, None, self.sound.writePort);
+    
+        # Add the joystics to their ports
+        ports.addDeviceToPort(0xDC, self.joystick.readPort1);
+        ports.addDeviceToPort(0xDD, self.joystick.readPort2);
 
     def insert_cartridge(self, cart_name):
         new_cart = cartridge.GenericCartridge(cart_name)

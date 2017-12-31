@@ -2,9 +2,10 @@ from . import instructions
 import addressing
 
 class InstructionStore(object):
-    def __init__(self, clocks, pc_state, instruction_exe):
-        self.clocks = clocks
-        self.pc_state = pc_state
+    def __init__(self, clocks, pc_state, ports, instruction_exe):
+        self.clocks          = clocks
+        self.pc_state        = pc_state
+        self.ports           = ports
         self.instruction_exe = instruction_exe
 #        self.instruction_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
         self.instruction_lookup = [None] * 256
@@ -169,7 +170,7 @@ class InstructionStore(object):
         self.instruction_lookup[0xBD] = instructions.CP_r(pc_state, self._reg_wrapper_l); # CP r, cpu_state->A
         self.instruction_lookup[0xBF] = instructions.CP_r(pc_state, self._reg_wrapper_a); # CP r, cpu_state->A
  
-        self.instruction_lookup[0xD3] = instructions.OUT_n_A(pc_state); # OUT (n), cpu_state->A
+        self.instruction_lookup[0xD3] = instructions.OUT_n_A(pc_state, self.ports); # OUT (n), cpu_state->A
         self.instruction_lookup[0xD2] = instructions.JPNC(pc_state); # JP NC
         self.instruction_lookup[0xD9] = instructions.EXX(pc_state); # EXX
         self.instruction_lookup[0xDA] = instructions.JPCnn(pc_state); # JP C, nn

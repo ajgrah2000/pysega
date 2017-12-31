@@ -59,17 +59,14 @@ class Noop(Instruction):
         return 4;
 
 class OUT_n_A(Instruction):
-    def __init__(self, pc_state):
+    def __init__(self, pc_state, ports):
         self.pc_state = pc_state
+        self.ports    = ports
 
 # OUT (n), self.pc_state.A
 # Write register A, to port n
     def execute(self, memory):
-# Need to sort out port write.
-     # TODO
-     print("TODO")
-     print("Ports::instance()->portWrite(self.memory.read(self.pc_state.PC + 1), self.pc_state.A);")
-
+     self.ports.portWrite(memory.read(self.pc_state.PC + 1), self.pc_state.A)
      self.pc_state.PC+=2;
 
      return 11;

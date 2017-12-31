@@ -2,22 +2,22 @@
 from . import instructions
 from . import instruction_store
 from . import pc_state
-from .. import ports
 from . import flagtables
 
 class Core(object):
     """
         CPU Core - Contains op code mappings.
     """
-    def __init__(self, clocks, memory, pc_state, interuptor):
+    def __init__(self, clocks, memory, pc_state, ports, interuptor):
         self.clocks     = clocks
         self.memory     = memory
         self.pc_state   = pc_state
+        self.ports      = ports
         self.interuptor = interuptor
 
         self.instruction_exe = instructions.InstructionExec(self.pc_state)
 
-        self.instruction_lookup = instruction_store.InstructionStore(self.clocks, self.pc_state, self.instruction_exe)
+        self.instruction_lookup = instruction_store.InstructionStore(self.clocks, self.pc_state, self.ports, self.instruction_exe)
 
         self._nextPossibleInterupt = 0
 
@@ -778,7 +778,7 @@ class Core(object):
 
                 # IN self.pc_state.A, (N)
             elif (op_code == 0xDB):
-                self.pc_state.A = ports.Ports.portRead(atPC[1]);
+                self.pc_state.A = self.ports.portRead(atPC[1]);
                 self.pc_state.PC += 2;
                 self.clocks.cycles += 11;
 
@@ -1540,7 +1540,7 @@ class Core(object):
                         (extended_op_code == 0x60) or
                         (extended_op_code == 0x68) or
                         (extended_op_code == 0x78)):
-                        self.pc_state[(atPC[1] >> 3) & 0x7] = ports.Ports.portRead(self.pc_state.C);
+                        self.pc_state[(atPC[1] >> 3) & 0x7] = self.ports.portRead(self.pc_state.C);
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 12;
 
@@ -1552,7 +1552,7 @@ class Core(object):
                           (extended_op_code == 0x61) or # OUT (C), H
                           (extended_op_code == 0x69) or # OUT (C), L
                           (extended_op_code == 0x79)): # OUT (C), self.pc_state.A
-                        ports.Ports.portWrite(self.pc_state.C, self.pc_state[(atPC[1] >> 3) & 0x7]);
+                        self.ports.portWrite(self.pc_state.C, self.pc_state[(atPC[1] >> 3) & 0x7]);
                         self.pc_state.PC += 2;
                         self.clocks.cycles +=3;
 
@@ -1764,7 +1764,7 @@ class Core(object):
                         # INI
                     elif (extended_op_code == 0xA2):
                         self.pc_state.B -= 1
-                        self.memory.write(self.pc_state.HL, ports.Ports.portRead(self.pc_state.C));
+                        self.memory.write(self.pc_state.HL, self.ports.portRead(self.pc_state.C));
                         self.pc_state.HL += 1
                         self.pc_state.Fstatus.N = 1;
                         if (self.pc_state.B == 0):
@@ -1778,7 +1778,7 @@ class Core(object):
                         # OUTI
                     elif (extended_op_code == 0xA3):
                         self.pc_state.B -= 1
-                        ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
+                        self.ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                         self.pc_state.HL += 1
                         if (self.pc_state.B == 0):
                             self.pc_state.Fstatus.Z = 1
@@ -1791,7 +1791,7 @@ class Core(object):
                         # OUTD
                     elif (extended_op_code == 0xAB):
                         self.pc_state.B -= 1
-                        ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
+                        self.ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                         self.pc_state.HL -= 1
                         if (self.pc_state.B == 0):
                             self.pc_state.Fstatus.Z = 1
@@ -1846,12 +1846,12 @@ class Core(object):
                     elif (extended_op_code == 0xB3):
                         if (self.pc_state.B >= 8):
                             self.pc_state.B -= 8;
-                            ports.Ports.portMultiWrite(self.pc_state.C, self.memory.readArray(self.pc_state.HL,8), 8);
+                            self.ports.portMultiWrite(self.pc_state.C, self.memory.readArray(self.pc_state.HL,8), 8);
                             self.pc_state.HL+= 8;
                             self.clocks.cycles += 168;
                         else:
                             self.pc_state.B -= 1
-                            ports.Ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
+                            self.ports.portWrite(self.pc_state.C, self.memory.read(self.pc_state.HL));
                             self.pc_state.HL += 1
                             self.clocks.cycles += 21;
                         self.pc_state.Fstatus.S = 0; # Unknown
