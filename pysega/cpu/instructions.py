@@ -92,7 +92,7 @@ class AND_r(Instruction):
         self.src = src
 
     def execute(self, memory):
-        self.pc_state.A = self.pc_state.A & self.src;
+        self.pc_state.A = int(self.pc_state.A) & int(self.src);
         self.pc_state.PC += 1
     
         self.pc_state.F = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
@@ -130,7 +130,7 @@ class XOR_r(Instruction):
         self.src = src
 
     def execute(self, memory):
-        self.pc_state.A = self.pc_state.A ^ self.src;
+        self.pc_state.A = int(self.pc_state.A) ^ int(self.src);
         self.pc_state.PC += 1
     
         self.pc_state.F = flagtables.FlagTables.getStatusOr(self.pc_state.A);

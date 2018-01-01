@@ -217,13 +217,13 @@ class Core(object):
                   (op_code == 0x8C) or # self.pc_state.ADC H
                   (op_code == 0x8D) or # self.pc_state.ADC L
                   (op_code == 0x8F)): # self.pc_state.ADC self.pc_state.A
-                self.pc_state.A = add8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.C);
+                self.pc_state.A = self.add8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
                 # self.pc_state.ADC (self.pc_state.HL)
             elif (op_code == 0x8E):
-                self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
+                self.pc_state.A = self.add8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=7;
 
@@ -255,13 +255,13 @@ class Core(object):
                   (op_code == 0x9C) or # Sself.pc_state.BC H
                   (op_code == 0x9D) or # Sself.pc_state.BC L
                   (op_code == 0x9F)): # Sself.pc_state.BC self.pc_state.A
-                self.pc_state.A = sub8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.C);
+                self.pc_state.A = self.sub8c(self.pc_state.A, self.pc_state[atPC[0]&0x7], self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
                 # Sself.pc_state.BC (self.pc_state.HL)
             elif (op_code == 0x9E):
-                self.pc_state.A = sub8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
+                self.pc_state.A = self.sub8c(self.pc_state.A, self.memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
                 self.pc_state.PC += 1
                 self.clocks.cycles+=7;
 
@@ -703,7 +703,7 @@ class Core(object):
 
                 # self.pc_state.ADC nn
             elif (op_code == 0xCE):
-                self.pc_state.A = add8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.C);
+                self.pc_state.A = self.add8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.C);
                 self.pc_state.PC+=2;
                 self.clocks.cycles+=4;
 
@@ -816,7 +816,7 @@ class Core(object):
 
                 # Sself.pc_state.BC n 
             elif (op_code == 0xDE):
-                self.pc_state.A = sub8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.C);
+                self.pc_state.A = self.sub8c(self.pc_state.A, atPC[1], self.pc_state.Fstatus.C);
                 self.pc_state.PC+=2;
                 self.clocks.cycles+=7;
 
@@ -1222,7 +1222,7 @@ class Core(object):
 
                         # self.pc_state.ADC (self.pc_state.IX + d)
                     elif (extended_op_code == 0x8E):
-                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IX + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.C);
+                        self.pc_state.A = self.add8c(self.pc_state.A, self.memory.read(self.pc_state.IX + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.C);
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=19;
 
@@ -1427,7 +1427,7 @@ class Core(object):
 
                         # self.pc_state.ADC (self.pc_state.IY + d)
                     elif (extended_op_code == 0x8E):
-                        self.pc_state.A = add8c(self.pc_state.A, self.memory.read(self.pc_state.IY + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.C);
+                        self.pc_state.A = self.add8c(self.pc_state.A, self.memory.read(self.pc_state.IY + self._int_signed_char(atPC[2])), self.pc_state.Fstatus.C);
                         self.pc_state.PC+=3;
                         self.clocks.cycles+=19;
 
@@ -1921,3 +1921,219 @@ class Core(object):
             result = value + 0xFF00
         return result
 
+    # Calculate the result of the DAA functio
+    def calculateDAAAdd(self):
+        print "calculateDAAAdd"
+    #{
+    #    uint8 upper = (self.pc_state.A >> 4) & 0xF;
+    #    uint8 lower = self.pc_state.A & 0xF;
+    #    
+    #    if (self.pc_state.Fstatus.C == 0)
+    #    {
+    #        if ((upper <= 9) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            (lower <= 9))
+    #             ;
+    #        else if ((upper <= 8) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            ((lower >= 0xA) && (lower <= 0xF)))
+    #            self.pc_state.A += 0x06;
+    #        else if ((upper <= 9) &&
+    #            (self.pc_state.Fstatus.H == 1) &&
+    #            (lower <= 0x3))
+    #            self.pc_state.A += 0x06;
+    #        else if (((upper >= 0xA) && (upper <= 0xF)) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            (lower <= 0x9))
+    #        {
+    #            self.pc_state.A += 0x60;
+    #            self.pc_state.Fstatus.C = 1;
+    #        }
+    #        else if (((upper >= 0x9) && (upper <= 0xF)) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            ((lower >= 0xA) && (lower <= 0xF)))
+    #        {
+    #            self.pc_state.A += 0x66;
+    #            self.pc_state.Fstatus.C = 1;
+    #        }
+    #        else if (((upper >= 0xA) && (upper <= 0xF)) &&
+    #            (self.pc_state.Fstatus.H == 1) &&
+    #            (lower <= 0x3))
+    #        {
+    #            self.pc_state.A += 0x66;
+    #            self.pc_state.Fstatus.C = 1;
+    #        }
+    #    }
+    #    else
+    #    {
+    #        if ((upper <= 0x2) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            (lower <= 0x9))
+    #            self.pc_state.A += 0x60;
+    #        else if ((upper <= 0x2) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            ((lower >= 0xA) && (lower <= 0xF)))
+    #            self.pc_state.A += 0x66;
+    #        else if ((upper <= 0x3) &&
+    #            (self.pc_state.Fstatus.H == 1) &&
+    #            (lower <= 0x3))
+    #            self.pc_state.A += 0x66;
+    #    }
+    #    self.pc_state.Fstatus.PV = FlagTables::calculateParity(self.pc_state.A);
+    #    self.pc_state.Fstatus.S  = (self.pc_state.A & 0x80) ? 1:0; // Is negative
+    #    self.pc_state.Fstatus.Z  = (self.pc_state.A==0) ? 1:0; // Is zero
+    #}
+    
+    # Fcpu_state->IXME, table in z80 guide is wrong, need to check values by hand
+    def calculateDAASub(self):
+        print("calculateDAASub")
+        pass
+    #{
+    #    uint8 upper = (self.pc_state.A >> 4) & 0xF;
+    #    uint8 lower = self.pc_state.A & 0xF;
+    #
+    #    if (self.pc_state.Fstatus.C == 0)
+    #    {
+    #        if ((upper <= 0x9) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            (lower <= 0x9))
+    #            ;
+    #        else if ((upper <= 0x8) &&
+    #            (self.pc_state.Fstatus.H == 1) &&
+    #            ((lower >= 0x6) && (lower <= 0xF)))
+    #            self.pc_state.A += 0xFA;
+    #    } 
+    #    else
+    #    {
+    #        if (((upper >= 0x7) && (upper <= 0xF)) &&
+    #            (self.pc_state.Fstatus.H == 0) &&
+    #            (lower <= 0x9))
+    #            self.pc_state.A += 0xA0;
+    #        else if (((upper >= 0x6) && (upper <= 0xF)) &&
+    #            (self.pc_state.Fstatus.H == 1) &&
+    #            ((lower >= 0x6) && (lower <= 0xF)))
+    #        {
+    #            self.pc_state.Fstatus.H = 0;
+    #            self.pc_state.A += 0x9A;
+    #        }
+    #    }
+    #    self.pc_state.Fstatus.PV = FlagTables::calculateParity(self.pc_state.A);
+    #    self.pc_state.Fstatus.S  = (self.pc_state.A & 0x80) ? 1:0; // Is negative
+    #    self.pc_state.Fstatus.Z  = (self.pc_state.A==0) ? 1:0; // Is zero
+    #}
+    
+    # self.pc_state.Add two 8 bit ints plus the carry bit, and set flags accordingly
+    def add8c(self, a, b, c):
+        r = a + b + c;
+        rs = (a + b + c) & 0xFF;
+        if (rs & 0x80): # Negative
+            self.pc_state.Fstatus.S = 1
+        else:
+            self.pc_state.Fstatus.S = 0
+
+        if (rs == 0): # Zero
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+
+#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
+        print "TODO: Check PV"
+        if ((r > 127) or (r < -128)): # Overflow
+            self.pc_state.Fstatus.PV = 1
+        else:
+            self.pc_state.Fstatus.PV = 0
+    
+        r = (a & 0xF) + (b & 0xF) + c;
+        if (r & 0x10): # Half carry
+            self.pc_state.Fstatus.H = 1
+        else:
+            self.pc_state.Fstatus.H = 0
+
+        self.pc_state.Fstatus.N = 0;
+    
+        r = (a & 0xFF) + (b & 0xFF) + c;
+        if (r & 0x100): # Carry
+            self.pc_state.Fstatus.C = 1
+        else:
+            self.pc_state.Fstatus.C = 0
+
+        return (a + b + c) & 0xFF
+    
+    # Subtract two 8 bit ints and the carry bit, set flags accordingly
+    def sub8c(self, a, b, c):
+        #static int16 r;
+        #static int8 rs;
+    
+        r = a - b - c;
+        rs = a - b - c;
+        if (rs & 0x80): # Negative
+            self.pc_state.Fstatus.S = 1
+        else:
+            self.pc_state.Fstatus.S = 0
+
+        if (rs == 0): # Zero
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+
+#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
+        print "TODO: Check PV"
+        if ((r > 127) or (r < -128)): # Overflow
+            self.pc_state.Fstatus.PV = 1
+        else:
+            self.pc_state.Fstatus.PV = 0
+    
+        r = (a & 0xF) - (b & 0xF) - c;
+        if (r & 0x10): # Half carry
+            self.pc_state.Fstatus.H = 1
+        else:
+            self.pc_state.Fstatus.H = 0
+        self.pc_state.Fstatus.N = 1;
+    
+        r = (a & 0xFF) - (b & 0xFF) - c;
+        if (r & 0x100): # Carry
+            self.pc_state.Fstatus.C = 1
+        else:
+            self.pc_state.Fstatus.C = 0
+        return (a - b - c) & 0xFF
+    
+#    // self.pc_state.Add two 16 bit ints and set flags accordingly
+#    uint16 Z80core::add16c(int16 a, int16 b, int16 c)
+#    {
+#        static int32 r;
+#        static int16 rs;
+#    
+#        r = a + b + c;
+#        rs = a + b + c;
+#        self.pc_state.Fstatus.S = (rs & 0x8000) ? 1:0; // Negative
+#        self.pc_state.Fstatus.Z = (rs == 0) ? 1:0; // Zero
+#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
+#    
+#        r = (a & 0xFFF) + (b & 0xFFF) + c;
+#        self.pc_state.Fstatus.H = (r & 0x1000) ? 1:0; // Half carry
+#        self.pc_state.Fstatus.N = 0;
+#    
+#        r = (a & 0xFFFF) + (b & 0xFFFF) + c;
+#        self.pc_state.Fstatus.C = (r & 0x10000) ? 1:0; // Carry
+#        return a + b + c;
+#    }
+#    
+#    uint16 Z80core::sub16c(int16 a, int16 b, int16 c)
+#    {
+#        static int32 r;
+#        static int16 rs;
+#    
+#        r = a - b - c;
+#        rs = a - b - c;
+#        self.pc_state.Fstatus.S = (rs & 0x8000) ? 1:0; // Negative
+#        self.pc_state.Fstatus.Z = (rs == 0) ? 1:0; // Zero
+#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
+#    
+#        r = (a & 0xFFF) - (b & 0xFFF) - c;
+#        self.pc_state.Fstatus.H = (r & 0x1000) ? 1:0; // Half carry
+#        self.pc_state.Fstatus.N = 1;
+#    
+#        r = (a & 0xFFFF) - (b & 0xFFFF) - c;
+#        self.pc_state.Fstatus.C = (r & 0x10000) ? 1:0; // Carry
+#        return a - b - c;
+#    }
