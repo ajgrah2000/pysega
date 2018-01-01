@@ -60,8 +60,7 @@ class Memory(object):
             self.write(dest+i, self.read(src+i))
 
     def write(self, address, data):
-        self._translate_write(address, data)
-
+        self._translate_write(address, int(data))
 
     def set_cartridge(self, cartridge):
         self.cartridge = cartridge
@@ -112,6 +111,8 @@ class Memory(object):
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM
             result = self._ram[address & (self.RAM_SIZE - 1)]
+        else:
+            result = self._memory_map[address]
 
         return result
 
@@ -155,5 +156,4 @@ class Memory(object):
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM
             self._ram[address & (self.RAM_SIZE - 1)] = data
-
 

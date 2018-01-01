@@ -13,11 +13,11 @@ class DummyJoystick(object):
 
     def readPort1(self):
         print "Joystic port 1 not implemented"
-        return 0
+        return 0xFF
 
     def readPort2(self):
         print "Joystic port 2 not implemented"
-        return 0
+        return 0xFF
 
 
 class Input(object):
