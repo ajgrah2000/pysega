@@ -8,7 +8,8 @@ class ScanLine(object):
     pass
 
 class HorizontalScroll(object):
-    pass
+    def __init__(self):
+        self.xOffset = 0
 
 class PriorityScanLine(object):
     pass
@@ -28,7 +29,7 @@ class Sprite(object):
 class VdpConstants(object):
         RAMSIZE  = 0x4000;
         CRAMSIZE  = 0x20;
-        # // 3Mhz CPU, 50Hz refresh ~= 60000 ticks
+        # 3Mhz CPU, 50Hz refresh ~= 60000 ticks
         VSYNCCYCLETIME = 65232;
         BLANKTIME      = (VSYNCCYCLETIME * 72)/262;
         VFRAMETIME     = (VSYNCCYCLETIME * 192)/262;
@@ -345,11 +346,6 @@ class VDP(object):
                 self._update = True;
                 self._videoChange = False;
     
-#            if (!self._isFullSpeed):
-#                while ((clock() - self._lastClock) < self.CLOCKS_PER_SEC/60)
-#                    ;
-#                self._lastClock = clock();
-    
             self._frameUpdated = False;
     
         if ((self._vsyncInteruptEnable and self._vIntPending) or
@@ -364,16 +360,16 @@ class VDP(object):
         vCounter = (cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME;
         self._currentYpos = (cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME+1;
     
-          # I can't think of an ellegant solution, so this is as good as it gets
-          # for now (fudge factor and all)
+        # I can't think of an ellegant solution, so this is as good as it gets
+        # for now (fudge factor and all)
         self.inputs.joystick.setYpos(vCounter+10);
         return vCounter;
 
     def readPort7F(self):
         self._addressLatch = False;  # Address is unlatched during port read
     
-          # I can't think of an ellegant solution, so this is as good as it gets
-          # for now (fudge factor and all)
+        # I can't think of an ellegant solution, so this is as good as it gets
+        # for now (fudge factor and all)
         hCounter = ((self.joystick.getXpos() + 0x28)/2 & 0x7F);
         return hCounter;
 
@@ -403,8 +399,8 @@ class VDP(object):
             self._lowaddress = data
             self._addressLatch = True
         else:
-              # Set the register (as specified in the `hiaddress') to the
-              # previous value written to this port
+            # Set the register (as specified in the `hiaddress') to the
+            # previous value written to this port
             if ((data & VdpConstants.REGISTERUPDATEMASK) == VdpConstants.REGISTERUPDATEVALUE):
                 self.writeRegister(data & VdpConstants.REGISTERMASK, self._lowaddress);
     
@@ -543,34 +539,7 @@ class VDP(object):
     
                     i += 1
 
-    def printSpriteScanLineInfo(self):
-        print inspect.stack()[0][3]
-    """
-{
-    std::cout << "Total Sprites: " << (int) self._totalSprites << std::endl;
-    std::cout << "End tokens: ";
-    for (unsigned int i = 0; i < VdpConstants.MAXSPRITES; i++)
-    {
-        if ((self._sprites[i].y - 1) == VdpConstants.LASTSPRITETOKEN)
-            std::cout << "(" << i << ")";
-    }
-    std::cout << std::endl;
-
-    for (int y = 0; y < self._yEnd; y++)
-    {
-	std::cout << (self._spriteScanLines[y].lineChanged?"*":" ") << 
-                "y: " << y << " self._sprites: " << 
-                (int) self._spriteScanLines[y].numSprites;
-        for (int i = 0; i < self._spriteScanLines[y].numSprites;i++)
-            std::cout << " [" << (int) self._spriteScanLines[y].sprites[i] << "]";
-
-	std::cout << std::endl;
-    }
-}
-    """
-
-#/* Not the most efficient routine, but it should do the job
-# */
+    # Not the most efficient routine, but it should do the job
     def removeSpriteFromScanlines(self, scanlineNumber, spriteNumber):
         shift = 0;
     
@@ -588,7 +557,7 @@ class VDP(object):
                 else:
                     errors.warning("Index exceeds range of MAXSPRITES")
 
-# Not the most efficient routine, but it should do the job
+    # Not the most efficient routine, but it should do the job
     def addSpriteToScanlines(self, scanlineNumber, spriteNumber):
         if (scanlineNumber < self._yEnd):
             #assert(self._spriteScanLines[scanlineNumber].numSprites != VdpConstants.MAXSPRITES);
@@ -611,7 +580,7 @@ class VDP(object):
             else:
                 errors.warning("Max sprite limit reached.")
 
-# Update a more convenient representation of the patterns
+    # Update a more convenient representation of the patterns
     def updatePattern(self, address, oldData, data):
 
         change = oldData ^ data; # Flip only the bits that have changed
@@ -638,7 +607,7 @@ class VDP(object):
     
             self._patternInfo[index >> 6].screenVersionCached = False;
 
-# `Cache' a screen palette version of the pattern
+    # `Cache' a screen palette version of the pattern
     def updateScreenPattern(self, patternNumber):
 
         index = patternNumber << 6;
@@ -653,7 +622,7 @@ class VDP(object):
 
         self._patternInfo[patternNumber].screenVersionCached = True;
 
-# Update the horizontal scroll offsets for each scanline
+    # Update the horizontal scroll offsets for each scanline
     def updateHorizontalScrollInfo(self):
         columnOffset = (0x20 - (self._horizontalScroll >> 3)) & 0x1F;
         fineScroll = self._horizontalScroll & 0x7;
@@ -665,7 +634,7 @@ class VDP(object):
             self._horizontalScrollInfo[y].xOffset = xOffset;
             self._horizontalScrollInfo[y].xOffset = xOffset;
 
-#/* Update the vertical scroll offsets for each scanline */
+    # Update the vertical scroll offsets for each scanline
     def updateVerticalScrollInfo(self):
         for y in range(self._currentYpos, self._yEnd):
             self._verticalScrollInfo[y] = self._verticalScroll;
@@ -742,7 +711,6 @@ class VDP(object):
             self._lineInterupt = data;
     
     def updateModeControl(self):
-    
         # Set first scrolling line
         if(self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0DISHSCROLL):
             self._yScroll = 16
@@ -777,9 +745,9 @@ class VDP(object):
             errors.warning("No sync, not implemented");
     
         if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1ENABLEDISPLAY):
-            enableDisplay = True;
+            self._enableDisplay = True;
         else:
-            enableDisplay = False;
+            self._enableDisplay = False;
     
         if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1BIGSPRITES):
             self._spriteHeight = 16;
@@ -821,10 +789,10 @@ class VDP(object):
             return self._lastVSync + VdpConstants.VSYNCCYCLETIME;
 
     def openDisplay(self):
-        # // Initialise the scanlines
+        # Initialise the scanlines
         self._scanLines = [ScanLine()] * VdpConstants.SMS_HEIGHT
         for i in range(VdpConstants.SMS_HEIGHT):
-            self._scanLines[i].scanLine = self._display_lines
+            self._scanLines[i].scanLine = self._display_lines[i]
             self._scanLines[i].lineChanged = True;
     
         # Scanlines for the background image
@@ -852,8 +820,7 @@ class VDP(object):
         self._verticalScrollInfo       = [0] * VdpConstants.SMS_HEIGHT;
         self._lastVerticalScrollInfo   = [0] * VdpConstants.SMS_HEIGHT;
 
-# Translate colors to screen color depth when the palette is altered
-#
+    # Translate colors to screen color depth when the palette is altered
     def setPalette(self, addr, data):
         #uint16 color;
         #uint8 r, g, b;
@@ -884,7 +851,7 @@ class VDP(object):
 
             self._videoChange = True;
 
-# This changes 8-bit r, g, b values into a 16-bit encoded color
+    # This changes 8-bit r, g, b values into a 16-bit encoded color
     def setColor(self, r, g, b):
         print "TODO: Fix, %s"%(inspect.stack()[0][3])
 
@@ -915,7 +882,7 @@ void Vdp::drawDisplay(void)
 }
     """
 
-# Draw the background tiles 
+    # Draw the background tiles 
     def drawBackground(self):
         tile = 0;
 
@@ -998,6 +965,68 @@ void Vdp::drawDisplay(void)
 
                 tile += 1;
 
+    def clearDisplay(self):
+        # SDL_Flip(screen);
+        self.driver_update_display()
+
+    def updateDisplay(self):
+        fineScroll = 0;
+        xOffset = 0;
+    
+        for y in range(self._yEnd):
+            verticalOffset = self._verticalScrollInfo[y];
+            if (self._horizontalScrollInfo[y].xOffset != self._lastHorizontalScrollInfo[y].xOffset) or (self._verticalScrollInfo[y] != self._lastVerticalScrollInfo[y]) or (self._spriteScanLines[y].lineChanged) or (self._backgroundScanLines[(y+verticalOffset)%(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].lineChanged):
+                self._lastHorizontalScrollInfo[y].xOffset = self._horizontalScrollInfo[y].xOffset;
+                self._lastVerticalScrollInfo[y] = self._verticalScrollInfo[y];
+    
+                if (y >= self._yScroll):
+                    fineScroll = self._horizontalScrollInfo[y].fineScroll;
+                    xOffset = self._horizontalScrollInfo[y].xOffset;
+    
+                if (self._startX > fineScroll):
+                    x = self._startX;
+                else:
+                    x = fineScroll;
+    
+                verticalOffset = self._verticalScrollInfo[y];
+    
+                # Copy the source to the destination */
+                firstBlock = VdpConstants.SMS_WIDTH - ((x+xOffset) % VdpConstants.SMS_WIDTH);
+                if (firstBlock > (VdpConstants.SMS_WIDTH - x)):
+                    firstBlock = VdpConstants.SMS_WIDTH - x;
+
+                for i in range(firstBlock): #firstBlock*sizeof(uint16))
+                    self._scanLines[y].scanLine[x + i] = self._backgroundScanLines[(y + verticalOffset) % (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset + i) % VdpConstants.SMS_WIDTH]; 
+
+                secondBlock = VdpConstants.SMS_WIDTH - firstBlock - x;
+    
+                for i in range(secondBlock): #secondBlock*sizeof(uint16));
+                    self._scanLines[y].scanLine[x + firstBlock + i] = self._backgroundScanLines[(y + verticalOffset) % (VdpConstants.YTILES * VdpConstants.PATTERNHEIGHT)].scanLine[i]; 
+    
+                if (self._spriteScanLines[y].numSprites > 0):
+                    # If there is a transparent forground on this line
+                    if (self._forgroundScanLines[(y+verticalOffset) % 
+                        (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].hasPriority):
+                        for i in range(self._spriteScanLines[y].numSprites):
+                            spriteNumber = self._spriteScanLines[y].sprites[i];
+                            for x in range(self._sprites[spriteNumber].x, min(((self._sprites[spriteNumber].x & 0xFFFF)+ self._spriteWidth), VdpConstants.SMS_WIDTH)):
+                                if (self._spriteScanLines[y].scanLine[x] != 0) and (self._forgroundScanLines[(y+verticalOffset) % (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset) % VdpConstants.SMS_WIDTH] == False):
+                                    self._scanLines[y].scanLine[x] = self._screenPalette[self._spriteScanLines[y].scanLine[x] | 0x10]; 
+
+                    else:
+                        for i in range(self._spriteScanLines[y].numSprites):
+                            spriteNumber = self._spriteScanLines[y].sprites[i];
+                            for x in range(self._sprites[spriteNumber].x, min(((self._sprites[spriteNumber].x + self._spriteWidth) & 0xFFFF, VdpConstants.SMS_WIDTH))):
+                                if (self._spriteScanLines[y].scanLine[x] != 0):
+                                    self._scanLines[y].scanLine[x] = self._screenPalette[self._spriteScanLines[y].scanLine[x] | 0x10]; 
+
+                    for i in range(self._startX): # self._startX*sizeof(uint16));
+                        self._scanLines[y].scanLine[i] = 0
+            self._spriteScanLines[y].lineChanged = False;
+            self._backgroundScanLines[(y+verticalOffset)%(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].lineChanged = False;
+    
+        self.driver_update_display()
+
     # Draw the background tiles
     def drawPatterns(self):
         print inspect.stack()[0][3]
@@ -1072,124 +1101,29 @@ void Vdp::drawDisplay(void)
 }
     """
 
-    def clearDisplay(self):
-        # SDL_Flip(screen);
-        self.driver_update_display()
-
-    def updateDisplay(self):
+    def printSpriteScanLineInfo(self):
         print inspect.stack()[0][3]
     """
 {
-    uint8 fineScroll = 0;
-    uint16 firstBlock;
-    uint16 secondBlock;
-    int16 xOffset = 0;
-    uint16 *src, *dst;
-    unsigned int x;
-    uint8 verticalOffset;
+    std::cout << "Total Sprites: " << (int) self._totalSprites << std::endl;
+    std::cout << "End tokens: ";
+    for (unsigned int i = 0; i < VdpConstants.MAXSPRITES; i++)
+    {
+        if ((self._sprites[i].y - 1) == VdpConstants.LASTSPRITETOKEN)
+            std::cout << "(" << i << ")";
+    }
+    std::cout << std::endl;
 
     for (int y = 0; y < self._yEnd; y++)
     {
-        verticalOffset = self._verticalScrollInfo[y];
-        if ((self._horizontalScrollInfo[y].xOffset !=
-             self._lastHorizontalScrollInfo[y].xOffset)||
-            (self._verticalScrollInfo[y] != self._lastVerticalScrollInfo[y])||
-             (self._spriteScanLines[y].lineChanged)||
-           (self._backgroundScanLines[(y+verticalOffset)%(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].
-                     lineChanged))
-        {
-            self._lastHorizontalScrollInfo[y].xOffset = 
-                    self._horizontalScrollInfo[y].xOffset;
-            self._lastVerticalScrollInfo[y] = self._verticalScrollInfo[y];
+	std::cout << (self._spriteScanLines[y].lineChanged?"*":" ") << 
+                "y: " << y << " self._sprites: " << 
+                (int) self._spriteScanLines[y].numSprites;
+        for (int i = 0; i < self._spriteScanLines[y].numSprites;i++)
+            std::cout << " [" << (int) self._spriteScanLines[y].sprites[i] << "]";
 
-            if (y >= self._yScroll)
-            {
-                fineScroll = self._horizontalScrollInfo[y].fineScroll;
-                xOffset = self._horizontalScrollInfo[y].xOffset;
-            }
-
-            if (self._startX > fineScroll)
-                x = self._startX;
-            else 
-                x = fineScroll;
-
-            verticalOffset = self._verticalScrollInfo[y];
-
-            /* Copy the source to the destination */
-            dst = &(self._scanLines[y].scanLine[x]);
-            src = &(self._backgroundScanLines[(y + verticalOffset) % 
-                   (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset) % VdpConstants.SMS_WIDTH]); 
-            firstBlock = VdpConstants.SMS_WIDTH - ((x+xOffset) % VdpConstants.SMS_WIDTH);
-            if (firstBlock > (VdpConstants.SMS_WIDTH - x))
-                firstBlock = VdpConstants.SMS_WIDTH - x;
-
-            if (firstBlock != 0)
-                memcpy(dst, src, firstBlock*sizeof(uint16));
-
-            dst = &(self._scanLines[y].scanLine[x + firstBlock]);
-            src = &(self._backgroundScanLines[(y + verticalOffset) %
-                            (VdpConstants.YTILES * VdpConstants.PATTERNHEIGHT)].scanLine[0]); 
-            secondBlock = VdpConstants.SMS_WIDTH - firstBlock - x;
-
-            if (secondBlock != 0)
-                memcpy(dst, src, secondBlock*sizeof(uint16));
-
-            if (self._spriteScanLines[y].numSprites > 0)
-            {
-                  // If there is a transparent forground on this line
-                if (self._forgroundScanLines[(y+verticalOffset) % 
-                 (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].hasPriority)
-                {
-                for (int i = 0; i < self._spriteScanLines[y].numSprites; i++)
-                {
-                    uint8 spriteNumber = self._spriteScanLines[y].sprites[i];
-                    for (x = self._sprites[spriteNumber].x; 
-                         (x < (unsigned) self._sprites[spriteNumber].x +
-                          self._spriteWidth) && (x < VdpConstants.SMS_WIDTH);
-                         x++)
-                    {
-                        if ((self._spriteScanLines[y].scanLine[x] != 0) &&
-                            (self._forgroundScanLines[(y+verticalOffset) % 
-                            (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset) % 
-                            VdpConstants.SMS_WIDTH] == False))
-                        {
-                            self._scanLines[y].scanLine[x] = 
-                               self._screenPalette[self._spriteScanLines[y].scanLine[x] |
-                               0x10]; 
-                        }
-                    }
-
-                }
-                }
-                else{
-                for (int i = 0; i < self._spriteScanLines[y].numSprites; i++)
-                {
-                    uint8 spriteNumber = self._spriteScanLines[y].sprites[i];
-                    for (x = self._sprites[spriteNumber].x; 
-                         (x < (unsigned) self._sprites[spriteNumber].x +
-                         self._spriteWidth) && (x < VdpConstants.SMS_WIDTH);
-                         x++)
-                    {
-                        if (self._spriteScanLines[y].scanLine[x] != 0)
-                        {
-                            self._scanLines[y].scanLine[x] = 
-                               self._screenPalette[self._spriteScanLines[y].scanLine[x] |
-                               0x10]; 
-                        }
-                    }
-
-                }
-                }
-                memset(&self._scanLines[y].scanLine[0], 0, self._startX*sizeof(uint16));
-            }
-        }
-        self._spriteScanLines[y].lineChanged = False;
-        self._backgroundScanLines[(y+verticalOffset)%(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].
-                     lineChanged = False;
+	std::cout << std::endl;
     }
-
-    if (blitImage)
-        SDL_BlitSurface(image, NULL, screen, NULL);
-    SDL_Flip(screen);
 }
     """
+
