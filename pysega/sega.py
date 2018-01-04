@@ -6,6 +6,18 @@ from . import clocks
 from . import inputs
 from . import ports
 
+class DummyPort(object):
+    def __init__(self):
+        pass
+
+    def writePort(self, value):
+        print "Dummy write not implemented"
+        pass
+
+    def readPort(self, value):
+        print "Dummy read not implemented"
+        return 0
+
 class DummySound(object):
     def __init__(self):
         pass
@@ -20,11 +32,11 @@ class Sega(object):
         self.pc_state  = cpu.pc_state.PC_State()
         self.ports     = ports.Ports()
         self.inputs    = inputs.Input()
+        self.inputs.joystick  = inputs.DummyJoystick() #TODO: Fix
         self.sound     = DummySound()
-        self.joystick  = inputs.DummyJoystick()
         self.memory    = memory.Memory()
         self.memory    = memory.Memory()
-        self.z80memory = z80memory.Z80Memory(self.clocks, self.inputs)
+        self.z80memory = z80memory.Z80Memory(self.clocks, self.inputs.joystick)
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
 
@@ -37,6 +49,11 @@ class Sega(object):
         self.vdp.set_palette(palette_type)
 
     def configure_ports(self, ports):
+        dummyPort = DummyPort()
+
+        for i in range(0x100):
+            ports.addDeviceToPort(i, dummyPort.readPort);
+
         # Add the vdp `BF' port to BF plus all the mirror ports
         # BF is the vdp control port
         for i in range(0x81, 0xC0, 2):
@@ -60,8 +77,8 @@ class Sega(object):
             ports.addDeviceToPort(i, None, self.sound.writePort);
     
         # Add the joystics to their ports
-        ports.addDeviceToPort(0xDC, self.joystick.readPort1);
-        ports.addDeviceToPort(0xDD, self.joystick.readPort2);
+        ports.addDeviceToPort(0xDC, self.inputs.joystick.readPort1);
+        ports.addDeviceToPort(0xDD, self.inputs.joystick.readPort2);
 
     def insert_cartridge(self, cart_name):
         new_cart = cartridge.GenericCartridge(cart_name)

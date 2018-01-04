@@ -25,7 +25,7 @@ class PygameVDP(vdp.VDP):
 
     def __init__(self, *args):
         # 'default_color' is used by vdp init, need to set before super
-        self.default_color = 0x80
+        self.default_color = 0x0
         self._colors = PygameColors()
         super(PygameVDP, self).__init__(*args)
 

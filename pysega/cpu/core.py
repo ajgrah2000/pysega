@@ -1577,7 +1577,7 @@ class Core(object):
 
                       # Sself.pc_state.BC self.pc_state.HL, self.pc_state.BC
                     elif (extended_op_code == 0x42):
-                        self.pc_state.HL = sub16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
+                        self.pc_state.HL = self.sub16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 15;
@@ -1605,7 +1605,7 @@ class Core(object):
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.BC
                     elif (extended_op_code == 0x4A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
+                        self.pc_state.HL = self.add16c(self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=15;
 
@@ -1629,7 +1629,7 @@ class Core(object):
                                 
                       # Sself.pc_state.BC self.pc_state.HL, self.pc_state.DE
                     elif (extended_op_code == 0x52):
-                        self.pc_state.HL = sub16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
+                        self.pc_state.HL = self.sub16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
 
                         self.pc_state.PC += 2;
                         self.clocks.cycles += 4;
@@ -1666,7 +1666,7 @@ class Core(object):
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.DE
                     elif (extended_op_code == 0x5A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
+                        self.pc_state.HL = self.add16c(self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=4;
 
@@ -1719,7 +1719,7 @@ class Core(object):
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.HL
                     elif (extended_op_code == 0x6A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.HL, self.pc_state.Fstatus.C);
+                        self.pc_state.HL = self.add16c(self.pc_state.HL, self.pc_state.HL, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=4;
 
@@ -1741,7 +1741,7 @@ class Core(object):
 
                         # self.pc_state.ADC self.pc_state.HL, self.pc_state.SP
                     elif (extended_op_code == 0x7A):
-                        self.pc_state.HL = add16c(self.pc_state.HL, self.pc_state.SP, self.pc_state.Fstatus.C);
+                        self.pc_state.HL = self.add16c(self.pc_state.HL, self.pc_state.SP, self.pc_state.Fstatus.C);
                         self.pc_state.PC+=2;
                         self.clocks.cycles+=15;
 
@@ -1823,7 +1823,7 @@ class Core(object):
                         # LDIR
                     elif (extended_op_code == 0xB0):
                         if (self.pc_state.BC >= 4):
-                            self.memory.write(self.pc_state.DE, self.pc_state.HL, 4);
+                            self.memory.writeMulti(self.pc_state.DE, self.pc_state.HL, 4);
                             self.pc_state.DE += 4;
                             self.pc_state.HL += 4;
                             self.pc_state.BC -= 4;
@@ -2036,9 +2036,8 @@ class Core(object):
         else:
             self.pc_state.Fstatus.Z = 0
 
-#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
-        print "TODO: Check PV"
-        if ((r > 127) or (r < -128)): # Overflow
+        if (((r & 0xF00) != 0) and 
+             (r & 0xF00) != 0xF00):
             self.pc_state.Fstatus.PV = 1
         else:
             self.pc_state.Fstatus.PV = 0
@@ -2076,9 +2075,8 @@ class Core(object):
         else:
             self.pc_state.Fstatus.Z = 0
 
-#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
-        print "TODO: Check PV"
-        if ((r > 127) or (r < -128)): # Overflow
+        if (((r & 0x180) != 0) and 
+             (r & 0x180) != 0x180): # Overflow
             self.pc_state.Fstatus.PV = 1
         else:
             self.pc_state.Fstatus.PV = 0
@@ -2097,43 +2095,72 @@ class Core(object):
             self.pc_state.Fstatus.C = 0
         return (a - b - c) & 0xFF
     
-#    // self.pc_state.Add two 16 bit ints and set flags accordingly
-#    uint16 Z80core::add16c(int16 a, int16 b, int16 c)
-#    {
-#        static int32 r;
-#        static int16 rs;
-#    
-#        r = a + b + c;
-#        rs = a + b + c;
-#        self.pc_state.Fstatus.S = (rs & 0x8000) ? 1:0; // Negative
-#        self.pc_state.Fstatus.Z = (rs == 0) ? 1:0; // Zero
-#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
-#    
-#        r = (a & 0xFFF) + (b & 0xFFF) + c;
-#        self.pc_state.Fstatus.H = (r & 0x1000) ? 1:0; // Half carry
-#        self.pc_state.Fstatus.N = 0;
-#    
-#        r = (a & 0xFFFF) + (b & 0xFFFF) + c;
-#        self.pc_state.Fstatus.C = (r & 0x10000) ? 1:0; // Carry
-#        return a + b + c;
-#    }
-#    
-#    uint16 Z80core::sub16c(int16 a, int16 b, int16 c)
-#    {
-#        static int32 r;
-#        static int16 rs;
-#    
-#        r = a - b - c;
-#        rs = a - b - c;
-#        self.pc_state.Fstatus.S = (rs & 0x8000) ? 1:0; // Negative
-#        self.pc_state.Fstatus.Z = (rs == 0) ? 1:0; // Zero
-#        self.pc_state.Fstatus.PV = (r != rs)  ? 1:0; // Overflow
-#    
-#        r = (a & 0xFFF) - (b & 0xFFF) - c;
-#        self.pc_state.Fstatus.H = (r & 0x1000) ? 1:0; // Half carry
-#        self.pc_state.Fstatus.N = 1;
-#    
-#        r = (a & 0xFFFF) - (b & 0xFFFF) - c;
-#        self.pc_state.Fstatus.C = (r & 0x10000) ? 1:0; // Carry
-#        return a - b - c;
-#    }
+    # self.pc_state.Add two 16 bit ints and set flags accordingly
+    def add16c(self, a, b, c):
+        r = a + b + c;
+        if (rs & 0x8000): # Negative
+            self.pc_state.Fstatus.S = 1
+        else:
+            self.pc_state.Fstatus.S = 0
+
+        if (rs == 0): # Zero
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+
+        # Overflow
+        if (((r & 0x18000) != 0) and 
+             (r & 0x18000) != 0x18000): # Overflow
+            self.pc_state.Fstatus.PV = 1
+        else:
+            self.pc_state.Fstatus.PV = 0
+    
+        r = (a & 0xFFF) + (b & 0xFFF) + c;
+        if (r & 0x1000): # Half carry
+            self.pc_state.Fstatus.H = 1
+        else:
+            self.pc_state.Fstatus.H = 0
+
+        self.pc_state.Fstatus.N = 0;
+    
+        r = (a & 0xFFFF) + (b & 0xFFFF) + c;
+        if (r & 0x10000): # Carry
+            self.pc_state.Fstatus.C = 1
+        else:
+            self.pc_state.Fstatus.C = 0
+        return a + b + c;
+    
+    def sub16c(self, a, b, c):
+    
+        r = a - b - c;
+        if (r & 0x8000): # Negative
+            self.pc_state.Fstatus.S = 1
+        else:
+            self.pc_state.Fstatus.S = 0
+
+        if(r == 0): # Zero
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+
+        if (((r & 0x18000) != 0) and 
+             (r & 0x18000) != 0x18000): # Overflow
+            self.pc_state.Fstatus.PV = 1
+        else:
+            self.pc_state.Fstatus.PV = 0
+    
+        r = (a & 0xFFF) - (b & 0xFFF) - c;
+        if(r & 0x1000): #Half carry
+            self.pc_state.Fstatus.H = 1
+        else:
+            self.pc_state.Fstatus.H = 0
+
+        self.pc_state.Fstatus.N = 1;
+    
+        r = (a & 0xFFFF) - (b & 0xFFFF) - c;
+        if(r & 0x10000): # Carry
+            self.pc_state.Fstatus.C = 1
+        else:
+            self.pc_state.Fstatus.C = 0
+
+        return a - b - c;

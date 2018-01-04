@@ -357,8 +357,8 @@ class VDP(object):
     def readPort7E(self):
         self._addressLatch = False;  # Address is unlatched during port read
     
-        vCounter = (cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME;
-        self._currentYpos = (cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME+1;
+        vCounter = (self.clocks.cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME;
+        self._currentYpos = (self.clocks.cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME+1;
     
         # I can't think of an ellegant solution, so this is as good as it gets
         # for now (fudge factor and all)
@@ -370,7 +370,7 @@ class VDP(object):
     
         # I can't think of an ellegant solution, so this is as good as it gets
         # for now (fudge factor and all)
-        hCounter = ((self.joystick.getXpos() + 0x28)/2 & 0x7F);
+        hCounter = ((self.inputs.joystick.getXpos() + 0x28)/2 & 0x7F);
         return hCounter;
 
     def readPortBE(self):
@@ -795,11 +795,6 @@ class VDP(object):
             self._scanLines[i].scanLine = self._display_lines[i]
             self._scanLines[i].lineChanged = True;
 
-        for x in range(100,120):
-          self._scanLines[10].scanLine[x] = self.set_color(255, 0, 0)
-          #self._display_lines[10][x]= self.set_color(255, 0, 0)
-          #self._display_lines[10][x]= self.set_color(255, 0, 0)
-    
         # Scanlines for the background image
         self._backgroundScanLines = [ScanLine() for x in range(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)]
         for i in range(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT):

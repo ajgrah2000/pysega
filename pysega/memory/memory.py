@@ -1,3 +1,5 @@
+from .. import errors
+
 class Memory(object):
     """ Memory map management of sega master system/cartridges/ram
     """
@@ -49,12 +51,13 @@ class Memory(object):
     def read16(self, address):
         return self.read(address) + (self.read(address + 1) << 8)
 
-    def write(self, dest, src, length):
+    def writeMulti(self, dest, src, length):
         """ write multiple bytes to memory.
         """
 
         if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAMOFFSET)):
-            raise Exception("Write out of range" + address)
+            errors.warning("Write out of range %x"%(dest + length))
+            return
 
         for i in range(length):
             self.write(dest+i, self.read(src+i))
