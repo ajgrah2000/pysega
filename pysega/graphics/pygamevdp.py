@@ -14,13 +14,6 @@ class PygameColors(vdp.Colors):
     def __init__(self):
         super(PygameColors, self).__init__()
 
-    def set_color(self, r, g, b):
-      r = r & 0xFF
-      g = g & 0xFF
-      b = b & 0xFF
-      color = r << 16 | g << 8 | b
-
-      return color
 
 class PygameVDP(vdp.VDP):
     """ GUI layer for vdp.
@@ -32,7 +25,7 @@ class PygameVDP(vdp.VDP):
 
     def __init__(self, *args):
         # 'default_color' is used by vdp init, need to set before super
-        self.default_color = 0
+        self.default_color = 0x80
         self._colors = PygameColors()
         super(PygameVDP, self).__init__(*args)
 
@@ -93,4 +86,12 @@ class PygameVDP(vdp.VDP):
         for y in range(min(self.END_DRAW_Y - self.START_DRAW_Y, self.FRAME_HEIGHT)):
             for x in range(self.FRAME_WIDTH):
                 self._background.set_at((x,y),  self._display_lines[y][x])
+
+    def set_color(self, r, g, b):
+      r = r & 0xFF
+      g = g & 0xFF
+      b = b & 0xFF
+      color = r << 16 | g << 8 | b
+
+      return color
 

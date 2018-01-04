@@ -248,7 +248,7 @@ class VDP(object):
         self._displayMode = 0;
     
         # Allocate memory for pattern tiles
-        self._patternInfo = [PatternInfo()] * VdpConstants.MAXPATTERNS
+        self._patternInfo = [PatternInfo() for x in range(VdpConstants.MAXPATTERNS)]
     
         self._patterns4 = [0] * VdpConstants.MAXPATTERNS*VdpConstants.PATTERNSIZE
     
@@ -261,7 +261,7 @@ class VDP(object):
             pattern_info.colors = False;
             pattern_info.screenVersionCached = False;
     
-        self._tileAttributes = [TileAttribute()] * VdpConstants.NUMTILEATTRIBUTES
+        self._tileAttributes = [TileAttribute() for x in range(VdpConstants.NUMTILEATTRIBUTES)]
         for tile_attribute in self._tileAttributes:
             tile_attribute.tileNumber = 0;
             self._patternInfo[tile_attribute.tileNumber].references +=1;
@@ -275,7 +275,7 @@ class VDP(object):
     
         self._spriteTileShift = 0;
         self._totalSprites = VdpConstants.MAXSPRITES;
-        self._sprites = [Sprite()] * VdpConstants.MAXSPRITES
+        self._sprites = [Sprite() for x in range(VdpConstants.MAXSPRITES)]
         for sprite in self._sprites:
             sprite.y = 1;
             sprite.x = 0;
@@ -790,33 +790,38 @@ class VDP(object):
 
     def openDisplay(self):
         # Initialise the scanlines
-        self._scanLines = [ScanLine()] * VdpConstants.SMS_HEIGHT
+        self._scanLines = [ScanLine() for x in range(VdpConstants.SMS_HEIGHT)]
         for i in range(VdpConstants.SMS_HEIGHT):
             self._scanLines[i].scanLine = self._display_lines[i]
             self._scanLines[i].lineChanged = True;
+
+        for x in range(100,120):
+          self._scanLines[10].scanLine[x] = self.set_color(255, 0, 0)
+          #self._display_lines[10][x]= self.set_color(255, 0, 0)
+          #self._display_lines[10][x]= self.set_color(255, 0, 0)
     
         # Scanlines for the background image
-        self._backgroundScanLines = [ScanLine()] * VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT
+        self._backgroundScanLines = [ScanLine() for x in range(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)]
         for i in range(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT):
             self._backgroundScanLines[i].scanLine = [0] * VdpConstants.PATTERNWIDTH*VdpConstants.XTILES*VdpConstants.YTILES
             self._backgroundScanLines[i].lineChanged = True;
     
         # Scanlines for the forground image
-        self._forgroundScanLines = [PriorityScanLine()] * VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT
+        self._forgroundScanLines = [PriorityScanLine() for x in range(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)]
         for i in range(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT):
             self._forgroundScanLines[i].scanLine = [False] * VdpConstants.PATTERNWIDTH*VdpConstants.XTILES*VdpConstants.YTILES
             self._forgroundScanLines[i].hasPriority = False;
     
         # Initialise the Sprite scanlines
-        self._spriteScanLines = [SpriteScanLine()] * VdpConstants.SMS_HEIGHT
+        self._spriteScanLines = [SpriteScanLine() for x in range(VdpConstants.SMS_HEIGHT)]
         for i in range(VdpConstants.SMS_HEIGHT):
             self._spriteScanLines[i].scanLine = [0] * VdpConstants.SMS_WIDTH
             self._spriteScanLines[i].lineChanged = True;
             self._spriteScanLines[i].numSprites = 0;
             self._spriteScanLines[i].sprites = [VdpConstants.NOSPRITE] * VdpConstants.MAXSPRITES
     
-        self._lastHorizontalScrollInfo = [HorizontalScroll()] * VdpConstants.SMS_HEIGHT
-        self._horizontalScrollInfo     = [HorizontalScroll()] * VdpConstants.SMS_HEIGHT
+        self._lastHorizontalScrollInfo = [HorizontalScroll() for x in range(VdpConstants.SMS_HEIGHT)]
+        self._horizontalScrollInfo     = [HorizontalScroll() for x in range(VdpConstants.SMS_HEIGHT)]
         self._verticalScrollInfo       = [0] * VdpConstants.SMS_HEIGHT;
         self._lastVerticalScrollInfo   = [0] * VdpConstants.SMS_HEIGHT;
 
@@ -835,7 +840,7 @@ class VDP(object):
             g = (((data>>2)&0x3)*0xFF)/0x3;
             b = (((data>>4)&0x3)*0xFF)/0x3;
     
-            color = self.setColor(r, g, b);
+            color = self.set_color(r, g, b);
     
             self._screenPalette[addr] = color;
     
@@ -850,14 +855,6 @@ class VDP(object):
                     self._patternInfo[i].screenVersionCached = False;
 
             self._videoChange = True;
-
-    # This changes 8-bit r, g, b values into a 16-bit encoded color
-    def setColor(self, r, g, b):
-        print "TODO: Fix, %s"%(inspect.stack()[0][3])
-
-        color = (((0x1F*r)/0xFF) << 11) | (((0x3F*g)/0xFF) << 5) | (((0x1F*b)/0xFF));
-    
-        return color;
 
     def checkPatternColors(self, pattern):
         self._patternInfo[pattern].colors = 0; 
