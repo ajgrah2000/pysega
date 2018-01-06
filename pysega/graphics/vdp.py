@@ -170,7 +170,7 @@ class VDP(object):
 
         self._display_lines = []
         for y in range(self.END_DRAW_Y - self.START_DRAW_Y):
-          self._display_lines.append([self.default_color]*self.FRAME_WIDTH)
+          self._display_lines.append([self.default_color for x in range(self.FRAME_WIDTH)])
 
         self.driver_open_display()
 
@@ -541,6 +541,8 @@ class VDP(object):
 
     # Not the most efficient routine, but it should do the job
     def removeSpriteFromScanlines(self, scanlineNumber, spriteNumber):
+        scanlineNumber = scanlineNumber & 0xFF
+
         shift = 0;
     
         if (scanlineNumber < self._yEnd):
@@ -559,6 +561,8 @@ class VDP(object):
 
     # Not the most efficient routine, but it should do the job
     def addSpriteToScanlines(self, scanlineNumber, spriteNumber):
+        scanlineNumber = scanlineNumber & 0xFF
+
         if (scanlineNumber < self._yEnd):
             #assert(self._spriteScanLines[scanlineNumber].numSprites != VdpConstants.MAXSPRITES);
     
@@ -566,7 +570,6 @@ class VDP(object):
                 i = self._spriteScanLines[scanlineNumber].numSprites
                 self._spriteScanLines[scanlineNumber].numSprites += 1
                 while(i > 0):
-                    print i, len(self._spriteScanLines[scanlineNumber].sprites)
                     if (self._spriteScanLines[scanlineNumber].sprites[i-1] < spriteNumber):
                         self._spriteScanLines[scanlineNumber].lineChanged = True;
                         self._spriteScanLines[scanlineNumber].sprites[i] = spriteNumber;
@@ -813,7 +816,7 @@ class VDP(object):
             self._spriteScanLines[i].scanLine = [0] * VdpConstants.SMS_WIDTH
             self._spriteScanLines[i].lineChanged = True;
             self._spriteScanLines[i].numSprites = 0;
-            self._spriteScanLines[i].sprites = [VdpConstants.NOSPRITE] * VdpConstants.MAXSPRITES
+            self._spriteScanLines[i].sprites = [VdpConstants.NOSPRITE for x in range(VdpConstants.MAXSPRITES)]
     
         self._lastHorizontalScrollInfo = [HorizontalScroll() for x in range(VdpConstants.SMS_HEIGHT)]
         self._horizontalScrollInfo     = [HorizontalScroll() for x in range(VdpConstants.SMS_HEIGHT)]
@@ -861,6 +864,8 @@ class VDP(object):
     def drawBuffer(self):
         self.drawBackground();
         self.drawSprites();
+
+#        self.drawPatterns()# For debuging purposes
     
         # Reset any change indicators for the patterns
         for i in range(VdpConstants.MAXPATTERNS):
@@ -887,7 +892,7 @@ void Vdp::drawDisplay(void)
                     for py in range(VdpConstants.PATTERNHEIGHT):
                         self._forgroundScanLines[y+py].hasPriority = True;
     
-                if(self._tileAttributes[tile].changed * self._patternInfo[self._tileAttributes[tile].tileNumber].changed):
+                if(self._tileAttributes[tile].changed or self._patternInfo[self._tileAttributes[tile].tileNumber].changed):
                     if(False == self._patternInfo[self._tileAttributes[tile].tileNumber].screenVersionCached):
                         self.updateScreenPattern(self._tileAttributes[tile].tileNumber)
     
@@ -999,7 +1004,9 @@ void Vdp::drawDisplay(void)
                     # If there is a transparent forground on this line
                     if (self._forgroundScanLines[(y+verticalOffset) % 
                         (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].hasPriority):
+                        print "A"
                         for i in range(self._spriteScanLines[y].numSprites):
+                            print "B"
                             spriteNumber = self._spriteScanLines[y].sprites[i];
                             for x in range(self._sprites[spriteNumber].x, min(((self._sprites[spriteNumber].x & 0xFFFF)+ self._spriteWidth), VdpConstants.SMS_WIDTH)):
                                 if (self._spriteScanLines[y].scanLine[x] != 0) and (self._forgroundScanLines[(y+verticalOffset) % (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset) % VdpConstants.SMS_WIDTH] == False):
@@ -1022,32 +1029,20 @@ void Vdp::drawDisplay(void)
     # Draw the background tiles
     def drawPatterns(self):
         print inspect.stack()[0][3]
-    """
-{
-    int pattern = 0;
-    int pixel4;
-    int paletteSelect = 1;
 
-    for (unsigned int y = 0; y < 16*VdpConstants.PATTERNHEIGHT; y += VdpConstants.PATTERNHEIGHT)
-    {
-        for (unsigned int x = 0; x < VdpConstants.XTILES*VdpConstants.PATTERNWIDTH; x += VdpConstants.PATTERNWIDTH)
-        {
-
-            for (unsigned int py = 0; py < VdpConstants.PATTERNHEIGHT; py++)
-            {
-                for (unsigned int px = 0; px < VdpConstants.PATTERNWIDTH; px++)
-                {
+        pattern = 0;
+        paletteSelect = 1;
+    
+        for y in range(0, 16*VdpConstants.PATTERNHEIGHT, VdpConstants.PATTERNHEIGHT):
+            for x in range(0, VdpConstants.XTILES*VdpConstants.PATTERNWIDTH, VdpConstants.PATTERNWIDTH):
+                for py in range(VdpConstants.PATTERNHEIGHT):
+                    for px in range(VdpConstants.PATTERNWIDTH):
                         pixel4 = self._patterns4[(pattern << 6) | (py << 3 )| px] | (paletteSelect << 4);
-                        self._backgroundScanLines[y+py].scanLine[x+px] =
-                             self._screenPalette[pixel4];
-
-                }
-            }
-            pattern++;
-        }
-    }
-}
-    """
+                        self._backgroundScanLines[y+py].scanLine[x+px] = self._screenPalette[pixel4];
+                        self._scanLines[y+py].scanLine[x+px] = self._screenPalette[pixel4];
+                        self._scanLines[y+py].lineChanged = True;
+                        print "* %d %d"%(y+py, x+px)
+                pattern += 1;
 
     def printSpriteInformation(self):
         print inspect.stack()[0][3]
