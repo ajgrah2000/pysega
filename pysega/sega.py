@@ -32,7 +32,9 @@ class Sega(object):
         self.pc_state  = cpu.pc_state.PC_State()
         self.ports     = ports.Ports()
         self.inputs    = inputs.Input()
-        self.inputs.joystick  = inputs.DummyJoystick() #TODO: Fix
+        #TODO: Fix, combine 'inputs' in a better way. 
+        self.inputs.joystick  = inputs.Joystick() 
+
         self.sound     = DummySound()
         self.memory    = memory.Memory()
         self.memory    = memory.Memory()
