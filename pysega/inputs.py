@@ -23,6 +23,8 @@ class Joystick(object):
         self._port1_value = 0xFF
         self._port2_value = 0xFF
         self._lastY = 0;
+        self._lg1y = 0
+        self._lg2y = 0
 
     def _set_bit(self, initial, mask, value):
         if value:
