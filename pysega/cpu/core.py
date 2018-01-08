@@ -140,9 +140,9 @@ class Core(object):
                 # Really need to put this into a table
             elif (op_code == 0x27):
                 if (self.pc_state.Fstatus.N == 0): # self.pc_state.Addition instruction
-                    calculateDAAAdd();
+                    self.calculateDAAAdd();
                 else: # Subtraction instruction
-                    calculateDAASub();
+                    self.calculateDAASub();
                 self.pc_state.PC += 1
                 self.clocks.cycles+=4;
 
@@ -1924,103 +1924,70 @@ class Core(object):
     # Calculate the result of the DAA functio
     def calculateDAAAdd(self):
         print "calculateDAAAdd"
-    #{
-    #    uint8 upper = (self.pc_state.A >> 4) & 0xF;
-    #    uint8 lower = self.pc_state.A & 0xF;
-    #    
-    #    if (self.pc_state.Fstatus.C == 0)
-    #    {
-    #        if ((upper <= 9) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            (lower <= 9))
-    #             ;
-    #        else if ((upper <= 8) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            ((lower >= 0xA) && (lower <= 0xF)))
-    #            self.pc_state.A += 0x06;
-    #        else if ((upper <= 9) &&
-    #            (self.pc_state.Fstatus.H == 1) &&
-    #            (lower <= 0x3))
-    #            self.pc_state.A += 0x06;
-    #        else if (((upper >= 0xA) && (upper <= 0xF)) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            (lower <= 0x9))
-    #        {
-    #            self.pc_state.A += 0x60;
-    #            self.pc_state.Fstatus.C = 1;
-    #        }
-    #        else if (((upper >= 0x9) && (upper <= 0xF)) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            ((lower >= 0xA) && (lower <= 0xF)))
-    #        {
-    #            self.pc_state.A += 0x66;
-    #            self.pc_state.Fstatus.C = 1;
-    #        }
-    #        else if (((upper >= 0xA) && (upper <= 0xF)) &&
-    #            (self.pc_state.Fstatus.H == 1) &&
-    #            (lower <= 0x3))
-    #        {
-    #            self.pc_state.A += 0x66;
-    #            self.pc_state.Fstatus.C = 1;
-    #        }
-    #    }
-    #    else
-    #    {
-    #        if ((upper <= 0x2) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            (lower <= 0x9))
-    #            self.pc_state.A += 0x60;
-    #        else if ((upper <= 0x2) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            ((lower >= 0xA) && (lower <= 0xF)))
-    #            self.pc_state.A += 0x66;
-    #        else if ((upper <= 0x3) &&
-    #            (self.pc_state.Fstatus.H == 1) &&
-    #            (lower <= 0x3))
-    #            self.pc_state.A += 0x66;
-    #    }
-    #    self.pc_state.Fstatus.PV = FlagTables::calculateParity(self.pc_state.A);
-    #    self.pc_state.Fstatus.S  = (self.pc_state.A & 0x80) ? 1:0; // Is negative
-    #    self.pc_state.Fstatus.Z  = (self.pc_state.A==0) ? 1:0; // Is zero
-    #}
+
+        upper = (self.pc_state.A >> 4) & 0xF;
+        lower = self.pc_state.A & 0xF;
+        
+        if (self.pc_state.Fstatus.C == 0):
+            if ((upper <= 9) and (self.pc_state.Fstatus.H == 0) and (lower <= 9)):
+                pass
+            elif ((upper <= 8) and (self.pc_state.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
+                self.pc_state.A += 0x06;
+            elif ((upper <= 9) and (self.pc_state.Fstatus.H == 1) and (lower <= 0x3)):
+                self.pc_state.A += 0x06;
+            elif (((upper >= 0xA) and (upper <= 0xF)) and (self.pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+                self.pc_state.A += 0x60;
+                self.pc_state.Fstatus.C = 1;
+            elif (((upper >= 0x9) and (upper <= 0xF)) and (self.pc_state.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
+                self.pc_state.A += 0x66;
+                self.pc_state.Fstatus.C = 1;
+            elif (((upper >= 0xA) and (upper <= 0xF)) and (self.pc_state.Fstatus.H == 1) and (lower <= 0x3)):
+                self.pc_state.A += 0x66;
+                self.pc_state.Fstatus.C = 1;
+        else:
+            if ((upper <= 0x2) and (self.pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+                self.pc_state.A += 0x60;
+            elif ((upper <= 0x2) and (self.pc_state.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
+                self.pc_state.A += 0x66;
+            elif ((upper <= 0x3) and (self.pc_state.Fstatus.H == 1) and (lower <= 0x3)):
+                self.pc_state.A += 0x66;
+
+        self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(self.pc_state.A);
+        if (self.pc_state.A & 0x80): # Is negative
+            self.pc_state.Fstatus.S  = 1
+        else:
+            self.pc_state.Fstatus.S  = 0
+
+        if (self.pc_state.A==0): # Is zero
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
     
     # Fcpu_state->IXME, table in z80 guide is wrong, need to check values by hand
     def calculateDAASub(self):
-        print("calculateDAASub")
-        pass
-    #{
-    #    uint8 upper = (self.pc_state.A >> 4) & 0xF;
-    #    uint8 lower = self.pc_state.A & 0xF;
-    #
-    #    if (self.pc_state.Fstatus.C == 0)
-    #    {
-    #        if ((upper <= 0x9) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            (lower <= 0x9))
-    #            ;
-    #        else if ((upper <= 0x8) &&
-    #            (self.pc_state.Fstatus.H == 1) &&
-    #            ((lower >= 0x6) && (lower <= 0xF)))
-    #            self.pc_state.A += 0xFA;
-    #    } 
-    #    else
-    #    {
-    #        if (((upper >= 0x7) && (upper <= 0xF)) &&
-    #            (self.pc_state.Fstatus.H == 0) &&
-    #            (lower <= 0x9))
-    #            self.pc_state.A += 0xA0;
-    #        else if (((upper >= 0x6) && (upper <= 0xF)) &&
-    #            (self.pc_state.Fstatus.H == 1) &&
-    #            ((lower >= 0x6) && (lower <= 0xF)))
-    #        {
-    #            self.pc_state.Fstatus.H = 0;
-    #            self.pc_state.A += 0x9A;
-    #        }
-    #    }
-    #    self.pc_state.Fstatus.PV = FlagTables::calculateParity(self.pc_state.A);
-    #    self.pc_state.Fstatus.S  = (self.pc_state.A & 0x80) ? 1:0; // Is negative
-    #    self.pc_state.Fstatus.Z  = (self.pc_state.A==0) ? 1:0; // Is zero
-    #}
+        upper = (self.pc_state.A >> 4) & 0xF;
+        lower = self.pc_state.A & 0xF;
+    
+        if (self.pc_state.Fstatus.C == 0):
+            if ((upper <= 0x9) and (self.pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+                pass
+            elif ((upper <= 0x8) and (self.pc_state.Fstatus.H == 1) and ((lower >= 0x6) and (lower <= 0xF))):
+                self.pc_state.A += 0xFA;
+        else:
+            if (((upper >= 0x7) and (upper <= 0xF)) and (self.pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+                self.pc_state.A += 0xA0;
+            elif (((upper >= 0x6) and (upper <= 0xF)) and (self.pc_state.Fstatus.H == 1) and ((lower >= 0x6) and (lower <= 0xF))):
+                self.pc_state.Fstatus.H = 0;
+                self.pc_state.A += 0x9A;
+        self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(self.pc_state.A);
+        if (self.pc_state.A & 0x80): #Is negative
+            self.pc_state.Fstatus.S = 1
+        else:
+            self.pc_state.Fstatus.S = 0
+        if (self.pc_state.A==0): # Is zero
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
     
     # self.pc_state.Add two 8 bit ints plus the carry bit, and set flags accordingly
     def add8c(self, a, b, c):
