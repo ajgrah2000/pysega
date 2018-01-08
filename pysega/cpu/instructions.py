@@ -427,7 +427,7 @@ class Load16BC(Instruction):
       # Load 16-bit cpu_state->BC register
       # LD cpu_state->BC, 0x
     
-      self.r16 = memory.read16(self.pc_state.PC+1); 
+      self.r16.set(memory.read16(self.pc_state.PC+1))
       self.pc_state.PC += 3;
 
       return 10;

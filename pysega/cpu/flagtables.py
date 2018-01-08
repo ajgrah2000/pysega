@@ -3,7 +3,7 @@ from . import pc_state
 def signed_char_to_int(value):
     result = value
     if (value & 0x80):
-        result = value + 0xFF00
+        result = value | 0xFF00
     return result
 
 class FlagTables(object):
@@ -197,19 +197,11 @@ class FlagTables(object):
   
       for i in range(FlagTables.MAXBYTE):
           for j in range(FlagTables.MAXBYTE):
-              if (i & 0x80):
-                a = i | 0xF00
-              else:
-                a = i
-              if (j & 0x80):
-                b = j | 0xF00
-              else:
-                b = j
+              status.value = 0; 
 
               # overflow
-              r = ((a & 0xFFF) + (b & 0xFFF)) & 0xFFF
-              if (((r & 0x180) != 0) and 
-                   (r & 0x180) != 0x180): # Overflow
+              r = (signed_char_to_int(i) + signed_char_to_int(j)) & 0xFFF
+              if (((r & 0x180) != 0) and (r & 0x180) != 0x180): # Overflow
                   status.PV = 1
               else:
                   status.PV = 0
@@ -217,7 +209,6 @@ class FlagTables(object):
               rc = ((i & 0xFF) + (j & 0xFF)) & 0xFF
               hr = (i & 0xF) + (j & 0xF);
   
-              status.value = 0; 
               if (rc & 0x80):
                   status.S  = 1
               else:
@@ -255,6 +246,7 @@ class FlagTables(object):
     
         for i in range(FlagTables.MAXBYTE):
             for j in range(FlagTables.MAXBYTE):
+
                 r  = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFFFF#r  = (char) i - (char) j;
                 rc = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFF # rc = (char) i - (char) j;
                 hr  = (i & 0xF) - (j & 0xF)
@@ -274,14 +266,12 @@ class FlagTables(object):
                   status.H  = 0
 
                 # overflow
-                status.PV = 0
-                if ((i < 0) and (j > 0)):
-                    if (j >= (0x80 - (i ^ 0xff))):
-                        status.PV = 1
-
-                if ((i >= 0) and (j < 0)):
-                    if ((i + 1) >= (((0x80 - (j ^ 0xff))) & 0xFF)):
-                        status.PV = 1
+                r = (signed_char_to_int(i) - signed_char_to_int(j)) & 0xFFF
+                if (((r & 0x180) != 0) and 
+                     (r & 0x180) != 0x180): # Overflow
+                    status.PV = 1
+                else:
+                    status.PV = 0
 
                 status.N  = 1
 
