@@ -30,7 +30,6 @@ class JumpInstruction(Instruction):
 
     def execute(self, memory):
         self.pc_state.PC = memory.read16(self.pc_state.PC + 1)
-#        self.clocks.system_clock += 10
         return 10
 
 #class MemoryReadInstruction(Instruction):
@@ -55,7 +54,6 @@ class Noop(Instruction):
     def execute(self, data):
         """NOP"""
         self.pc_state.PC = self.pc_state.PC + 1
-        self.clocks.system_clock += 4
         return 4;
 
 class OUT_n_A(Instruction):

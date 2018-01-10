@@ -80,36 +80,29 @@ class Memory(object):
         """ Un-optimised address translation, uses paging registers. 
         """
 
-        ADDRESS_MASK = 0xFFFF
-        BANK_MASK = 0x3FFF
-        address = address & ADDRESS_MASK
-        bank_address = address & BANK_MASK
-
-        ram_select = self._memory_map[0xFFFC]
-        page0_bank = self._memory_map[0xFFFD]
-        page1_bank = self._memory_map[0xFFFE]
-        page2_bank = self._memory_map[0xFFFF]
-
-        if (ram_select & 0x8):
-          page2_is_cartridge_ram = True
-        else:
-          page2_is_cartridge_ram = False
-
-        if (ram_select & 0x4):
-          cartridge_ram_page = 1
-        else:
-          cartridge_ram_page = 0
+        address = address & 0xFFFF # ADDRESS_MASK
+        bank_address = address & 0x3FFF # BANK_MASK
 
         if(address < self.PAGE0):
             result = self.cartridge.cartridge_banks[0][bank_address]
         elif(address < self.PAGE1):
+            page0_bank = self._memory_map[0xFFFD]
             result = self.cartridge.cartridge_banks[page0_bank][bank_address]
         elif(address < self.PAGE2):
+            page1_bank = self._memory_map[0xFFFE]
             result = self.cartridge.cartridge_banks[page1_bank][bank_address]
         elif(address < self.RAM_OFFSET):
-            if (page2_is_cartridge_ram):
+            ram_select = self._memory_map[0xFFFC]
+
+            if (ram_select & 0x8): # page2_is_cartridge_ram
+              if (ram_select & 0x4):
+                cartridge_ram_page = 1
+              else:
+                cartridge_ram_page = 0
+      
               result = self.cartridge.ram[cartridge_ram_page][bank_address]
             else:
+              page2_bank = self._memory_map[0xFFFF]
               result = self.cartridge.cartridge_banks[page2_bank][bank_address]
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM
@@ -123,38 +116,30 @@ class Memory(object):
         """ Un-optimised address translation, uses paging registers. 
         """
 
-        ADDRESS_MASK = 0xFFFF
-        BANK_MASK = 0x3FFF
-        address = address & ADDRESS_MASK
-        bank_address = address & BANK_MASK
-
-        ram_select = self._memory_map[0xFFFC]
-        page0_bank = self._memory_map[0xFFFD]
-        page1_bank = self._memory_map[0xFFFE]
-        page2_bank = self._memory_map[0xFFFF]
-
-        if (ram_select & 0x8):
-          page2_is_cartridge_ram = True
-        else:
-          page2_is_cartridge_ram = False
-
-        if (ram_select & 0x4):
-          cartridge_ram_page = 1
-        else:
-          cartridge_ram_page = 0
+        address = address & 0xFFFF # ADDRESS_MASK
+        bank_address = address & 0x3FFF # BANK_MASK
 
         if(address >= self.PAGING_REGISTERS):
             self._memory_map[address] = data
         elif(address < self.PAGE0):
             self.cartridge.cartridge_banks[0][bank_address] = data
         elif(address < self.PAGE1):
+            page0_bank = self._memory_map[0xFFFD]
             self.cartridge.cartridge_banks[page0_bank][bank_address] = data
         elif(address < self.PAGE2):
+            page1_bank = self._memory_map[0xFFFE]
             self.cartridge.cartridge_banks[page1_bank][bank_address] = data
         elif(address < self.RAM_OFFSET):
-            if (page2_is_cartridge_ram):
+            ram_select = self._memory_map[0xFFFC]
+            if (ram_select & 0x8): # page2_is_cartridge_ram
+              if (ram_select & 0x4):
+                cartridge_ram_page = 1
+              else:
+                cartridge_ram_page = 0
+      
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
             else:
+              page2_bank = self._memory_map[0xFFFF]
               self.cartridge.cartridge_banks[page2_bank][bank_address] = data
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM

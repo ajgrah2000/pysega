@@ -64,7 +64,8 @@ class Core(object):
 #    static uint8 tmp8, t8;
 #    static const Byte *atPC;
 
-     while True:
+#     while True:
+     if True:
 
           # Check for any possible interupts
       if debug:
@@ -1913,8 +1914,8 @@ class Core(object):
                 print("Unsupported op code %x"%(atPC[0]))
                 return -1;
 
-      if (False == loop):
-          break
+#      if (False == loop):
+#          break
      return 0
 
     def _int_signed_char(self, value):

@@ -13,7 +13,7 @@ class PygameSound(sound.Sound):
 
         self.openSound()
         
-        self._last_update_time = self.clocks.system_clock
+        self._last_update_time = self.clocks.cycles
 
     def openSound(self):
         pygame.mixer.pre_init(self.SAMPLERATE, -self.BITS, self.CHANNELS, 1024*8)

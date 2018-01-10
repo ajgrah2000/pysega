@@ -111,7 +111,7 @@ class Sega(object):
                       step_func(debug=True)
               else:
                   clk = self.clocks
-                  while clk.system_clock < stop_clock:
+                  while clk.cycles < stop_clock:
                       step_func()
           else:
               if 0 == stop_clock:
@@ -119,7 +119,7 @@ class Sega(object):
                       step_func()
               else:
                   clk = self.clocks
-                  while clk.system_clock < stop_clock:
+                  while clk.cycles < stop_clock:
                       step_func()
         except:
             op_code = self.memory.read(self.pc_state.PC)
