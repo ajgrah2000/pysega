@@ -1004,9 +1004,7 @@ void Vdp::drawDisplay(void)
                     # If there is a transparent forground on this line
                     if (self._forgroundScanLines[(y+verticalOffset) % 
                         (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].hasPriority):
-                        print "A"
                         for i in range(self._spriteScanLines[y].numSprites):
-                            print "B"
                             spriteNumber = self._spriteScanLines[y].sprites[i];
                             for x in range(self._sprites[spriteNumber].x, min(((self._sprites[spriteNumber].x & 0xFFFF)+ self._spriteWidth), VdpConstants.SMS_WIDTH)):
                                 if (self._spriteScanLines[y].scanLine[x] != 0) and (self._forgroundScanLines[(y+verticalOffset) % (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset) % VdpConstants.SMS_WIDTH] == False):
@@ -1028,7 +1026,6 @@ void Vdp::drawDisplay(void)
 
     # Draw the background tiles
     def drawPatterns(self):
-        print inspect.stack()[0][3]
 
         pattern = 0;
         paletteSelect = 1;
@@ -1041,7 +1038,6 @@ void Vdp::drawDisplay(void)
                         self._backgroundScanLines[y+py].scanLine[x+px] = self._screenPalette[pixel4];
                         self._scanLines[y+py].scanLine[x+px] = self._screenPalette[pixel4];
                         self._scanLines[y+py].lineChanged = True;
-                        print "* %d %d"%(y+py, x+px)
                 pattern += 1;
 
     def printSpriteInformation(self):

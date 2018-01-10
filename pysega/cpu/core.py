@@ -57,7 +57,7 @@ class Core(object):
             else:
                 errors.unsupported("interupt mode not supported");
 
-    def step(self, loop=True):
+    def step(self, loop=True, debug=False):
      op_code = self.memory.read(self.pc_state.PC)
     
 #    static uint16 tmp16;
@@ -67,7 +67,8 @@ class Core(object):
      while True:
 
           # Check for any possible interupts
-      print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
+      if debug:
+          print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
 
       if (self.clocks.cycles >= self._nextPossibleInterupt):
           self.interuptor.setCycle(self.clocks.cycles);
@@ -76,7 +77,8 @@ class Core(object):
       atPC = self.memory.readMulti(self.pc_state.PC);
 #      std::cout << std::hex << (int) atPC[0] << " " << (int) self.pc_state.PC << std::endl;
       op_code = atPC[0]
-      print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, atPC[0], self.pc_state))
+      if debug:
+          print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, atPC[0], self.pc_state))
 
       # This will raise an exception for unsupported op_code
       instruction = self.instruction_lookup.getInstruction(op_code)

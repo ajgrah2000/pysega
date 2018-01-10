@@ -108,7 +108,7 @@ class Sega(object):
           if debug:
               if 0 == stop_clock:
                   while 0 == quit_func():
-                      step_func()
+                      step_func(debug=True)
               else:
                   clk = self.clocks
                   while clk.system_clock < stop_clock:

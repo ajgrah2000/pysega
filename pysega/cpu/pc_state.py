@@ -49,6 +49,8 @@ class PC_State(object):
 
     sixteen_bit_split_registers = ['BC', 'DE', 'AF', 'HL']
 
+    sixteen = sixteen_bit_shadow_registers + sixteen_bit_registers + sixteen_bit_split_registers 
+
     def __init__(self):
 
         self.Fstatus =  PC_StatusFlags()
@@ -128,12 +130,13 @@ class PC_State(object):
             return self.Fstatus.value
         elif name in PC_State.eight_bit_registers:
             return super(PC_State, self).__getattribute__(name) & 0xFF
-        elif name in PC_State.sixteen_bit_registers:
-            return super(PC_State, self).__getattribute__("%sHigh"%(name)) * 256 + super(PC_State, self).__getattribute__("%sLow"%(name))
-        elif name in PC_State.sixteen_bit_split_registers:
-            return super(PC_State, self).__getattribute__(name[0]) * 256 + super(PC_State, self).__getattribute__(name[1])
-        elif name in PC_State.sixteen_bit_shadow_registers:
-            return super(PC_State, self).__getattribute__(name)
+        if name in PC_State.sixteen:
+            if name in PC_State.sixteen_bit_registers:
+                return super(PC_State, self).__getattribute__("%sHigh"%(name)) * 256 + super(PC_State, self).__getattribute__("%sLow"%(name))
+            elif name in PC_State.sixteen_bit_split_registers:
+                return super(PC_State, self).__getattribute__(name[0]) * 256 + super(PC_State, self).__getattribute__(name[1])
+            elif name in PC_State.sixteen_bit_shadow_registers:
+                return super(PC_State, self).__getattribute__(name)
         else:
             return super(PC_State, self).__getattribute__(name)
 
