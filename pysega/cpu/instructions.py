@@ -398,6 +398,96 @@ class ADD_r(Instruction):
 	    self.pc_state.PC += 1
 	    return 4;
 
+class SUB_r(Instruction):
+    def __init__(self, pc_state, src):
+        self.pc_state = pc_state
+        self.src = src
+
+    def execute(self, memory):
+	    self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.src);
+	    self.pc_state.A = self.pc_state.A - int(self.src);
+	    self.pc_state.PC += 1
+	    return 4;
+
+class BIT_r(Instruction):
+    def __init__(self, pc_state, src):
+        self.pc_state = pc_state
+        self.src = src
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.PC+1)
+
+        self.pc_state.Fstatus.Z = (int(self.src) >> ((tmp8 >> 3) & 7)) ^ 0x1;
+        self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(int(self.src));
+        self.pc_state.Fstatus.H = 1;
+        self.pc_state.Fstatus.N = 0;
+        self.pc_state.Fstatus.S = 0;
+        self.pc_state.PC += 2;
+        return 8;
+
+# self.pc_state.Bit b, (self.pc_state.HL) 
+class BIT_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.PC+1)
+        self.pc_state.Fstatus.Z = (memory.read(self.pc_state.HL) >> 
+                            ((tmp8 >> 3) & 7)) ^ 0x1;
+        self.pc_state.Fstatus.H = 1;
+        self.pc_state.Fstatus.N = 0;
+        self.pc_state.Fstatus.S = 0;
+        self.pc_state.PC += 2;
+
+        return 12;
+
+# RES b, r
+class RES_b_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.PC+1)
+        self.dst.set(int(self.dst) & ~(0x1 << ((tmp8 >> 3) & 7)));
+        self.pc_state.PC += 2;
+        return 8;
+
+# RES b, HL
+class RES_b_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.PC+1)
+        memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) & ~(0x1 << ((tmp8 >> 3) & 7)));
+        self.pc_state.PC += 2;
+        return 12;
+
+# SET b, r
+class SET_b_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.PC+1)
+        self.dst.set(int(self.dst) | (0x1 << ((tmp8 >> 3) & 7)));
+        self.pc_state.PC += 2;
+        return 8;
+
+# SET b, HL
+class SET_b_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.PC+1)
+        memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) | (0x1 << ((tmp8 >> 3) & 7)));
+        self.pc_state.PC += 2;
+        return 12;
+
+
 class RLCA(Instruction):
     def __init__(self, pc_state):
         self.pc_state = pc_state
@@ -409,6 +499,206 @@ class RLCA(Instruction):
         self.pc_state.Fstatus.H = 0;
         self.pc_state.PC += 1
         return 4;
+
+# RLC r
+class RLC_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        self.dst.set((int(self.dst) << 1) | ((int(self.dst) >> 7) & 0x1));
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.Fstatus.C = int(self.dst) & 0x1; # bit-7 of src = bit-0
+        self.pc_state.PC+=2;
+        return 8;
+
+# RLC (HL)
+class RLC_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.HL);
+        memory.write(self.pc_state.HL, (tmp8 << 1) | ((tmp8 >> 7) & 0x1));
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.Fstatus.C = (tmp8 >> 7) & 0x1; # bit-7 of src
+        self.pc_state.PC+=2;
+        return 15;
+
+# RRC r
+class RRC_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        self.dst.set((int(self.dst) >> 1) | ((int(self.dst) & 0x1) << 7));
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.dst);
+        self.pc_state.Fstatus.C = (self.dst >> 7) & 0x1; # bit-0 of src
+        self.pc_state.PC+=2;
+        return 8
+
+# RRC (HL)
+class RRC_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.HL);
+        memory.write(self.pc_state.HL,(tmp8 >> 1) | ((tmp8 & 0x1) << 7));
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.Fstatus.C = tmp8 & 0x1; # bit-0 of src
+        self.pc_state.PC+=2;
+        return 8;
+
+# RL r
+class RL_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = int(self.dst);
+        self.dst.set((int(self.dst) << 1) | (self.pc_state.Fstatus.C));
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.Fstatus.C = (tmp8 >> 7) & 0x1;
+        self.pc_state.PC+=2;
+        return 8
+
+# RR r
+class RR_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = int(self.dst);
+        self.dst.set((int(self.dst) >> 1) | (self.pc_state.Fstatus.C << 7));
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.Fstatus.C = tmp8 & 0x1;
+        self.pc_state.PC+=2;
+        return 8;
+
+# SLA r
+class SLA_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = (int(self.dst) >> 7) & 0x1;
+        self.dst.set(int(self.dst) << 1)
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst))
+        self.pc_state.Fstatus.C = tmp8;
+
+        self.pc_state.PC += 2;
+        return 8
+
+# SLA (HL)
+class SLA_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = (memory.read(self.pc_state.HL) >> 7) & 0x1;
+        memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) << 1);
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.Fstatus.C = tmp8;
+
+        self.pc_state.PC += 2;
+        return 15
+
+# SRA r
+class SRA_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = int(self.dst);
+        self.dst.set((int(self.dst) & 0x80) | ((self.dst >> 1) & 0x7F));
+
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.dst);
+        self.pc_state.Fstatus.C = tmp8 & 0x1;
+
+        self.pc_state.PC += 2;
+        return 8
+
+# SRA (HL)
+class SRA_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.HL);
+        memory.write(self.pc_state.HL, (tmp8 & 0x80) | ((tmp8 >> 1) & 0x7F));
+
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.Fstatus.C = tmp8 & 0x1;
+
+        self.pc_state.PC += 2;
+        self.clocks.cycles += 15;
+
+# SLL r
+class SLL_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = (int(self.dst) >> 7) & 0x1;
+        self.dst.set(int(self.dst) << 1 | 0x1);
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.Fstatus.C = tmp8;
+
+        self.pc_state.PC += 2;
+        return 8
+
+# SLL (HL)
+class SLL_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = (memory.read(self.pc_state.HL) >> 7) & 0x1;
+        memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) << 1 | 0x1);
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.Fstatus.C = tmp8;
+
+        self.pc_state.PC += 2;
+        return 15
+
+# SRL r
+class SRL_r(Instruction):
+    def __init__(self, pc_state, dst):
+        self.pc_state = pc_state
+        self.dst = dst
+
+    def execute(self, memory):
+        tmp8 = int(self.dst);
+        self.dst.set((int(self.dst) >> 1) & 0x7F);
+
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.Fstatus.C = tmp8 & 0x1;
+
+        self.pc_state.PC += 2;
+        return 8;
+
+# SRL (HL)
+class SRL_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.HL);
+        memory.write(self.pc_state.HL, (tmp8 >> 1) & 0x7F);
+
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.Fstatus.C = tmp8 & 0x1;
+
+        self.pc_state.PC += 2;
+        return 15;
 
 class InstructionExec(object):
     def __init__(self, pc_state):
@@ -467,6 +757,17 @@ class LD_mem_n(Instruction):
       self.pc_state.PC += 2;
 
       return 10;
+
+# LD (self.pc_state.IY+d), r
+class LD_IY_d_r(Instruction):
+    def __init__(self, pc_state, src):
+        self.pc_state = pc_state
+        self.src = src
+
+    def execute(self, memory):
+        memory.write(self.pc_state.IY + signed_char_to_int(memory.read(self.pc_state.PC+2)), self.src); 
+        self.pc_state.PC += 3;
+        return 19
 
 # LD (16 REG), r
 # The register r into the 16-bit address

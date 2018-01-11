@@ -111,13 +111,21 @@ class InstructionStore(object):
         self.instruction_lookup[0x75] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_l); # LD (HL), L
         self.instruction_lookup[0x77] = instructions.LD_mem_r(pc_state, self._reg_wrapper_hl, self._reg_wrapper_a); # LD (HL), A
  
-        self.instruction_lookup[0x80] = instructions.ADD_r(pc_state, self._reg_wrapper_b); # ADD r, cpu_state->A
-        self.instruction_lookup[0x81] = instructions.ADD_r(pc_state, self._reg_wrapper_c); # ADD r, cpu_state->A
-        self.instruction_lookup[0x82] = instructions.ADD_r(pc_state, self._reg_wrapper_d); # ADD r, cpu_state->A
-        self.instruction_lookup[0x83] = instructions.ADD_r(pc_state, self._reg_wrapper_e); # ADD r, cpu_state->A
-        self.instruction_lookup[0x84] = instructions.ADD_r(pc_state, self._reg_wrapper_h); # ADD r, cpu_state->A
-        self.instruction_lookup[0x85] = instructions.ADD_r(pc_state, self._reg_wrapper_l); # ADD r, cpu_state->A
+        self.instruction_lookup[0x80] = instructions.ADD_r(pc_state, self._reg_wrapper_b); # ADD r, cpu_state->B
+        self.instruction_lookup[0x81] = instructions.ADD_r(pc_state, self._reg_wrapper_c); # ADD r, cpu_state->C
+        self.instruction_lookup[0x82] = instructions.ADD_r(pc_state, self._reg_wrapper_d); # ADD r, cpu_state->D
+        self.instruction_lookup[0x83] = instructions.ADD_r(pc_state, self._reg_wrapper_e); # ADD r, cpu_state->E
+        self.instruction_lookup[0x84] = instructions.ADD_r(pc_state, self._reg_wrapper_h); # ADD r, cpu_state->H
+        self.instruction_lookup[0x85] = instructions.ADD_r(pc_state, self._reg_wrapper_l); # ADD r, cpu_state->L
         self.instruction_lookup[0x87] = instructions.ADD_r(pc_state, self._reg_wrapper_a); # ADD r, cpu_state->A
+
+        self.instruction_lookup[0x90] = instructions.SUB_r(pc_state, self._reg_wrapper_b); # SUB r, cpu_state->B
+        self.instruction_lookup[0x91] = instructions.SUB_r(pc_state, self._reg_wrapper_c); # SUB r, cpu_state->C
+        self.instruction_lookup[0x92] = instructions.SUB_r(pc_state, self._reg_wrapper_d); # SUB r, cpu_state->D
+        self.instruction_lookup[0x93] = instructions.SUB_r(pc_state, self._reg_wrapper_e); # SUB r, cpu_state->E
+        self.instruction_lookup[0x94] = instructions.SUB_r(pc_state, self._reg_wrapper_h); # SUB r, cpu_state->H
+        self.instruction_lookup[0x95] = instructions.SUB_r(pc_state, self._reg_wrapper_l); # SUB r, cpu_state->L
+        self.instruction_lookup[0x97] = instructions.SUB_r(pc_state, self._reg_wrapper_a); # SUB r, cpu_state->A
  
         self.instruction_lookup[0xA0] = instructions.AND_r(pc_state, self._reg_wrapper_b); # AND r, cpu_state->A
         self.instruction_lookup[0xA1] = instructions.AND_r(pc_state, self._reg_wrapper_c); # AND r, cpu_state->A
@@ -206,6 +214,14 @@ class InstructionStore(object):
         self.instruction_fd_lookup[0x39] = instructions.ADD16(pc_state, self._reg_wrapper_iy,
                                        self._reg_wrapper_sp,15,2);
 
+        self.instruction_fd_lookup[0x70] = instructions.LD_IY_d_r(pc_state, self._reg_wrapper_b); # LD_IY_d_r r, cpu_state->B
+        self.instruction_fd_lookup[0x71] = instructions.LD_IY_d_r(pc_state, self._reg_wrapper_c); # LD_IY_d_r r, cpu_state->C
+        self.instruction_fd_lookup[0x72] = instructions.LD_IY_d_r(pc_state, self._reg_wrapper_d); # LD_IY_d_r r, cpu_state->D
+        self.instruction_fd_lookup[0x73] = instructions.LD_IY_d_r(pc_state, self._reg_wrapper_e); # LD_IY_d_r r, cpu_state->E
+        self.instruction_fd_lookup[0x74] = instructions.LD_IY_d_r(pc_state, self._reg_wrapper_h); # LD_IY_d_r r, cpu_state->H
+        self.instruction_fd_lookup[0x75] = instructions.LD_IY_d_r(pc_state, self._reg_wrapper_l); # LD_IY_d_r r, cpu_state->L
+        self.instruction_fd_lookup[0x77] = instructions.LD_IY_d_r(pc_state, self._reg_wrapper_a); # LD_IY_d_r r, cpu_state->A
+
     def _populate_extended_ed_instruction_map(self, clocks, pc_state, memory):
         pass
 
@@ -223,35 +239,115 @@ class InstructionStore(object):
                                        self._reg_wrapper_sp,15,2);
 
     def _populate_extended_cb_instruction_map(self, clocks, pc_state, memory):
-        pass
+        for extra in [0x0, 0x8, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38]:
+            self.instruction_cb_lookup[0x40 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_b); # BIT r, cpu_state->B
+            self.instruction_cb_lookup[0x41 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_c); # BIT r, cpu_state->C
+            self.instruction_cb_lookup[0x42 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_d); # BIT r, cpu_state->D
+            self.instruction_cb_lookup[0x43 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_e); # BIT r, cpu_state->E
+            self.instruction_cb_lookup[0x44 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_h); # BIT r, cpu_state->H
+            self.instruction_cb_lookup[0x45 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_l); # BIT r, cpu_state->L
+            self.instruction_cb_lookup[0x47 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_a); # BIT r, cpu_state->A
+            self.instruction_cb_lookup[0x46 + extra] = instructions.BIT_HL(pc_state); # BIT HL
+            self.instruction_cb_lookup[0x80+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_b); # RES r, cpu_state->B
+            self.instruction_cb_lookup[0x81+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_c); # RES r, cpu_state->C
+            self.instruction_cb_lookup[0x82+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_d); # RES r, cpu_state->D
+            self.instruction_cb_lookup[0x83+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_e); # RES r, cpu_state->E
+            self.instruction_cb_lookup[0x84+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_h); # RES r, cpu_state->H
+            self.instruction_cb_lookup[0x85+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_l); # RES r, cpu_state->L
+            self.instruction_cb_lookup[0x87+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_a); # RES r, cpu_state->A
+            self.instruction_cb_lookup[0x86+extra] = instructions.RES_b_HL(pc_state); # RES b, cpu_state->HL
+
+            self.instruction_cb_lookup[0xC0+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_b); # SET r, cpu_state->B
+            self.instruction_cb_lookup[0xC1+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_c); # SET r, cpu_state->C
+            self.instruction_cb_lookup[0xC2+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_d); # SET r, cpu_state->D
+            self.instruction_cb_lookup[0xC3+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_e); # SET r, cpu_state->E
+            self.instruction_cb_lookup[0xC4+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_h); # SET r, cpu_state->H
+            self.instruction_cb_lookup[0xC5+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_l); # SET r, cpu_state->L
+            self.instruction_cb_lookup[0xC7+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_a); # SET r, cpu_state->A
+            self.instruction_cb_lookup[0xC6+extra] = instructions.SET_b_HL(pc_state); # SET b, cpu_state->HL
+
+        # Non-masked op codes
+        self.instruction_cb_lookup[0x00] = instructions.RLC_r(pc_state, self._reg_wrapper_b); # RLC r, cpu_state->B
+        self.instruction_cb_lookup[0x01] = instructions.RLC_r(pc_state, self._reg_wrapper_c); # RLC r, cpu_state->C
+        self.instruction_cb_lookup[0x02] = instructions.RLC_r(pc_state, self._reg_wrapper_d); # RLC r, cpu_state->D
+        self.instruction_cb_lookup[0x03] = instructions.RLC_r(pc_state, self._reg_wrapper_e); # RLC r, cpu_state->E
+        self.instruction_cb_lookup[0x04] = instructions.RLC_r(pc_state, self._reg_wrapper_h); # RLC r, cpu_state->H
+        self.instruction_cb_lookup[0x05] = instructions.RLC_r(pc_state, self._reg_wrapper_l); # RLC r, cpu_state->L
+        self.instruction_cb_lookup[0x07] = instructions.RLC_r(pc_state, self._reg_wrapper_a); # RLC r, cpu_state->A
+        self.instruction_cb_lookup[0x06] = instructions.RLC_HL(pc_state); # RLC b, cpu_state->HL
+
+        self.instruction_cb_lookup[0x08] = instructions.RRC_r(pc_state, self._reg_wrapper_b); # RRC r, cpu_state->B
+        self.instruction_cb_lookup[0x09] = instructions.RRC_r(pc_state, self._reg_wrapper_c); # RRC r, cpu_state->C
+        self.instruction_cb_lookup[0x0A] = instructions.RRC_r(pc_state, self._reg_wrapper_d); # RRC r, cpu_state->D
+        self.instruction_cb_lookup[0x0B] = instructions.RRC_r(pc_state, self._reg_wrapper_e); # RRC r, cpu_state->E
+        self.instruction_cb_lookup[0x0C] = instructions.RRC_r(pc_state, self._reg_wrapper_h); # RRC r, cpu_state->H
+        self.instruction_cb_lookup[0x0D] = instructions.RRC_r(pc_state, self._reg_wrapper_l); # RRC r, cpu_state->L
+        self.instruction_cb_lookup[0x0F] = instructions.RRC_r(pc_state, self._reg_wrapper_a); # RRC r, cpu_state->A
+        self.instruction_cb_lookup[0x0E] = instructions.RRC_HL(pc_state); # RRC b, cpu_state->HL
+
+        self.instruction_cb_lookup[0x10] = instructions.RL_r(pc_state, self._reg_wrapper_b); # RL r, cpu_state->B
+        self.instruction_cb_lookup[0x11] = instructions.RL_r(pc_state, self._reg_wrapper_c); # RL r, cpu_state->C
+        self.instruction_cb_lookup[0x12] = instructions.RL_r(pc_state, self._reg_wrapper_d); # RL r, cpu_state->D
+        self.instruction_cb_lookup[0x13] = instructions.RL_r(pc_state, self._reg_wrapper_e); # RL r, cpu_state->E
+        self.instruction_cb_lookup[0x14] = instructions.RL_r(pc_state, self._reg_wrapper_h); # RL r, cpu_state->H
+        self.instruction_cb_lookup[0x15] = instructions.RL_r(pc_state, self._reg_wrapper_l); # RL r, cpu_state->L
+        self.instruction_cb_lookup[0x17] = instructions.RL_r(pc_state, self._reg_wrapper_a); # RL r, cpu_state->A
+
+        self.instruction_cb_lookup[0x18] = instructions.RR_r(pc_state, self._reg_wrapper_b); # RR r, cpu_state->B
+        self.instruction_cb_lookup[0x19] = instructions.RR_r(pc_state, self._reg_wrapper_c); # RR r, cpu_state->C
+        self.instruction_cb_lookup[0x1A] = instructions.RR_r(pc_state, self._reg_wrapper_d); # RR r, cpu_state->D
+        self.instruction_cb_lookup[0x1B] = instructions.RR_r(pc_state, self._reg_wrapper_e); # RR r, cpu_state->E
+        self.instruction_cb_lookup[0x1C] = instructions.RR_r(pc_state, self._reg_wrapper_h); # RR r, cpu_state->H
+        self.instruction_cb_lookup[0x1D] = instructions.RR_r(pc_state, self._reg_wrapper_l); # RR r, cpu_state->L
+        self.instruction_cb_lookup[0x1F] = instructions.RR_r(pc_state, self._reg_wrapper_a); # RR r, cpu_state->A
+
+        self.instruction_cb_lookup[0x20] = instructions.SLA_r(pc_state, self._reg_wrapper_b); # SLA r, cpu_state->B
+        self.instruction_cb_lookup[0x21] = instructions.SLA_r(pc_state, self._reg_wrapper_c); # SLA r, cpu_state->C
+        self.instruction_cb_lookup[0x22] = instructions.SLA_r(pc_state, self._reg_wrapper_d); # SLA r, cpu_state->D
+        self.instruction_cb_lookup[0x23] = instructions.SLA_r(pc_state, self._reg_wrapper_e); # SLA r, cpu_state->E
+        self.instruction_cb_lookup[0x24] = instructions.SLA_r(pc_state, self._reg_wrapper_h); # SLA r, cpu_state->H
+        self.instruction_cb_lookup[0x25] = instructions.SLA_r(pc_state, self._reg_wrapper_l); # SLA r, cpu_state->L
+        self.instruction_cb_lookup[0x27] = instructions.SLA_r(pc_state, self._reg_wrapper_a); # SLA r, cpu_state->A
+        self.instruction_cb_lookup[0x26] = instructions.SLA_HL(pc_state); # SLA b, cpu_state->HL
+
+        self.instruction_cb_lookup[0x28] = instructions.SRA_r(pc_state, self._reg_wrapper_b); # SRA r, cpu_state->B
+        self.instruction_cb_lookup[0x29] = instructions.SRA_r(pc_state, self._reg_wrapper_c); # SRA r, cpu_state->C
+        self.instruction_cb_lookup[0x2A] = instructions.SRA_r(pc_state, self._reg_wrapper_d); # SRA r, cpu_state->D
+        self.instruction_cb_lookup[0x2B] = instructions.SRA_r(pc_state, self._reg_wrapper_e); # SRA r, cpu_state->E
+        self.instruction_cb_lookup[0x2C] = instructions.SRA_r(pc_state, self._reg_wrapper_h); # SRA r, cpu_state->H
+        self.instruction_cb_lookup[0x2D] = instructions.SRA_r(pc_state, self._reg_wrapper_l); # SRA r, cpu_state->L
+        self.instruction_cb_lookup[0x2F] = instructions.SRA_r(pc_state, self._reg_wrapper_a); # SRA r, cpu_state->A
+        self.instruction_cb_lookup[0x2E] = instructions.SRA_HL(pc_state); # SRA b, cpu_state->HL
+
+        self.instruction_cb_lookup[0x30] = instructions.SLL_r(pc_state, self._reg_wrapper_b); # SLL r, cpu_state->B
+        self.instruction_cb_lookup[0x31] = instructions.SLL_r(pc_state, self._reg_wrapper_c); # SLL r, cpu_state->C
+        self.instruction_cb_lookup[0x32] = instructions.SLL_r(pc_state, self._reg_wrapper_d); # SLL r, cpu_state->D
+        self.instruction_cb_lookup[0x33] = instructions.SLL_r(pc_state, self._reg_wrapper_e); # SLL r, cpu_state->E
+        self.instruction_cb_lookup[0x34] = instructions.SLL_r(pc_state, self._reg_wrapper_h); # SLL r, cpu_state->H
+        self.instruction_cb_lookup[0x35] = instructions.SLL_r(pc_state, self._reg_wrapper_l); # SLL r, cpu_state->L
+        self.instruction_cb_lookup[0x37] = instructions.SLL_r(pc_state, self._reg_wrapper_a); # SLL r, cpu_state->A
+        self.instruction_cb_lookup[0x36] = instructions.SLL_HL(pc_state); # SLL b, cpu_state->HL
+
+        self.instruction_cb_lookup[0x38] = instructions.SRL_r(pc_state, self._reg_wrapper_b); # SRL r, cpu_state->B
+        self.instruction_cb_lookup[0x39] = instructions.SRL_r(pc_state, self._reg_wrapper_c); # SRL r, cpu_state->C
+        self.instruction_cb_lookup[0x3A] = instructions.SRL_r(pc_state, self._reg_wrapper_d); # SRL r, cpu_state->D
+        self.instruction_cb_lookup[0x3B] = instructions.SRL_r(pc_state, self._reg_wrapper_e); # SRL r, cpu_state->E
+        self.instruction_cb_lookup[0x3C] = instructions.SRL_r(pc_state, self._reg_wrapper_h); # SRL r, cpu_state->H
+        self.instruction_cb_lookup[0x3D] = instructions.SRL_r(pc_state, self._reg_wrapper_l); # SRL r, cpu_state->L
+        self.instruction_cb_lookup[0x3F] = instructions.SRL_r(pc_state, self._reg_wrapper_a); # SRL r, cpu_state->A
+        self.instruction_cb_lookup[0x3E] = instructions.SRL_HL(pc_state); # SRA b, cpu_state->HL
 
     def getInstruction(self, op_code):
-      instruction = None
-      if self.instruction_lookup[op_code]:
-          instruction = self.instruction_lookup[op_code]
-      return instruction
+      return self.instruction_lookup[op_code]
 
     def getExtendedCB(self, cb_op_code):
-      instruction = None
-      if cb_op_code in self.instruction_cb_lookup:
-          instruction = self.instruction_cb_lookup[cb_op_code]
-      return instruction
-
+      return self.instruction_cb_lookup[cb_op_code]
 
     def getExtendedDD(self, dd_op_code):
-      instruction = None
-      if self.instruction_dd_lookup[dd_op_code]:
-          instruction = self.instruction_dd_lookup[dd_op_code]
-      return instruction
+      return self.instruction_dd_lookup[dd_op_code]
 
     def getExtendedED(self, ed_op_code):
-      instruction = None
-      if self.instruction_ed_lookup[ed_op_code]:
-          instruction = self.instruction_ed_lookup[ed_op_code]
-      return instruction
+      return self.instruction_ed_lookup[ed_op_code]
 
     def getExtendedFD(self, fd_op_code):
-      instruction = None
-      if self.instruction_ed_lookup[fd_op_code]:
-          instruction = self.instruction_fd_lookup[fd_op_code]
-      return instruction
+      return self.instruction_fd_lookup[fd_op_code]
