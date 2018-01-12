@@ -142,6 +142,4 @@ class Core(object):
                 print("Unsupported op code %x"%(atPC[0]))
                 return -1;
 
-#      if (False == loop):
-#          break
      return 0

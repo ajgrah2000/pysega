@@ -81,41 +81,6 @@ class PC_State(object):
 
         self.CYCLES_TO_CLOCK = 3
 
-    def __getitem__(self, index):
-        result = None
-        if (0 == index):
-            result = self.B
-        elif (1 == index):
-            result = self.C
-        elif (2 == index):
-            result = self.D
-        elif (3 == index):
-            result = self.E
-        elif (4 == index):
-            result = self.H
-        elif (5 == index):
-            result = self.L
-        elif (7 == index):
-            result = self.A
-
-        return result
-
-    def __setitem__(self, index, value):
-        if (0 == index):
-             self.B = value
-        elif (1 == index):
-             self.C = value
-        elif (2 == index):
-             self.D = value
-        elif (3 == index):
-             self.E = value
-        elif (4 == index):
-             self.H = value
-        elif (5 == index):
-             self.L = value
-        elif (7 == index):
-             self.A = value
-
     def get_save_state(self):
         # TODO
         state = {}

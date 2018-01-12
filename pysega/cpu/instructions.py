@@ -154,8 +154,6 @@ def sub16c(pc_state, a, b, c):
 
 # Calculate the result of the DAA functio
 def calculateDAAAdd(pc_state):
-    print "calculateDAAAdd"
-
     upper = (pc_state.A >> 4) & 0xF;
     lower = pc_state.A & 0xF;
     
@@ -2131,21 +2129,6 @@ class RET_NZ(Instruction):
             cycles +=5;
         return cycles
 
-# POP self.pc_state.BC
-class POP_BC(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.C = memory.read(self.pc_state.SP);
-        self.pc_state.SP += 1
-        self.pc_state.B = memory.read(self.pc_state.SP);
-        self.pc_state.SP += 1
-
-        self.pc_state.PC += 1
-
-        return  10;
-
 # JP NZ, nn
 class JPNZ_nn(Instruction):
     def __init__(self, pc_state):
@@ -2188,16 +2171,17 @@ class CALL_NZ_nn(Instruction):
         cycles += 10;
         return cycles
 
-# PUSH self.pc_state.BC
-class PUSH_BC(Instruction):
-    def __init__(self, pc_state):
+# PUSH 
+class PUSH(Instruction):
+    def __init__(self, pc_state, reg):
         self.pc_state = pc_state
+        self.reg = reg
 
     def execute(self, memory):
         self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.B);
+        memory.write(self.pc_state.SP, self.reg.get_high());
         self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.C);
+        memory.write(self.pc_state.SP, self.reg.get_low());
         self.pc_state.PC += 1
 
         return 11;
@@ -2213,10 +2197,11 @@ class ADD_n(Instruction):
         self.pc_state.PC+=2;
         return 7;
 
-# RST 00h
-class RST_00(Instruction):
-    def __init__(self, pc_state):
+# RST
+class RST(Instruction):
+    def __init__(self, pc_state, rst_addr):
         self.pc_state = pc_state
+        self.rst_addr = rst_addr
 
     def execute(self, memory):
         self.pc_state.PC += 1
@@ -2225,7 +2210,7 @@ class RST_00(Instruction):
         self.pc_state.SP -= 1
         memory.write(self.pc_state.SP, self.pc_state.PCLow);
 
-        self.pc_state.PC = 0x00;
+        self.pc_state.PC = self.rst_addr
 
         return  11;
 
@@ -2305,22 +2290,6 @@ class ADC_nn(Instruction):
         self.pc_state.PC+=2;
         return 4;
 
-# RST 08h
-class RST_08(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.PC += 1
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCHigh);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCLow);
-
-        self.pc_state.PC = 0x08;
-
-        return  11;
-
 # RET NC
 class RET_NC(Instruction):
     def __init__(self, pc_state):
@@ -2340,14 +2309,15 @@ class RET_NC(Instruction):
         return cycles
 
 # POP self.pc_state.DE
-class POP_DE(Instruction):
-    def __init__(self, pc_state):
+class POP(Instruction):
+    def __init__(self, pc_state, reg):
         self.pc_state = pc_state
+        self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.E = memory.read(self.pc_state.SP);
+        self.reg.set_low(memory.read(self.pc_state.SP))
         self.pc_state.SP += 1
-        self.pc_state.D = memory.read(self.pc_state.SP);
+        self.reg.set_high(memory.read(self.pc_state.SP));
         self.pc_state.SP += 1
         self.pc_state.PC += 1
         return  10;
@@ -2372,20 +2342,6 @@ class CALL_NC_nn(Instruction):
             cycles += 10;
         return cycles
 
-# PUSH self.pc_state.DE
-class PUSH_DE(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.D);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.E);
-        self.pc_state.PC += 1
-
-        return 11;
-
 # SUB n
 class SUB_n(Instruction):
     def __init__(self, pc_state):
@@ -2397,22 +2353,6 @@ class SUB_n(Instruction):
         self.pc_state.PC += 2;
         return  7;
 
-# RST 10h
-class RST_10(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.PC += 1
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCHigh);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCLow);
-
-        self.pc_state.PC = 0x10;
-
-        return  11;
-        
 # RET C
 class RET_C(Instruction):
     def __init__(self, pc_state):
@@ -2471,22 +2411,6 @@ class SBC_n(Instruction):
         self.pc_state.PC+=2;
         return 7;
 
-# RST 18h
-class RST_18(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.PC += 1
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCHigh);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCLow);
-
-        self.pc_state.PC = 0x18;
-
-        return  11;
-
 # RET PO  
 class RET_PO(Instruction):
     def __init__(self, pc_state):
@@ -2504,21 +2428,6 @@ class RET_PO(Instruction):
             self.pc_state.PC += 1
             cycles +=5;
         return cycles
-
-# POP self.pc_state.HL
-class POP_HL(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.L = memory.read(self.pc_state.SP);
-        self.pc_state.SP += 1
-        self.pc_state.H = memory.read(self.pc_state.SP);
-        self.pc_state.SP += 1
-
-        self.pc_state.PC += 1
-
-        return  10;
 
 # JP PO, nn   Parity Odd 
 class JP_PO_nn(Instruction):
@@ -2566,37 +2475,6 @@ class CALL_PO_nn(Instruction):
 
         cycles += 10;
         return cycles
-
-
-# PUSH self.pc_state.HL
-class PUSH_HL(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.H);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.L);
-        self.pc_state.PC += 1
-
-        return 11;
-
-# RST 20h
-class RST_20(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.PC += 1
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCHigh);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCLow);
-
-        self.pc_state.PC = 0x20;
-
-        return  11;
 
 # RET PE  
 class RET_PE(Instruction):
@@ -2680,22 +2558,6 @@ class XOR_n(Instruction):
         self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
         self.pc_state.PC+=2;
         return 7;
-
-# RST 28h
-class RST_28(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.PC += 1
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCHigh);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCLow);
-
-        self.pc_state.PC = 0x28;
-
-        return  11;
 
 # RET P, if Positive
 class RET_P(Instruction):
@@ -2800,22 +2662,6 @@ class OR_n(Instruction):
         self.pc_state.PC += 2;
         return 7;
 
-# RST 30h
-class RST_30(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.PC += 1
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCHigh);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCLow);
-
-        self.pc_state.PC = 0x30;
-
-        return  11;
-
 # RET M  if Negative
 class RET_M(Instruction):
     def __init__(self, pc_state):
@@ -2896,19 +2742,3 @@ class CALL_M_nn(Instruction):
         else:
             cycles += 10;
         return cycles
-
-# RST 38h
-class RST_38(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.PC += 1
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCHigh);
-        self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.PCLow);
-
-        self.pc_state.PC = 0x38;
-
-        return  11;

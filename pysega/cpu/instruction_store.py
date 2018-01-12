@@ -7,8 +7,8 @@ class InstructionStore(object):
         self.pc_state        = pc_state
         self.ports           = ports
         self.instruction_exe = instruction_exe
-#        self.instruction_lookup = [instructions.Instruction(self.clocks, self.pc_state, self.instruction_exe)] * 256
-        self.instruction_lookup = [None] * 256
+
+        self.instruction_lookup    = [None] * 256
         self.instruction_cb_lookup = [None] * 256
         self.instruction_dd_lookup = [None] * 256
         self.instruction_ed_lookup = [None] * 256
@@ -52,8 +52,7 @@ class InstructionStore(object):
         self.instruction_lookup[0x04] = instructions.INC_r(pc_state, self._reg_wrapper_b); # INC cpu_state->B
         self.instruction_lookup[0x06] = instructions.LD_r(pc_state, self._reg_wrapper_b);
         self.instruction_lookup[0x07] = instructions.RLCA(pc_state);  #RLCA
-        self.instruction_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
-                                       self._reg_wrapper_bc,11);
+        self.instruction_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_hl, self._reg_wrapper_bc,11);
         self.instruction_lookup[0x0A] = instructions.LD_r_mem(pc_state, self._reg_wrapper_a, self._reg_wrapper_bc); # LD A, (BC)
         self.instruction_lookup[0x0B] = instructions.DEC_16(pc_state, self._reg_wrapper_bc, 6);
         self.instruction_lookup[0x0C] = instructions.INC_r(pc_state, self._reg_wrapper_c); # INC C
@@ -68,8 +67,7 @@ class InstructionStore(object):
         self.instruction_lookup[0x13] = instructions.INC_16(pc_state, self._reg_wrapper_de, 6);
         self.instruction_lookup[0x14] = instructions.INC_r(pc_state, self._reg_wrapper_d); # INC D
         self.instruction_lookup[0x16] = instructions.LD_r(pc_state, self._reg_wrapper_d); # LD D, n
-        self.instruction_lookup[0x19] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
-                                       self._reg_wrapper_de,11);
+        self.instruction_lookup[0x19] = instructions.ADD16(pc_state, self._reg_wrapper_hl, self._reg_wrapper_de,11);
         self.instruction_lookup[0x1A] = instructions.LD_r_mem(pc_state, self._reg_wrapper_a, self._reg_wrapper_de); # LD A, (DE)
         self.instruction_lookup[0x1B] = instructions.DEC_16(pc_state, self._reg_wrapper_de, 6);
  
@@ -83,8 +81,7 @@ class InstructionStore(object):
         self.instruction_lookup[0x24] = instructions.INC_r(pc_state, self._reg_wrapper_h); # INC H
         self.instruction_lookup[0x26] = instructions.LD_r(pc_state, self._reg_wrapper_h); # LD H, n
         self.instruction_lookup[0x28] = instructions.JRZe(pc_state); # JR Z, e
-        self.instruction_lookup[0x29] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
-                                       self._reg_wrapper_hl,11);
+        self.instruction_lookup[0x29] = instructions.ADD16(pc_state, self._reg_wrapper_hl, self._reg_wrapper_hl,11);
         self.instruction_lookup[0x2B] = instructions.DEC_16(pc_state, self._reg_wrapper_hl, 6);
  
         self.instruction_lookup[0x2C] = instructions.INC_r(pc_state, self._reg_wrapper_l); # INC L
@@ -95,8 +92,7 @@ class InstructionStore(object):
  
         self.instruction_lookup[0x36] = instructions.LD_mem_n(pc_state, self._reg_wrapper_hl); # LD (HL), n
  
-        self.instruction_lookup[0x39] = instructions.ADD16(pc_state, self._reg_wrapper_hl,
-                                       self._reg_wrapper_sp,11);
+        self.instruction_lookup[0x39] = instructions.ADD16(pc_state, self._reg_wrapper_hl, self._reg_wrapper_sp,11);
  
         self.instruction_lookup[0x3A] = instructions.LD_r8_mem(pc_state, self._reg_wrapper_a); # LD A, (n)
         self.instruction_lookup[0x3B] = instructions.DEC_16(pc_state, self._reg_wrapper_sp, 6);
@@ -174,9 +170,7 @@ class InstructionStore(object):
         self.instruction_lookup[0x25] = instructions.DEC_r(pc_state, self._reg_wrapper_h); # DEC H
         self.instruction_lookup[0x2d] = instructions.DEC_r(pc_state, self._reg_wrapper_l); # DEC L
         self.instruction_lookup[0x3d] = instructions.DEC_r(pc_state, self._reg_wrapper_a); # DEC A
-# 
-#     LD_R_MEM ld_r_hl;
-#     ld_r_hl.reg8 = 0x46;
+
         self.instruction_lookup[0x46] = instructions.LD_r_mem(pc_state, self._reg_wrapper_b, self._reg_wrapper_hl); # LD_r_mem B
         self.instruction_lookup[0x4e] = instructions.LD_r_mem(pc_state, self._reg_wrapper_c, self._reg_wrapper_hl); # LD_r_mem C
         self.instruction_lookup[0x56] = instructions.LD_r_mem(pc_state, self._reg_wrapper_d, self._reg_wrapper_hl); # LD_r_mem D
@@ -184,9 +178,7 @@ class InstructionStore(object):
         self.instruction_lookup[0x66] = instructions.LD_r_mem(pc_state, self._reg_wrapper_h, self._reg_wrapper_hl); # LD_r_mem H
         self.instruction_lookup[0x6e] = instructions.LD_r_mem(pc_state, self._reg_wrapper_l, self._reg_wrapper_hl); # LD_r_mem L
         self.instruction_lookup[0x7e] = instructions.LD_r_mem(pc_state, self._reg_wrapper_a, self._reg_wrapper_hl); # LD_r_mem A
-# 
-#     LD_R_MEM ld_r_n;
-#     ld_r_n.reg8 = 0x06;
+
         self.instruction_lookup[0x06] = instructions.LD_r(pc_state, self._reg_wrapper_b); # LD_r B
         self.instruction_lookup[0x0e] = instructions.LD_r(pc_state, self._reg_wrapper_c); # LD_r C
         self.instruction_lookup[0x16] = instructions.LD_r(pc_state, self._reg_wrapper_d); # LD_r D
@@ -201,8 +193,6 @@ class InstructionStore(object):
 
         self.instruction_lookup[0xC9] = instructions.RET(pc_state); # RET
 
-
-        ######### NEW INSTRUCTIONS
         self.instruction_lookup[0x08] = instructions.EX(pc_state)
         self.instruction_lookup[0x12] = instructions.LD_DE_A(pc_state)
         self.instruction_lookup[0x17] = instructions.RLA(pc_state)
@@ -244,44 +234,44 @@ class InstructionStore(object):
         self.instruction_lookup[0xB6] = instructions.OR_HL(pc_state)
         self.instruction_lookup[0xBE] = instructions.CP_HL(pc_state)
         self.instruction_lookup[0xC0] = instructions.RET_NZ(pc_state)
-        self.instruction_lookup[0xC1] = instructions.POP_BC(pc_state)
+        self.instruction_lookup[0xC1] = instructions.POP(pc_state, self._reg_wrapper_bc)
         self.instruction_lookup[0xC2] = instructions.JPNZ_nn(pc_state)
         self.instruction_lookup[0xC3] = instructions.JP_nn(pc_state)
         self.instruction_lookup[0xC4] = instructions.CALL_NZ_nn(pc_state)
-        self.instruction_lookup[0xC5] = instructions.PUSH_BC(pc_state)
+        self.instruction_lookup[0xC5] = instructions.PUSH(pc_state, self._reg_wrapper_bc)
         self.instruction_lookup[0xC6] = instructions.ADD_n(pc_state)
-        self.instruction_lookup[0xC7] = instructions.RST_00(pc_state)
+        self.instruction_lookup[0xC7] = instructions.RST(pc_state, 0x00) # RST_00
         self.instruction_lookup[0xC8] = instructions.RST_Z(pc_state)
         self.instruction_lookup[0xCA] = instructions.JPZ_nn(pc_state)
         self.instruction_lookup[0xCC] = instructions.CALL_Z_nn(pc_state)
         self.instruction_lookup[0xCD] = instructions.CALL_nn(pc_state)
         self.instruction_lookup[0xCE] = instructions.ADC_nn(pc_state)
-        self.instruction_lookup[0xCF] = instructions.RST_08(pc_state)
+        self.instruction_lookup[0xCF] = instructions.RST(pc_state, 0x08) # RST_08
         self.instruction_lookup[0xD0] = instructions.RET_NC(pc_state)
-        self.instruction_lookup[0xD1] = instructions.POP_DE(pc_state)
+        self.instruction_lookup[0xD1] = instructions.POP(pc_state, self._reg_wrapper_de)
         self.instruction_lookup[0xD4] = instructions.CALL_NC_nn(pc_state)
-        self.instruction_lookup[0xD5] = instructions.PUSH_DE(pc_state)
+        self.instruction_lookup[0xD5] = instructions.PUSH(pc_state, self._reg_wrapper_de)
         self.instruction_lookup[0xD6] = instructions.SUB_n(pc_state)
-        self.instruction_lookup[0xD7] = instructions.RST_10(pc_state)
+        self.instruction_lookup[0xD7] = instructions.RST(pc_state, 0x10) # RST_10
         self.instruction_lookup[0xD8] = instructions.RET_C(pc_state)
         self.instruction_lookup[0xDB] = instructions.IN_A_n(pc_state, ports)
         self.instruction_lookup[0xDC] = instructions.CALL_C_nn(pc_state)
         self.instruction_lookup[0xDE] = instructions.SBC_n(pc_state)
-        self.instruction_lookup[0xDF] = instructions.RST_18(pc_state)
+        self.instruction_lookup[0xDF] = instructions.RST(pc_state, 0x18) # RST_18
         self.instruction_lookup[0xE0] = instructions.RET_PO(pc_state)
-        self.instruction_lookup[0xE1] = instructions.POP_HL(pc_state)
+        self.instruction_lookup[0xE1] = instructions.POP(pc_state, self._reg_wrapper_hl)
         self.instruction_lookup[0xE2] = instructions.JP_PO_nn(pc_state)
         self.instruction_lookup[0xE3] = instructions.EX_SP_HL(pc_state)
         self.instruction_lookup[0xE4] = instructions.CALL_PO_nn(pc_state)
-        self.instruction_lookup[0xE5] = instructions.PUSH_HL(pc_state)
-        self.instruction_lookup[0xE7] = instructions.RST_20(pc_state)
+        self.instruction_lookup[0xE5] = instructions.PUSH(pc_state, self._reg_wrapper_hl)
+        self.instruction_lookup[0xE7] = instructions.RST(pc_state, 0x20) # RST_20
         self.instruction_lookup[0xE8] = instructions.RET_PE(pc_state)
         self.instruction_lookup[0xE9] = instructions.LD_PC_HL(pc_state)
         self.instruction_lookup[0xEA] = instructions.JP_PE_nn(pc_state)
         self.instruction_lookup[0xEB] = instructions.EX_DE_HL(pc_state)
         self.instruction_lookup[0xEC] = instructions.CALL_PE_nn(pc_state)
         self.instruction_lookup[0xEE] = instructions.XOR_n(pc_state)
-        self.instruction_lookup[0xEF] = instructions.RST_28(pc_state)
+        self.instruction_lookup[0xEF] = instructions.RST(pc_state, 0x28) # RST_28
         self.instruction_lookup[0xF0] = instructions.RET_P(pc_state)
         self.instruction_lookup[0xF1] = instructions.POP_AF(pc_state)
         self.instruction_lookup[0xF2] = instructions.JP_P_nn(pc_state)
@@ -289,13 +279,13 @@ class InstructionStore(object):
         self.instruction_lookup[0xF4] = instructions.CALL_P_nn(pc_state)
         self.instruction_lookup[0xF5] = instructions.PUSH_AF(pc_state)
         self.instruction_lookup[0xF6] = instructions.OR_n(pc_state)
-        self.instruction_lookup[0xF7] = instructions.RST_30(pc_state)
+        self.instruction_lookup[0xF7] = instructions.RST(pc_state, 0x30) # RST_30
         self.instruction_lookup[0xF8] = instructions.RET_M(pc_state)
         self.instruction_lookup[0xF9] = instructions.LD_SP_HL(pc_state)
         self.instruction_lookup[0xFA] = instructions.JP_M_nn(pc_state)
 #        self.instruction_lookup[0xFB] = instructions.EI(pc_state)
         self.instruction_lookup[0xFC] = instructions.CALL_M_nn(pc_state)
-        self.instruction_lookup[0xFF] = instructions.RST_38(pc_state)
+        self.instruction_lookup[0xFF] = instructions.RST(pc_state, 0x38) # RST_38
 
 
 
@@ -447,23 +437,23 @@ class InstructionStore(object):
             self.instruction_cb_lookup[0x45 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_l); # BIT r, cpu_state->L
             self.instruction_cb_lookup[0x47 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_a); # BIT r, cpu_state->A
             self.instruction_cb_lookup[0x46 + extra] = instructions.BIT_HL(pc_state); # BIT HL
-            self.instruction_cb_lookup[0x80+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_b); # RES r, cpu_state->B
-            self.instruction_cb_lookup[0x81+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_c); # RES r, cpu_state->C
-            self.instruction_cb_lookup[0x82+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_d); # RES r, cpu_state->D
-            self.instruction_cb_lookup[0x83+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_e); # RES r, cpu_state->E
-            self.instruction_cb_lookup[0x84+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_h); # RES r, cpu_state->H
-            self.instruction_cb_lookup[0x85+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_l); # RES r, cpu_state->L
-            self.instruction_cb_lookup[0x87+extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_a); # RES r, cpu_state->A
-            self.instruction_cb_lookup[0x86+extra] = instructions.RES_b_HL(pc_state); # RES b, cpu_state->HL
+            self.instruction_cb_lookup[0x80 + extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_b); # RES r, cpu_state->B
+            self.instruction_cb_lookup[0x81 + extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_c); # RES r, cpu_state->C
+            self.instruction_cb_lookup[0x82 + extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_d); # RES r, cpu_state->D
+            self.instruction_cb_lookup[0x83 + extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_e); # RES r, cpu_state->E
+            self.instruction_cb_lookup[0x84 + extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_h); # RES r, cpu_state->H
+            self.instruction_cb_lookup[0x85 + extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_l); # RES r, cpu_state->L
+            self.instruction_cb_lookup[0x87 + extra] = instructions.RES_b_r(pc_state, self._reg_wrapper_a); # RES r, cpu_state->A
+            self.instruction_cb_lookup[0x86 + extra] = instructions.RES_b_HL(pc_state); # RES b, cpu_state->HL
 
-            self.instruction_cb_lookup[0xC0+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_b); # SET r, cpu_state->B
-            self.instruction_cb_lookup[0xC1+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_c); # SET r, cpu_state->C
-            self.instruction_cb_lookup[0xC2+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_d); # SET r, cpu_state->D
-            self.instruction_cb_lookup[0xC3+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_e); # SET r, cpu_state->E
-            self.instruction_cb_lookup[0xC4+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_h); # SET r, cpu_state->H
-            self.instruction_cb_lookup[0xC5+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_l); # SET r, cpu_state->L
-            self.instruction_cb_lookup[0xC7+extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_a); # SET r, cpu_state->A
-            self.instruction_cb_lookup[0xC6+extra] = instructions.SET_b_HL(pc_state); # SET b, cpu_state->HL
+            self.instruction_cb_lookup[0xC0 + extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_b); # SET r, cpu_state->B
+            self.instruction_cb_lookup[0xC1 + extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_c); # SET r, cpu_state->C
+            self.instruction_cb_lookup[0xC2 + extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_d); # SET r, cpu_state->D
+            self.instruction_cb_lookup[0xC3 + extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_e); # SET r, cpu_state->E
+            self.instruction_cb_lookup[0xC4 + extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_h); # SET r, cpu_state->H
+            self.instruction_cb_lookup[0xC5 + extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_l); # SET r, cpu_state->L
+            self.instruction_cb_lookup[0xC7 + extra] = instructions.SET_b_r(pc_state, self._reg_wrapper_a); # SET r, cpu_state->A
+            self.instruction_cb_lookup[0xC6 + extra] = instructions.SET_b_HL(pc_state); # SET b, cpu_state->HL
 
         # Non-masked op codes
         self.instruction_cb_lookup[0x00] = instructions.RLC_r(pc_state, self._reg_wrapper_b); # RLC r, cpu_state->B
