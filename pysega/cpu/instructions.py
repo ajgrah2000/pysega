@@ -44,6 +44,76 @@ def add8c(pc_state, a, b, c):
 
     return (a + b + c) & 0xFF
     
+# self.pc_state.Add two 16 bit ints and set flags accordingly
+def add16c(pc_state, a, b, c):
+    r = a + b + c;
+    if (rs & 0x8000): # Negative
+        pc_state.Fstatus.S = 1
+    else:
+        pc_state.Fstatus.S = 0
+
+    if (rs == 0): # Zero
+        pc_state.Fstatus.Z = 1
+    else:
+        pc_state.Fstatus.Z = 0
+
+    # Overflow
+    if (((r & 0x18000) != 0) and 
+         (r & 0x18000) != 0x18000): # Overflow
+        pc_state.Fstatus.PV = 1
+    else:
+        pc_state.Fstatus.PV = 0
+
+    r = (a & 0xFFF) + (b & 0xFFF) + c;
+    if (r & 0x1000): # Half carry
+        pc_state.Fstatus.H = 1
+    else:
+        pc_state.Fstatus.H = 0
+
+    pc_state.Fstatus.N = 0;
+
+    r = (a & 0xFFFF) + (b & 0xFFFF) + c;
+    if (r & 0x10000): # Carry
+        pc_state.Fstatus.C = 1
+    else:
+        pc_state.Fstatus.C = 0
+    return a + b + c;
+    
+    
+def sub16c(pc_state, a, b, c):
+
+    r = a - b - c;
+    if (r & 0x8000): # Negative
+        pc_state.Fstatus.S = 1
+    else:
+        pc_state.Fstatus.S = 0
+
+    if(r == 0): # Zero
+        pc_state.Fstatus.Z = 1
+    else:
+        pc_state.Fstatus.Z = 0
+
+    if (((r & 0x18000) != 0) and 
+         (r & 0x18000) != 0x18000): # Overflow
+        pc_state.Fstatus.PV = 1
+    else:
+        pc_state.Fstatus.PV = 0
+
+    r = (a & 0xFFF) - (b & 0xFFF) - c;
+    if(r & 0x1000): #Half carry
+        pc_state.Fstatus.H = 1
+    else:
+        pc_state.Fstatus.H = 0
+
+    pc_state.Fstatus.N = 1;
+
+    r = (a & 0xFFFF) - (b & 0xFFFF) - c;
+    if(r & 0x10000): # Carry
+        pc_state.Fstatus.C = 1
+    else:
+        pc_state.Fstatus.C = 0
+
+    return a - b - c;
 
 
 class Instruction(object):
@@ -675,7 +745,7 @@ class SRA_HL(Instruction):
         self.pc_state.Fstatus.C = tmp8 & 0x1;
 
         self.pc_state.PC += 2;
-        self.clocks.cycles += 15;
+        return 15;
 
 # SLL r
 class SLL_r(Instruction):
@@ -1161,3 +1231,489 @@ class LD_PC_I(Instruction):
         self.pc_state.PC = self.I_reg.get()
         return 6
     
+
+
+
+# IN r, (C)
+class IN_r_C(Instruction):
+    def __init__(self, pc_state, ports, reg):
+        self.pc_state = pc_state
+        self.reg = reg
+        self.ports = ports
+
+    def execute(self, memory):
+        self.reg.set(self.ports.portRead(self.pc_state.C))
+        self.pc_state.PC += 2;
+        return 12;
+    
+# OUT (C), r
+class OUT_C_r(Instruction):
+    def __init__(self, pc_state, ports, reg):
+        self.pc_state = pc_state
+        self.reg = reg
+        self.ports = ports
+
+    def execute(self, memory):
+        self.ports.portWrite(self.pc_state.C, self.reg.get());
+        self.pc_state.PC += 2;
+        return 3;
+    
+# SBC_HL_BC
+class SBC_HL_BC(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.HL = sub16c(self.pc_state, self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
+    
+        self.pc_state.PC += 2;
+        return  15;
+    
+# LD (nn), self.pc_state.BC
+class LD_nn_BC(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        memory.write(memory.read16(self.pc_state.PC+2), self.pc_state.C);
+        memory.write(memory.read16(self.pc_state.PC+2)+1, self.pc_state.B);
+        self.pc_state.PC += 4;
+    
+        return  20;
+    
+# NEG
+class NEG(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusSub(0,self.pc_state.A);
+        self.pc_state.A = -self.pc_state.A;
+        self.pc_state.PC += 2;
+        return 8;
+    
+# LD I, self.pc_state.A
+class LD_I_A(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.I = self.pc_state.A;
+        self.pc_state.PC += 2;
+        return  9;
+    
+# self.pc_state.ADC self.pc_state.HL, self.pc_state.BC
+class ADC_HL_BC(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
+        self.pc_state.PC+=2;
+        return 15;
+    
+        # Load 16-bit self.pc_state.BC register
+        # LD self.pc_state.BC, (nn)
+class LD_BC_nn(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.BC = memory.read16(memory.read16(self.pc_state.PC+2)); 
+        self.pc_state.PC += 4;
+        return  20;
+    
+# Fself.pc_state.IXME, should check, since there is only one
+# interupting device, this is the same as normal ret
+# RETI
+class RETI(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.PCLow  = memory.read(self.pc_state.SP);
+        self.pc_state.SP += 1
+        self.pc_state.PCHigh = memory.read(self.pc_state.SP);
+        self.pc_state.SP += 1
+    
+        return  14;
+                
+# Sself.pc_state.BC self.pc_state.HL, self.pc_state.DE
+class SBC_HL_DE(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.HL = sub16c(self.pc_state, self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
+    
+        self.pc_state.PC += 2;
+        return  4;
+    
+# LD (nn), self.pc_state.DE
+class LD_nn_DE(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        memory.write(memory.read16(self.pc_state.PC+2), self.pc_state.E);
+        memory.write(memory.read16(self.pc_state.PC+2)+1, self.pc_state.D);
+        self.pc_state.PC += 4;
+    
+        return  20;
+    
+# self.pc_state.IM 1
+class IM_1(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.PC+=2;
+        self.pc_state.IM = 1;
+    
+        return  2;
+    
+# LD self.pc_state.A, I
+class LD_A_I(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.A = self.pc_state.I;
+        self.pc_state.Fstatus.N = 0;
+        self.pc_state.Fstatus.H = 0;
+        self.pc_state.Fstatus.PV = self.pc_state.IFF2;
+        self.pc_state.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
+        if (self.pc_state.A == 0):
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+    
+        self.pc_state.PC += 2;
+        return  9;
+    
+# self.pc_state.ADC self.pc_state.HL, self.pc_state.DE
+class ADC_HL_DE(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
+        self.pc_state.PC+=2;
+        return 4;
+    
+# LD self.pc_state.DE, (nn)    
+class LD_DE_nn(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.DE = memory.read16(memory.read16(self.pc_state.PC+2));
+        self.pc_state.PC += 4;
+        return  20;
+    
+# Fself.pc_state.IXME, not sure about this
+# LD self.pc_state.A, R
+class LD_A_R(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.R =  (self.pc_state.R & 0x80) | ((self.clocks.cycles + self.pc_state.R + 1) & 0x7F);
+        self.pc_state.A = self.pc_state.R;
+        self.pc_state.Fstatus.N = 0;
+        self.pc_state.Fstatus.H = 0;
+        self.pc_state.Fstatus.PV = self.pc_state.IFF2;
+        self.pc_state.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
+        if (self.pc_state.A == 0):
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+    
+        self.pc_state.PC += 2;
+        return  9;
+    
+# Fself.pc_state.IXME, can't find existance of this instruction
+# LD (nn), self.pc_state.HL
+class LD_nn_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        memory.write(memory.read16(self.pc_state.PC+2), self.pc_state.L);
+        memory.write(memory.read16(self.pc_state.PC+2)+1, self.pc_state.H);
+        self.pc_state.PC += 4;
+    
+        return  16;
+    
+# RRD, wacky instruction
+class RRD(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        tmp8 = self.pc_state.A;
+        self.pc_state.A = (self.pc_state.A & 0xF0) | (memory.read(self.pc_state.HL) & 0xF);
+        memory.write(self.pc_state.HL, 
+               ((memory.read(self.pc_state.HL) >> 4) & 0xF) | 
+               ((tmp8 << 4) & 0xF0));
+    
+        tmp8 = self.pc_state.Fstatus.C;
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.Fstatus.C = tmp8;
+    
+        self.pc_state.PC+=2;
+        return  18;
+    
+# self.pc_state.ADC self.pc_state.HL, self.pc_state.HL
+class ADC_HL_HL(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.HL, self.pc_state.Fstatus.C);
+        self.pc_state.PC+=2;
+        return 4;
+    
+# Fself.pc_state.IXME, not sure about the existance of this instruction
+# LD self.pc_state.HL, (nn)
+class LD_HL_nn(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.HL = memory.read16(memory.read16(self.pc_state.PC+2));
+        self.pc_state.PC += 4;
+    
+        return  20;
+    
+# LD (nn), self.pc_state.SP
+class LD_nn_SP(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        memory.write(memory.read16(self.pc_state.PC+2), self.pc_state.SPLow);
+        memory.write(memory.read16(self.pc_state.PC+2)+1, self.pc_state.SPHigh);
+        self.pc_state.PC += 4;
+    
+        return  6;
+    
+# self.pc_state.ADC self.pc_state.HL, self.pc_state.SP
+class ADC_HL_SP(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.SP, self.pc_state.Fstatus.C);
+        self.pc_state.PC+=2;
+        return 15;
+    
+# Load 16-bit self.pc_state.BC register
+# LD self.pc_state.SP, (nn)
+class LD_SP_nn(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.SP = memory.read16(memory.read16(self.pc_state.PC+2)); 
+        self.pc_state.PC += 4;
+        return  20;
+    
+# LDI
+class LDI(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        memory.write(self.pc_state.DE, memory.read(self.pc_state.HL));
+        self.pc_state.DE += 1
+        self.pc_state.HL += 1
+        self.pc_state.BC -= 1
+        if (self.pc_state.BC == 0):
+            self.pc_state.Fstatus.PV = 1
+        else:
+            self.pc_state.Fstatus.PV = 0
+        self.pc_state.Fstatus.H = 0;
+        self.pc_state.Fstatus.N = 0;
+        self.pc_state.PC += 2;
+    
+        return  16;
+    
+# CPI
+class CPI(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
+        self.pc_state.HL += 1
+        self.pc_state.BC -= 1
+        if (self.pc_state.BC == 0):
+            self.pc_state.Fstatus.PV = 1
+        else:
+            self.pc_state.Fstatus.PV = 0
+        self.pc_state.PC += 2;
+        return  16;
+    
+# INI
+class INI(Instruction):
+    def __init__(self, pc_state, ports):
+        self.pc_state = pc_state
+        self.ports = ports
+
+    def execute(self, memory):
+        self.pc_state.B -= 1
+        memory.write(self.pc_state.HL, self.ports.portRead(self.pc_state.C));
+        self.pc_state.HL += 1
+        self.pc_state.Fstatus.N = 1;
+        if (self.pc_state.B == 0):
+            self.pc_state.Fstatus.Z = 1;
+        else:
+            self.pc_state.Fstatus.Z = 0;
+    
+        self.pc_state.PC += 2;
+        return  16;
+    
+# OUTI
+class OUTI(Instruction):
+    def __init__(self, pc_state, ports):
+        self.pc_state = pc_state
+        self.ports = ports
+
+    def execute(self, memory):
+        self.pc_state.B -= 1
+        self.ports.portWrite(self.pc_state.C, memory.read(self.pc_state.HL));
+        self.pc_state.HL += 1
+        if (self.pc_state.B == 0):
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+        self.pc_state.Fstatus.N = 1;
+        self.pc_state.PC += 2;
+        return  16;
+    
+# OUTD
+class OUTD(Instruction):
+    def __init__(self, pc_state, ports):
+        self.pc_state = pc_state
+        self.ports = ports
+
+    def execute(self, memory):
+        self.pc_state.B -= 1
+        self.ports.portWrite(self.pc_state.C, memory.read(self.pc_state.HL));
+        self.pc_state.HL -= 1
+        if (self.pc_state.B == 0):
+            self.pc_state.Fstatus.Z = 1
+        else:
+            self.pc_state.Fstatus.Z = 0
+        self.pc_state.Fstatus.N = 1;
+        self.pc_state.PC += 2;
+        return  16;
+    
+# LDIR
+class LDIR(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        cycles = 0
+        if (self.pc_state.BC >= 4):
+            memory.writeMulti(self.pc_state.DE, self.pc_state.HL, 4);
+            self.pc_state.DE += 4;
+            self.pc_state.HL += 4;
+            self.pc_state.BC -= 4;
+            cycles += 84;
+        else:
+            self.pc_state.BC -= 1
+            memory.write(self.pc_state.DE, memory.read(self.pc_state.HL));
+            self.pc_state.DE += 1
+            self.pc_state.HL += 1
+            cycles += 21;
+    
+        self.pc_state.Fstatus.H = 0;
+        self.pc_state.Fstatus.PV = 0;
+        self.pc_state.Fstatus.N = 1; # hmmm, not sure
+        if (self.pc_state.BC == 0):
+            self.pc_state.Fstatus.N = 0;
+            self.pc_state.PC += 2;
+            cycles -=5;
+
+        return cycles
+    
+# CPIR
+class CPIR(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        cycles = 0
+        self.pc_state.BC -= 1
+        tmp8 = self.pc_state.Fstatus.C;
+        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
+        self.pc_state.HL += 1
+        self.pc_state.Fstatus.C = tmp8; 
+    
+        if ((self.pc_state.BC == 0)or(self.pc_state.Fstatus.Z == 1)):
+            self.pc_state.Fstatus.PV = 0; 
+            self.pc_state.PC += 2;
+            cyles += 16;
+        else:
+            self.pc_state.Fstatus.PV = 1; 
+            cyles += 21;
+
+        return cycles
+    
+# Should speed this function up a bit
+# Flags match emulator, not z80 document
+# OTIR (port)
+class OTIR(Instruction):
+    def __init__(self, pc_state, ports):
+        self.pc_state = pc_state
+        self.ports = ports
+
+    def execute(self, memory):
+        cycles = 0
+        if (self.pc_state.B >= 8):
+            self.pc_state.B -= 8;
+            self.ports.portMultiWrite(self.pc_state.C, memory.readArray(self.pc_state.HL,8), 8);
+            self.pc_state.HL+= 8;
+            cycles += 168;
+        else:
+            self.pc_state.B -= 1
+            self.ports.portWrite(self.pc_state.C, memory.read(self.pc_state.HL));
+            self.pc_state.HL += 1
+            cycles += 21;
+        self.pc_state.Fstatus.S = 0; # Unknown
+        self.pc_state.Fstatus.H = 0; # Unknown
+        self.pc_state.Fstatus.PV = 0; # Unknown
+        self.pc_state.Fstatus.N = 1;
+        self.pc_state.Fstatus.Z = 0;
+        if (self.pc_state.B == 0):
+            self.pc_state.Fstatus.Z = 1;
+            self.pc_state.PC += 2;
+            cycles -= 5;
+        return cycles
+    
+# LDDR
+class LDDR(Instruction):
+    def __init__(self, pc_state):
+        self.pc_state = pc_state
+
+    def execute(self, memory):
+        cycles = 0
+        memory.write(self.pc_state.DE, memory.read(self.pc_state.HL));
+        self.pc_state.DE -= 1
+        self.pc_state.HL -= 1
+        self.pc_state.BC -= 1
+        if (self.pc_state.BC == 0):
+            self.pc_state.PC += 2;
+            cycles += 16;
+            self.pc_state.Fstatus.N = 0;
+            self.pc_state.Fstatus.H = 0;
+            self.pc_state.Fstatus.PV = 0;
+        else:
+            cycles += 21;
+
+        return cycles
+
+

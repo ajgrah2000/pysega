@@ -19,7 +19,7 @@ class InstructionStore(object):
 
         self._populate_core_instruction_map(clocks, pc_state, memory)
         self._populate_extended_fd_instruction_map(clocks, pc_state, memory)
-        self._populate_extended_ed_instruction_map(clocks, pc_state, memory)
+        self._populate_extended_ed_instruction_map(clocks, pc_state, memory, self.ports)
         self._populate_extended_dd_instruction_map(clocks, pc_state, memory)
         self._populate_extended_cb_instruction_map(clocks, pc_state, memory)
 
@@ -246,8 +246,53 @@ class InstructionStore(object):
         self.instruction_fd_lookup[0xE5] = instructions.PUSH_I(pc_state, self._reg_wrapper_iy)
         self.instruction_fd_lookup[0xE9] = instructions.LD_PC_I(pc_state, self._reg_wrapper_iy)
 
-    def _populate_extended_ed_instruction_map(self, clocks, pc_state, memory):
-        pass
+    def _populate_extended_ed_instruction_map(self, clocks, pc_state, memory, ports):
+        self.instruction_ed_lookup[0x40] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_b)
+        self.instruction_ed_lookup[0x48] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_c)
+        self.instruction_ed_lookup[0x50] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_d)
+        self.instruction_ed_lookup[0x58] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_e)
+        self.instruction_ed_lookup[0x60] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_h)
+        self.instruction_ed_lookup[0x68] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_l)
+        self.instruction_ed_lookup[0x78] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_a)
+
+        self.instruction_ed_lookup[0x41] = instructions.OUT_C_r(pc_state, ports, self._reg_wrapper_b)
+        self.instruction_ed_lookup[0x49] = instructions.OUT_C_r(pc_state, ports, self._reg_wrapper_c)
+        self.instruction_ed_lookup[0x51] = instructions.OUT_C_r(pc_state, ports, self._reg_wrapper_d)
+        self.instruction_ed_lookup[0x59] = instructions.OUT_C_r(pc_state, ports, self._reg_wrapper_e)
+        self.instruction_ed_lookup[0x61] = instructions.OUT_C_r(pc_state, ports, self._reg_wrapper_h)
+        self.instruction_ed_lookup[0x69] = instructions.OUT_C_r(pc_state, ports, self._reg_wrapper_l)
+        self.instruction_ed_lookup[0x79] = instructions.OUT_C_r(pc_state, ports, self._reg_wrapper_a)
+
+        self.instruction_ed_lookup[0x42] = instructions.SBC_HL_BC(pc_state)
+        self.instruction_ed_lookup[0x43] = instructions.LD_nn_BC(pc_state)
+        self.instruction_ed_lookup[0x44] = instructions.NEG(pc_state)
+        self.instruction_ed_lookup[0x47] = instructions.LD_I_A(pc_state)
+        self.instruction_ed_lookup[0x4A] = instructions.ADC_HL_BC(pc_state)
+        self.instruction_ed_lookup[0x4B] = instructions.LD_BC_nn(pc_state)
+        self.instruction_ed_lookup[0x4D] = instructions.RETI(pc_state)
+        self.instruction_ed_lookup[0x52] = instructions.SBC_HL_DE(pc_state)
+        self.instruction_ed_lookup[0x53] = instructions.LD_nn_DE(pc_state)
+        self.instruction_ed_lookup[0x56] = instructions.IM_1(pc_state)
+        self.instruction_ed_lookup[0x57] = instructions.LD_A_I(pc_state)
+        self.instruction_ed_lookup[0x5A] = instructions.ADC_HL_DE(pc_state)
+        self.instruction_ed_lookup[0x5B] = instructions.LD_DE_nn(pc_state)
+        self.instruction_ed_lookup[0x5F] = instructions.LD_A_R(pc_state)
+        self.instruction_ed_lookup[0x63] = instructions.LD_nn_HL(pc_state)
+        self.instruction_ed_lookup[0x67] = instructions.RRD(pc_state)
+        self.instruction_ed_lookup[0x6A] = instructions.ADC_HL_HL(pc_state)
+        self.instruction_ed_lookup[0x6B] = instructions.LD_HL_nn(pc_state)
+        self.instruction_ed_lookup[0x73] = instructions.LD_nn_SP(pc_state)
+        self.instruction_ed_lookup[0x7A] = instructions.ADC_HL_SP(pc_state)
+        self.instruction_ed_lookup[0x7B] = instructions.LD_SP_nn(pc_state)
+        self.instruction_ed_lookup[0xA0] = instructions.LDI(pc_state)
+        self.instruction_ed_lookup[0xA1] = instructions.CPI(pc_state)
+        self.instruction_ed_lookup[0xA2] = instructions.INI(pc_state, ports)
+        self.instruction_ed_lookup[0xA3] = instructions.OUTI(pc_state, ports)
+        self.instruction_ed_lookup[0xAB] = instructions.OUTD(pc_state, ports)
+        self.instruction_ed_lookup[0xB0] = instructions.LDIR(pc_state)
+        self.instruction_ed_lookup[0xB1] = instructions.CPIR(pc_state)
+        self.instruction_ed_lookup[0xB3] = instructions.OTIR(pc_state, ports)
+        self.instruction_ed_lookup[0xB8] = instructions.LDDR(pc_state)
 
     def _populate_extended_dd_instruction_map(self, clocks, pc_state, memory):
         self.instruction_dd_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_ix, self._reg_wrapper_bc,15,2);
