@@ -8,6 +8,44 @@ def signed_char_to_int(value):
         result = value + 0xFF00
     return result
 
+# self.pc_state.Add two 8 bit ints plus the carry bit, and set flags accordingly
+def add8c(pc_state, a, b, c):
+    r = a + b + c;
+    rs = (a + b + c) & 0xFF;
+    if (rs & 0x80): # Negative
+        pc_state.Fstatus.S = 1
+    else:
+        pc_state.Fstatus.S = 0
+
+    if (rs == 0): # Zero
+        pc_state.Fstatus.Z = 1
+    else:
+        pc_state.Fstatus.Z = 0
+
+    if (((r & 0xF00) != 0) and 
+         (r & 0xF00) != 0xF00):
+        pc_state.Fstatus.PV = 1
+    else:
+        pc_state.Fstatus.PV = 0
+
+    r = (a & 0xF) + (b & 0xF) + c;
+    if (r & 0x10): # Half carry
+        pc_state.Fstatus.H = 1
+    else:
+        pc_state.Fstatus.H = 0
+
+    pc_state.Fstatus.N = 0;
+
+    r = (a & 0xFF) + (b & 0xFF) + c;
+    if (r & 0x100): # Carry
+        pc_state.Fstatus.C = 1
+    else:
+        pc_state.Fstatus.C = 0
+
+    return (a + b + c) & 0xFF
+    
+
+
 class Instruction(object):
     FLAG_MASK_INC8 = 0x01; # Bits to leave unchanged
     FLAG_MASK_DEC8 = 0x01; # Bits to leave unchanged
@@ -22,6 +60,7 @@ class Instruction(object):
 
     def _exec(self, data):
         return self.instruction_exec(data)
+
 
 class JumpInstruction(Instruction):
      
@@ -187,8 +226,7 @@ class JRZe(Instruction):
         cycles = 7
     
         if (self.pc_state.Fstatus.Z == 1):
-            atPC = memory.readMulti(self.pc_state.PC);
-            self.pc_state.PC += signed_char_to_int(atPC[1] & 0xFF) #(int) (signed char) atPC[1]; 
+            self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC+1) & 0xFF)
             cycles+=5;
 
         self.pc_state.PC += 2;
@@ -231,8 +269,7 @@ class JRNZe(Instruction):
         cycles = 7;
     
         if (self.pc_state.Fstatus.Z == 0):
-            atPC = memory.readMulti(self.pc_state.PC);
-            self.pc_state.PC += signed_char_to_int(atPC[1] & 0xFF) # (int) (signed char) atPC[1]; 
+            self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC+1) & 0xFF)
             cycles+=5;
     
         self.pc_state.PC += 2;
@@ -841,3 +878,286 @@ class LD_r(Instruction_r):
       self.r.set(memory.read(self.pc_state.PC + 1));
       self.pc_state.PC += 2;
       return 7;
+
+# LD self.I_reg, nn
+class LD_I_nn(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.I_reg.set(memory.read16(self.pc_state.PC+2))
+        self.pc_state.PC += 4
+        return 20
+    
+# LD (nn), self.I_reg
+class LD_nn_I(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        memory.write(memory.read16(self.pc_state.PC+2), self.I_reg.get_low())
+        memory.write(memory.read16(self.pc_state.PC+2)+1, self.I_reg.get_high())
+        self.pc_state.PC += 4
+    
+        return 20
+    
+# LD self.I_reg, (nn)
+class LD_I__nn_(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.I_reg.set(memory.read16(memory.read16(self.pc_state.PC+2)))
+        self.pc_state.PC += 4
+    
+        return 20
+    
+# INC (self.I_reg+d)
+class INC_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp16 = self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))
+        memory.write(tmp16, memory.read(tmp16) + 1)
+        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(memory.read(tmp16))
+        self.pc_state.PC+=3
+        return 23
+    
+# self.pc_state.DEC (self.I_reg+d)
+class DEC_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp16 = self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))
+        memory.write(tmp16, memory.read(tmp16) - 1)
+        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(memory.read(tmp16))
+        self.pc_state.PC+=3
+        return 23
+    
+# LD (self.I_reg + d), n
+class LD_I_d_n(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp16 = self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))
+        memory.write(tmp16, memory.read(self.pc_state.PC+3))
+        self.pc_state.PC += 4
+        return  19
+    
+# LD r, (self.I_reg+e)
+class LD_r_I_e(Instruction):
+    def __init__(self, pc_state, I_reg, dst):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+        self.dst = dst
+
+    def execute(self, memory):
+        self.dst.set(memory.read(self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))))
+                                        
+        self.pc_state.PC = self.pc_state.PC + 3
+        return  19
+    
+# LD (self.I_reg+d), r
+class LD_I_d_r(Instruction):
+    def __init__(self, pc_state, I_reg, src):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+        self.src = src
+
+    def execute(self, memory):
+                          
+        memory.write(self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2)),
+                      self.src) 
+        self.pc_state.PC += 3
+        return  19
+    
+# self.pc_state.ADD self.pc_state.A,(self.I_reg+d)
+class ADDA_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.I_reg.get() + 
+                         signed_char_to_int(memory.read(self.pc_state.PC+2)))
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,tmp8)
+        self.pc_state.A = self.pc_state.A + tmp8
+        self.pc_state.PC += 3
+        return  19
+    
+# self.pc_state.ADC (self.I_reg + d)
+class ADC_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, memory.read(self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))), self.pc_state.Fstatus.C)
+        self.pc_state.PC+=3
+        return 19
+    
+# SUB (self.I_reg + d)
+class SUB_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.I_reg.get() + 
+                         signed_char_to_int(memory.read(self.pc_state.PC+2)))
+        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,tmp8)
+        self.pc_state.A = self.pc_state.A - tmp8
+        self.pc_state.PC += 3
+        return  19
+    
+# self.pc_state.AND (self.I_reg + d)
+class AND_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.pc_state.A = self.pc_state.A & memory.read(self.I_reg.get() +
+                         signed_char_to_int(memory.read(self.pc_state.PC+2)))
+        self.pc_state.PC+=3
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A)
+    
+        return 19
+    
+# XOR (self.I_reg + d)
+class XOR_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.pc_state.A = self.pc_state.A ^ memory.read(self.I_reg.get() +
+                         signed_char_to_int(memory.read(self.pc_state.PC+2)))
+        self.pc_state.PC+=3
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A)
+    
+        return  19
+    
+# OR (self.I_reg + d)
+class OR_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.I_reg.get() + 
+                         signed_char_to_int(memory.read(self.pc_state.PC+2)))
+        self.pc_state.A = self.pc_state.A | tmp8
+        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A)
+        self.pc_state.PC += 3
+        return  19
+    
+# CP (self.I_reg + d)
+class CP_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.I_reg.get() + 
+                         signed_char_to_int(memory.read(self.pc_state.PC+2)))
+        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,tmp8)
+        self.pc_state.PC+=3
+        return 19
+    
+# Probably should turn this into a lookup table
+class BIT_I_d(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp16 = self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))
+        tmp8 = memory.read(tmp16)
+        t8 = memory.read(self.pc_state.PC+3)
+    
+        if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.I_reg.get() + d)
+            tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1
+            self.pc_state.Fstatus.Z = tmp8 ^ 0x1
+            self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(tmp8)
+            self.pc_state.Fstatus.H = 1
+            self.pc_state.Fstatus.N = 0
+            self.pc_state.Fstatus.S = 0
+        elif ((t8 & 0xC7) == 0x86): # RES b, (self.I_reg + d)
+            tmp8 = tmp8 & ~(0x1 << ((t8 >> 3) & 0x7))
+            memory.write(tmp16,tmp8)
+        elif ((t8 & 0xC7) == 0xC6): # SET b, (self.I_reg + d)
+            tmp8 = tmp8 | (0x1 << ((t8 >> 3) & 0x7))
+            memory.write(tmp16,tmp8)
+        else:
+            error("Instruction arg for 0xFD 0xCB")
+    
+        self.pc_state.PC += 4
+    
+        return  23
+    
+# POP self.I_reg
+class POP_I(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.I_reg.set_low(memory.read(self.pc_state.SP))
+        self.pc_state.SP += 1
+        self.I_reg.set_high(memory.read(self.pc_state.SP))
+        self.pc_state.SP += 1
+        self.pc_state.PC += 2
+        return  14
+    
+# EX (self.pc_state.SP), self.I_reg
+class EX_SP_I(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        tmp8 = memory.read(self.pc_state.SP)
+        memory.write(self.pc_state.SP, self.I_reg.get_low())
+        self.I_reg.set_low(tmp8)
+        tmp8 = memory.read(self.pc_state.SP+1)
+        memory.write(self.pc_state.SP+1, self.I_reg.get_high())
+        self.I_reg.set_high(tmp8)
+        self.pc_state.PC+=2
+        return  23
+    
+# PUSH self.I_reg
+class PUSH_I(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.pc_state.SP -= 1
+        memory.write(self.pc_state.SP, self.I_reg.get_high())
+        self.pc_state.SP -= 1
+        memory.write(self.pc_state.SP, self.I_reg.get_low())
+        self.pc_state.PC += 2
+    
+        return 15
+    
+# Don't know how many self.clocks.cycles
+# LD self.pc_state.PC, self.I_reg
+class LD_PC_I(Instruction):
+    def __init__(self, pc_state, I_reg):
+        self.pc_state = pc_state
+        self.I_reg = I_reg
+
+    def execute(self, memory):
+        self.pc_state.PC = self.I_reg.get()
+        return 6
+    

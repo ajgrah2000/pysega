@@ -28,6 +28,24 @@ class RegWrapperGeneric(RegWrapper):
     def get(self):
         return self.pc_state.__getattribute__(self._reg_string)
 
+    def get_low(self):
+        value = self.pc_state.__getattribute__(self._reg_string)
+        return value & 0xFF
+
+    def get_high(self):
+        value = self.pc_state.__getattribute__(self._reg_string)
+        return (value >> 8) & 0xFF
+
+    def set_high(self, value):
+        new = self.pc_state.__getattribute__(self._reg_string)
+        new = self.get_low() + (value << 8)
+        self.set(new)
+
+    def set_low(self, value):
+        new = self.pc_state.__getattribute__(self._reg_string)
+        new = value + (self.get_high() << 8)
+        self.set(new)
+
 class RegWrapper_A(RegWrapperGeneric):
     def __init__(self, pc_state):
         super(RegWrapper_A, self).__init__(pc_state, "A")
