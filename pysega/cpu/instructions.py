@@ -1359,13 +1359,14 @@ class OUT_C_r(Instruction):
         self.pc_state.PC += 2;
         return 3;
     
-# SBC_HL_BC
-class SBC_HL_BC(Instruction):
-    def __init__(self, pc_state):
+# SBC_HL_r16
+class SBC_HL_r16(Instruction):
+    def __init__(self, pc_state, reg):
         self.pc_state = pc_state
+        self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.HL = sub16c(self.pc_state, self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
+        self.pc_state.HL = sub16c(self.pc_state, self.pc_state.HL, int(self.reg), self.pc_state.Fstatus.C);
     
         self.pc_state.PC += 2;
         return  15;
@@ -1403,16 +1404,6 @@ class LD_I_A(Instruction):
         self.pc_state.PC += 2;
         return  9;
     
-# self.pc_state.ADC self.pc_state.HL, self.pc_state.BC
-class ADC_HL_BC(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.BC, self.pc_state.Fstatus.C);
-        self.pc_state.PC+=2;
-        return 15;
-    
 # Load 16-bit self.pc_state.BC register
 # LD self.pc_state.BC, (nn)
 class LD_BC_nn(Instruction):
@@ -1439,17 +1430,6 @@ class RETI(Instruction):
     
         return  14;
                 
-# Sself.pc_state.BC self.pc_state.HL, self.pc_state.DE
-class SBC_HL_DE(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.HL = sub16c(self.pc_state, self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
-    
-        self.pc_state.PC += 2;
-        return  4;
-    
 # LD (nn), self.pc_state.DE
 class LD_nn_DE(Instruction):
     def __init__(self, pc_state):
@@ -1491,16 +1471,6 @@ class LD_A_I(Instruction):
     
         self.pc_state.PC += 2;
         return  9;
-    
-# self.pc_state.ADC self.pc_state.HL, self.pc_state.DE
-class ADC_HL_DE(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.DE, self.pc_state.Fstatus.C);
-        self.pc_state.PC+=2;
-        return 4;
     
 # LD self.pc_state.DE, (nn)    
 class LD_DE_nn(Instruction):
@@ -1565,15 +1535,16 @@ class RRD(Instruction):
         self.pc_state.PC+=2;
         return  18;
     
-# self.pc_state.ADC self.pc_state.HL, self.pc_state.HL
-class ADC_HL_HL(Instruction):
-    def __init__(self, pc_state):
+# self.pc_state.ADC self.pc_state.HL, self.pc_state.r16
+class ADC_HL_r16(Instruction):
+    def __init__(self, pc_state, reg):
         self.pc_state = pc_state
+        self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.HL, self.pc_state.Fstatus.C);
+        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.reg, self.pc_state.Fstatus.C);
         self.pc_state.PC+=2;
-        return 4;
+        return 15;
     
 # Fself.pc_state.IXME, not sure about the existance of this instruction
 # LD self.pc_state.HL, (nn)
@@ -1598,16 +1569,6 @@ class LD_nn_SP(Instruction):
         self.pc_state.PC += 4;
     
         return  6;
-    
-# self.pc_state.ADC self.pc_state.HL, self.pc_state.SP
-class ADC_HL_SP(Instruction):
-    def __init__(self, pc_state):
-        self.pc_state = pc_state
-
-    def execute(self, memory):
-        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.pc_state.SP, self.pc_state.Fstatus.C);
-        self.pc_state.PC+=2;
-        return 15;
     
 # Load 16-bit self.pc_state.BC register
 # LD self.pc_state.SP, (nn)

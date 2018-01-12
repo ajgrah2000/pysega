@@ -1830,7 +1830,7 @@ int Z80core::step(bool loop)
                     cpu_state->HL = sub16c(cpu_state->HL, cpu_state->DE, cpu_state->Fstatus.status.C);
 
                     cpu_state->PC += 2;
-                    cycles += 4;
+                    cycles += 15;
                     break;
 
                     // LD (nn), cpu_state->DE
@@ -1867,7 +1867,7 @@ int Z80core::step(bool loop)
                 case 0x5A:
                     cpu_state->HL = add16c(cpu_state->HL, cpu_state->DE, cpu_state->Fstatus.status.C);
                     cpu_state->PC+=2;
-                    cycles+=4;
+                    cycles+=15;
                     break;
 
                     // LD cpu_state->DE, (nn)    
@@ -1922,7 +1922,7 @@ int Z80core::step(bool loop)
                 case 0x6A:
                     cpu_state->HL = add16c(cpu_state->HL, cpu_state->HL, cpu_state->Fstatus.status.C);
                     cpu_state->PC+=2;
-                    cycles+=4;
+                    cycles+=15;
                     break;
 
                     // Fcpu_state->IXME, not sure about the existance of this instruction
