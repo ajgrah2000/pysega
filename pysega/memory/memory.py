@@ -1,6 +1,6 @@
 from .. import errors
 
-class Memory(object):
+class MemoryBase(object):
     """ Memory map management of sega master system/cartridges/ram
     """
     MEMREGISTERS    = 0xFFFC
@@ -22,6 +22,131 @@ class Memory(object):
     UPPERSHIFT = 14
     LOWERMASK  = 0x03FFF
 
+class MemoryReference(MemoryBase):
+    """ Memory map management of sega master system/cartridges/ram
+    """
+
+    def __init__(self):
+        self._last_page_number = 0
+        self._last_bank_number = 0
+
+        self._ram     = [0] * self.RAM_SIZE
+
+        # Complete memory map
+        self._memory_map     = None
+
+    def _initialise_memory(self):
+        """ Initialise memory bank allocations. """
+
+        self._memory_map     = [0] * self.MEMMAPSIZE
+
+    def read(self, address):
+        return self._translate_read(address)
+
+    def readArray(self, address, length):
+        result = [0] * length
+
+        for i in range(length):
+            result[i] = self.read(address + i)
+
+        return result
+
+    def read16(self, address):
+        return self.read(address) + (self.read(address + 1) << 8)
+
+    def writeMulti(self, dest, src, length):
+        """ write multiple bytes to memory.
+        """
+
+        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAMOFFSET)):
+            errors.warning("Write out of range %x"%(dest + length))
+            return
+
+        for i in range(length):
+            self.write(dest+i, self.read(src+i))
+
+    def write(self, address, data):
+        self._translate_write(address, int(data))
+
+    def set_cartridge(self, cartridge):
+        self.cartridge = cartridge
+
+        self._initialise_memory()
+
+    def _translate_read(self, address):
+        """ Un-optimised address translation, uses paging registers. 
+        """
+
+        address = address & 0xFFFF # ADDRESS_MASK
+        bank_address = address & 0x3FFF # BANK_MASK
+
+        if(address < self.PAGE0):
+            result = self.cartridge.cartridge_banks[0][bank_address]
+        elif(address < self.PAGE1):
+            page0_bank = self._memory_map[0xFFFD]
+            result = self.cartridge.cartridge_banks[page0_bank][bank_address]
+        elif(address < self.PAGE2):
+            page1_bank = self._memory_map[0xFFFE]
+            result = self.cartridge.cartridge_banks[page1_bank][bank_address]
+        elif(address < self.RAM_OFFSET):
+            ram_select = self._memory_map[0xFFFC]
+
+            if (ram_select & 0x8): # page2_is_cartridge_ram
+              if (ram_select & 0x4):
+                cartridge_ram_page = 1
+              else:
+                cartridge_ram_page = 0
+      
+              result = self.cartridge.ram[cartridge_ram_page][bank_address]
+            else:
+              page2_bank = self._memory_map[0xFFFF]
+              result = self.cartridge.cartridge_banks[page2_bank][bank_address]
+        elif(address < self.PAGING_REGISTERS):
+            # This covers RAM & Mirrored RAM
+            result = self._ram[address & (self.RAM_SIZE - 1)]
+        else:
+            result = self._memory_map[address]
+
+        return result
+
+
+    def _translate_write(self, address, data):
+        """ Un-optimised address translation, uses paging registers. 
+        """
+
+        address = address & 0xFFFF # ADDRESS_MASK
+        bank_address = address & 0x3FFF # BANK_MASK
+
+        if(address >= self.PAGING_REGISTERS):
+            self._memory_map[address] = data
+        elif(address < self.PAGE0):
+            self.cartridge.cartridge_banks[0][bank_address] = data
+        elif(address < self.PAGE1):
+            page0_bank = self._memory_map[0xFFFD]
+            self.cartridge.cartridge_banks[page0_bank][bank_address] = data
+        elif(address < self.PAGE2):
+            page1_bank = self._memory_map[0xFFFE]
+            self.cartridge.cartridge_banks[page1_bank][bank_address] = data
+        elif(address < self.RAM_OFFSET):
+            ram_select = self._memory_map[0xFFFC]
+            if (ram_select & 0x8): # page2_is_cartridge_ram
+              if (ram_select & 0x4):
+                cartridge_ram_page = 1
+              else:
+                cartridge_ram_page = 0
+      
+              self.cartridge.ram[cartridge_ram_page][bank_address] = data
+            else:
+              page2_bank = self._memory_map[0xFFFF]
+              self.cartridge.cartridge_banks[page2_bank][bank_address] = data
+        elif(address < self.PAGING_REGISTERS):
+            # This covers RAM & Mirrored RAM
+            self._ram[address & (self.RAM_SIZE - 1)] = data
+
+class MemoryCached(MemoryBase):
+    """ Memory map management of sega master system/cartridges/ram
+    """
+
     def __init__(self):
         self._last_page_number = 0
         self._last_bank_number = 0
@@ -41,7 +166,6 @@ class Memory(object):
         self._memory_map     = [0] * self.MEMMAPSIZE
 
     def read(self, address):
-#        return self._translate_read(address)
         return self._cached_read[address & 0xFFFF]
 
     def readArray(self, address, length):
@@ -68,7 +192,6 @@ class Memory(object):
             self.write(dest+i, self.read(src+i))
 
     def write(self, address, data):
-        #self._translate_write(address, int(data))
         self._cache_write(address, int(data))
 
     def set_cartridge(self, cartridge):
@@ -184,45 +307,115 @@ class Memory(object):
             self._ram[address & (self.RAM_SIZE - 1)] = data
             self._cached_read[address] = data
 
-    def _translate_read(self, address):
-        """ Un-optimised address translation, uses paging registers. 
-        """
 
-        address = address & 0xFFFF # ADDRESS_MASK
-        bank_address = address & 0x3FFF # BANK_MASK
+class MemoryShare(MemoryBase):
+    BANK_SIZE     = 0x4000
+    MAX_BANKS     = 64;
+    NUM_PAGES     = 3;
 
-        if(address < self.PAGE0):
-            result = self.cartridge.cartridge_banks[0][bank_address]
-        elif(address < self.PAGE1):
-            page0_bank = self._memory_map[0xFFFD]
-            result = self.cartridge.cartridge_banks[page0_bank][bank_address]
-        elif(address < self.PAGE2):
-            page1_bank = self._memory_map[0xFFFE]
-            result = self.cartridge.cartridge_banks[page1_bank][bank_address]
-        elif(address < self.RAM_OFFSET):
-            ram_select = self._memory_map[0xFFFC]
+    def __init__(self):
+        self._last_page_number = 0
+        self._last_bank_number = 0
 
-            if (ram_select & 0x8): # page2_is_cartridge_ram
-              if (ram_select & 0x4):
-                cartridge_ram_page = 1
-              else:
-                cartridge_ram_page = 0
-      
-              result = self.cartridge.ram[cartridge_ram_page][bank_address]
-            else:
-              page2_bank = self._memory_map[0xFFFF]
-              result = self.cartridge.cartridge_banks[page2_bank][bank_address]
-        elif(address < self.PAGING_REGISTERS):
-            # This covers RAM & Mirrored RAM
-            result = self._ram[address & (self.RAM_SIZE - 1)]
-        else:
-            result = self._memory_map[address]
+        self._ram     = [0] * self.RAM_SIZE
+
+        # 'cache' of memory.  Copy of memory to ready from, updated when paging changes.
+
+        self._page0_copies = [[0] * self.BANK_SIZE for x in range(self.MAX_BANKS)]
+        self._pages = [None] * 4
+        self._memory_shared_lookup = [[0] * self.BANK_SIZE for x in range(4)]
+
+        # Complete memory map
+        self._memory_map     = None
+
+    def _initialise_memory(self):
+        """ Initialise memory bank allocations. """
+
+        self._memory_map     = [0] * self.MEMMAPSIZE
+
+    def read(self, address):
+        return self._memory_shared_lookup[(int(address) >> 14) & 0x3][address & 0x3FFF]
+
+    def readArray(self, address, length):
+
+        result = [0] * length
+
+        for i in range(length):
+            result[i] = self.read(address + i)
 
         return result
 
+    def read16(self, address):
+        return self.read(address) + (self.read(address + 1) << 8)
 
-    def _translate_write(self, address, data):
+    def writeMulti(self, dest, src, length):
+        """ write multiple bytes to memory.
+        """
+
+        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAMOFFSET)):
+            errors.warning("Write out of range %x"%(dest + length))
+            return
+
+        for i in range(length):
+            self.write(dest+i, self.read(src+i))
+
+    def write(self, address, data):
+        self._cache_write(address, int(data))
+
+    def set_cartridge(self, cartridge):
+        self.cartridge = cartridge
+
+        self._initialise_memory()
+        self._initialise_read_cache()
+
+    def _initialise_read_cache(self):
         """ Un-optimised address translation, uses paging registers. 
+        """
+
+        self._populate_shared_lookups()
+        self._update_fixed_read_page0()
+        self._update_fixed_read_page1()
+        self._update_fixed_read_page2_ram()
+
+    def _populate_shared_lookups(self):
+        for bank in range(self.cartridge.num_banks):
+            # Page '0'/'1' lookup
+            bank_array = self.cartridge.cartridge_banks[0]
+            for address in range(self.PAGE0):
+                bank_address = address & 0x3FFF # BANK_MASK
+                self._page0_copies[bank][bank_address] = self.cartridge.cartridge_banks[0][bank_address]
+
+            for address in range(self.PAGE0, self.PAGE1):
+                bank_address = address & 0x3FFF # BANK_MASK
+                self._page0_copies[bank][bank_address] = self.cartridge.cartridge_banks[bank][bank_address]
+
+    def _update_fixed_read_page0(self):
+        page0_bank = self._memory_map[0xFFFD]
+        self._memory_shared_lookup[0] = self._page0_copies[page0_bank]
+
+    def _update_fixed_read_page1(self):
+        page1_bank = self._memory_map[0xFFFE]
+        self._memory_shared_lookup[1] = self._page0_copies[page1_bank]
+
+    def _update_fixed_read_page2_ram(self):
+        ram_select = self._memory_map[0xFFFC]
+
+        if (ram_select & 0x8): # page2_is_cartridge_ram
+          if (ram_select & 0x4):
+            cartridge_ram_page = 1
+          else:
+            cartridge_ram_page = 0
+      
+          self._memory_shared_lookup[2] = self.cartridge.ram[cartridge_ram_page]
+
+        else:
+          page2_bank = self._memory_map[0xFFFF]
+          self._memory_shared_lookup[2] = self.cartridge.cartridge_banks[page2_bank]
+
+    def _cache_write(self, address, data):
+        """ Perform write.
+            Copy write to the 'cached' memory array.
+            If a paging selection register is written, refresh the 'cached' memory array.
         """
 
         address = address & 0xFFFF # ADDRESS_MASK
@@ -230,6 +423,21 @@ class Memory(object):
 
         if(address >= self.PAGING_REGISTERS):
             self._memory_map[address] = data
+
+            # Should make these conditiona, 
+            if (address == 0xFFFD):
+                if (self._pages[0] != data):
+                    self._update_fixed_read_page0()
+                    data = self._pages[0]
+            elif (address == 0xFFFE):
+                if (self._pages[1] != data):
+                    self._update_fixed_read_page1()
+                    data = self._pages[1]
+            elif ((address == 0xFFFC) or (address == 0xFFFF)):
+                if (self._pages[2] != data):
+                    self._update_fixed_read_page2_ram()
+                    data = self._pages[2]
+
         elif(address < self.PAGE0):
             self.cartridge.cartridge_banks[0][bank_address] = data
         elif(address < self.PAGE1):
@@ -253,4 +461,3 @@ class Memory(object):
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM
             self._ram[address & (self.RAM_SIZE - 1)] = data
-

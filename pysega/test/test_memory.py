@@ -121,6 +121,7 @@ def generateTestCartridge():
     class  Cart(object):
         def __init__(self):
             self.ram = [[0 for i in range(BANK_SIZE)] for j in range(NUM_RAM_PAGES)]
+            self.num_banks = MAX_BANKS - 2
         pass
 
     cartridge = Cart()
@@ -136,14 +137,17 @@ class TestMemoryPaging(unittest.TestCase):
     def setUp(self):
         self._catridge_ref = generateTestCartridge()
         self._catridge_uut = generateTestCartridge()
+        self._catridge_uut2 = generateTestCartridge()
 
     def testMemoryRead(self):
         reference_memory = MemoryReferenceImplementation()
-        uut_memory = memory.Memory()
+        uut_memory = memory.MemoryCached()
+        uut2_memory = memory.MemoryShare()
 
         reference_memory.initialise_test_memory(self._catridge_ref)
 
         uut_memory.set_cartridge(self._catridge_uut)
+        uut2_memory.set_cartridge(self._catridge_uut2)
 
         self.assertEqual(reference_memory.reference_read(0),0)
         self.assertEqual(reference_memory.reference_read(0x80),0x80)
@@ -151,26 +155,33 @@ class TestMemoryPaging(unittest.TestCase):
         PAGE2      = 0x8000
         reference_memory.reference_write(0xFFFC,0x8)
         uut_memory.write(0xFFFC,0x8)
+        uut2_memory.write(0xFFFC,0x8)
 
         reference_memory.reference_write(PAGE2,2)
         uut_memory.write(PAGE2,2)
-#        self.assertEqual(uut_memory.read(PAGE2),2)
+        uut2_memory.write(PAGE2,2)
 
         for i in range(0x10000):
             self.assertEqual(uut_memory.read(i),reference_memory.reference_read(i))
+            self.assertEqual(uut2_memory.read(i),reference_memory.reference_read(i))
         reference_memory.reference_write(0x8000,0xC)
         uut_memory.write(0x8000,0xC)
+        uut2_memory.write(0x8000,0xC)
 
         reference_memory.reference_write(0x4000,0xC)
         self.assertEqual(reference_memory.reference_read(0x4000), 0xC)
         uut_memory.write(0x4000,0xC)
+        uut2_memory.write(0x4000,0xC)
         self.assertEqual(uut_memory.read(0x4000), 0xC)
+        self.assertEqual(uut2_memory.read(0x4000), 0xC)
 
         reference_memory.reference_write(0xFFFC,0xC)
         uut_memory.write(0xFFFC,0xC)
+        uut2_memory.write(0xFFFC,0xC)
 
         for i in range(0x10000):
             self.assertEqual(uut_memory.read(i),reference_memory.reference_read(i))
+            self.assertEqual(uut2_memory.read(i),reference_memory.reference_read(i))
         
 
 

@@ -35,7 +35,9 @@ class Sega(object):
         self.inputs.joystick  = inputs.Joystick() 
 
         self.sound     = DummySound()
-        self.memory    = memory.Memory()
+#        self.memory    = memory.MemoryReference()
+        self.memory    = memory.MemoryCached()
+#        self.memory    = memory.MemoryShare()
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
 
