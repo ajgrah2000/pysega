@@ -1718,10 +1718,10 @@ class CPIR(Instruction):
         if ((self.pc_state.BC == 0)or(self.pc_state.F.Fstatus.Z == 1)):
             self.pc_state.F.Fstatus.PV = 0; 
             self.pc_state.PC += 2;
-            cyles += 16;
+            cycles += 16;
         else:
             self.pc_state.F.Fstatus.PV = 1; 
-            cyles += 21;
+            cycles += 21;
 
         return cycles
     
