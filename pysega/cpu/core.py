@@ -58,7 +58,6 @@ class Core(object):
                 errors.unsupported("interupt mode not supported");
 
     def step(self, loop=True, debug=False):
-     op_code = self.memory.read(self.pc_state.PC)
     
 #     while True:
      if True:
