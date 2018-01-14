@@ -358,7 +358,7 @@ class InstructionStore(object):
         self.instruction_ed_lookup[0x4A] = instructions.ADC_HL_r16(pc_state, self._reg_wrapper_bc)
         self.instruction_ed_lookup[0x4B] = instructions.LD_BC_nn(pc_state)
         self.instruction_ed_lookup[0x4D] = instructions.RETI(pc_state)
-        self.instruction_ed_lookup[0x52] = instructions.SBC_HL_r16(pc_state, self._reg_wrapper_bc)
+        self.instruction_ed_lookup[0x52] = instructions.SBC_HL_r16(pc_state, self._reg_wrapper_de)
         self.instruction_ed_lookup[0x53] = instructions.LD_nn_DE(pc_state)
         self.instruction_ed_lookup[0x56] = instructions.IM_1(pc_state)
         self.instruction_ed_lookup[0x57] = instructions.LD_A_I(pc_state)
