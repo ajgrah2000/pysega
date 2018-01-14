@@ -1,4 +1,4 @@
-import pysega.cpu.pc_state as pc_state
+import pysega.cpu.pc_state_union as pc_state
 import unittest
 import pysega.cpu.addressing as addressing
 
@@ -23,46 +23,22 @@ class TestPC_State(unittest.TestCase):
         self.assertEqual(p.PCHigh, 2)
         self.assertEqual(p.PCLow, 3)
 
-        p.Fstatus.C = 1
-        self.assertEqual(p.Fstatus.C, 1)
-        self.assertEqual(p.Fstatus.H, 0)
+        p.F.Fstatus.C = 1
+        self.assertEqual(p.F.Fstatus.C, 1)
+        self.assertEqual(p.F.Fstatus.H, 0)
 
     def test_pc_status_flags(self):
         flags = pc_state.PC_StatusFlags()
-        flags.S = 1
-        flags.Z = 1
-        flags.X2 = 0
-        flags.H = 1
-        flags.X1 = 1
-        flags.PV = 0
-        flags.N = 1
-        flags.C = 1
+        flags.Fstatus.S = 1
+        flags.Fstatus.Z = 1
+        flags.Fstatus.X2 = 0
+        flags.Fstatus.H = 1
+        flags.Fstatus.X1 = 1
+        flags.Fstatus.PV = 0
+        flags.Fstatus.N = 1
+        flags.Fstatus.C = 1
 
-        self.assertEqual(str(flags), "(C:1 N:1 PV:0 X1:1 H:1 X2:0 Z:1 S:1)")
-
-    def test_pc_state_access(self):
-        p = pc_state.PC_State()
-        for i in range(8):
-            p[i] = i
-
-        self.assertEqual(p[0], p.B)
-        self.assertEqual(p[1], p.C)
-        self.assertEqual(p[2], p.D)
-        self.assertEqual(p[3], p.E)
-        self.assertEqual(p[4], p.H)
-        self.assertEqual(p[5], p.L)
-        self.assertEqual(p[7], p.A)
-
-        (p.B, p.C, p.D, p.E, p.H, p.L, p.A) = tuple(range(5,12))
-
-        self.assertEqual(p[0], p.B)
-        self.assertEqual(p[1], p.C)
-        self.assertEqual(p[2], p.D)
-        self.assertEqual(p[3], p.E)
-        self.assertEqual(p[4], p.H)
-        self.assertEqual(p[5], p.L)
-        self.assertEqual(p[7], p.A)
-        self.assertEqual(p[7], p.A)
+        self.assertEqual(str(flags.Fstatus), "(C:1 N:1 PV:0 X1:1 H:1 X2:0 Z:1 S:1)")
 
     def test_pc_status_ref_check(self):
         p = pc_state.PC_State()

@@ -36,8 +36,9 @@ class FlagTables(object):
       FlagTables._createStatusSubTable();
 
       # Inc 8
-      status = pc_state.PC_StatusFlags()
-      status.value = 0
+      result = pc_state.PC_StatusFlags()
+      status = result.Fstatus
+      result.value = 0
 
       status.N = 0
       status.C = 0
@@ -60,10 +61,10 @@ class FlagTables(object):
           else:
             status.PV = 0 # Was 7F
 
-          FlagTables._flagTableInc8[i] = status.value
+          FlagTables._flagTableInc8[i] = result.value
 
       # Dec 8
-      status.value = 0
+      result.value = 0
       status.N = 1
       status.C = 0 # Carry unchanged, set to 0 to allow OR 
 
@@ -85,13 +86,14 @@ class FlagTables(object):
           else:
             status.PV = 0 # Was 80 
 
-          FlagTables._flagTableDec8[i] = status.value;
+          FlagTables._flagTableDec8[i] = result.value;
 
     @staticmethod
     def _createStatusInc8Table():
       # Inc 8
-      status = pc_state.PC_StatusFlags()
-      status.value = 0;
+      result = pc_state.PC_StatusFlags()
+      status = result.Fstatus
+      result.value = 0;
   
       status.N = 0;
       status.C = 0;
@@ -114,13 +116,14 @@ class FlagTables(object):
           else:
             status.PV = 0 # Was 7F
   
-          FlagTables._flagTableInc8[i] = status.value;
+          FlagTables._flagTableInc8[i] = result.value;
 
     @staticmethod
     def _createStatusDec8Table():
       # Inc 8
-      status = pc_state.PC_StatusFlags()
-      status.value = 0
+      result = pc_state.PC_StatusFlags()
+      status = result.Fstatus
+      result.value = 0
   
       status.N = 0
       status.C = 0 # Carry unchanged, set to 0 to allow OR 
@@ -143,16 +146,17 @@ class FlagTables(object):
           else:
             status.PV = 0 # Was 80 
   
-          FlagTables._flagTableDec8[i] = status.value;
+          FlagTables._flagTableDec8[i] = result.value;
 
     # Calculate flags associated with parity
     @staticmethod
     def _createStatusOrTable():
       # Calculate a parity lookup table
-      status = pc_state.PC_StatusFlags()
+      result = pc_state.PC_StatusFlags()
+      status = result.Fstatus
   
       for i in range(FlagTables.MAXBYTE):
-          status.value = 0
+          result.value = 0
   
           status.PV = FlagTables.calculateParity(i)
 
@@ -166,16 +170,17 @@ class FlagTables(object):
           else:
             status.S = 0 # Sign
   
-          FlagTables._flagTableOr[i] = status.value;
+          FlagTables._flagTableOr[i] = result.value;
 
     # Calculate flags associated with parity
     @staticmethod
     def _createStatusAndTable():
       # Calculate a parity lookup table
-      status = pc_state.PC_StatusFlags();
+      result = pc_state.PC_StatusFlags()
+      status = result.Fstatus
   
       for i in range(FlagTables.MAXBYTE):
-          status.value = 0;
+          result.value = 0;
   
           status.H = 1;
           status.PV = FlagTables.calculateParity(i);
@@ -189,15 +194,16 @@ class FlagTables(object):
           else:
             status.S = 0 # Sign
   
-          FlagTables._flagTableAnd[i] = status.value;
+          FlagTables._flagTableAnd[i] = result.value;
 
     @staticmethod
     def _createStatusAddTable():
-      status = pc_state.PC_StatusFlags()
+      result = pc_state.PC_StatusFlags()
+      status = result.Fstatus
   
       for i in range(FlagTables.MAXBYTE):
           for j in range(FlagTables.MAXBYTE):
-              status.value = 0; 
+              result.value = 0; 
 
               # overflow
               r = (signed_char_to_int(i) + signed_char_to_int(j)) & 0xFFF
@@ -232,14 +238,15 @@ class FlagTables(object):
 
 #              print "%x %x, r=%x, rc=%x %s"%(i, j, r, rc, status)
   
-              FlagTables._flagTableAdd[i][j] = status.value;
+              FlagTables._flagTableAdd[i][j] = result.value;
 
     # Calculate flags associated with subtraction
     # flagTableSub[cpu_state->A][cpu_state->B], represents cpu_state->A - cpu_state->B
     #
     @staticmethod
     def _createStatusSubTable():
-        status = pc_state.PC_StatusFlags()
+        result = pc_state.PC_StatusFlags()
+        status = result.Fstatus
         #char rc;
         #int r;
         #int hr;
@@ -250,7 +257,7 @@ class FlagTables(object):
                 r  = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFFFF#r  = (char) i - (char) j;
                 rc = (signed_char_to_int(i & 0xFF) - signed_char_to_int(j & 0xFF)) & 0xFF # rc = (char) i - (char) j;
                 hr  = (i & 0xF) - (j & 0xF)
-                status.value = 0
+                result.value = 0
                 if (rc & 0x80):
                     status.S  = 1
                 else:
@@ -281,7 +288,7 @@ class FlagTables(object):
                 else:
                   status.C  = 0 # cpu_state->Borrow (?) 
     
-                FlagTables._flagTableSub[i][j] = status.value
+                FlagTables._flagTableSub[i][j] = result.value
 
     @staticmethod
     def getStatusInc8(value):

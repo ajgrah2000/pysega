@@ -13,34 +13,34 @@ def add8c(pc_state, a, b, c):
     r = a + b + c;
     rs = (a + b + c) & 0xFF;
     if (rs & 0x80): # Negative
-        pc_state.Fstatus.S = 1
+        pc_state.F.Fstatus.S = 1
     else:
-        pc_state.Fstatus.S = 0
+        pc_state.F.Fstatus.S = 0
 
     if (rs == 0): # Zero
-        pc_state.Fstatus.Z = 1
+        pc_state.F.Fstatus.Z = 1
     else:
-        pc_state.Fstatus.Z = 0
+        pc_state.F.Fstatus.Z = 0
 
     if (((r & 0xF00) != 0) and 
          (r & 0xF00) != 0xF00):
-        pc_state.Fstatus.PV = 1
+        pc_state.F.Fstatus.PV = 1
     else:
-        pc_state.Fstatus.PV = 0
+        pc_state.F.Fstatus.PV = 0
 
     r = (a & 0xF) + (b & 0xF) + c;
     if (r & 0x10): # Half carry
-        pc_state.Fstatus.H = 1
+        pc_state.F.Fstatus.H = 1
     else:
-        pc_state.Fstatus.H = 0
+        pc_state.F.Fstatus.H = 0
 
-    pc_state.Fstatus.N = 0;
+    pc_state.F.Fstatus.N = 0;
 
     r = (a & 0xFF) + (b & 0xFF) + c;
     if (r & 0x100): # Carry
-        pc_state.Fstatus.C = 1
+        pc_state.F.Fstatus.C = 1
     else:
-        pc_state.Fstatus.C = 0
+        pc_state.F.Fstatus.C = 0
 
     return (a + b + c) & 0xFF
 
@@ -52,68 +52,68 @@ def sub8c(self, a, b, c):
     r = a - b - c;
     rs = a - b - c;
     if (rs & 0x80): # Negative
-        self.pc_state.Fstatus.S = 1
+        self.pc_state.F.Fstatus.S = 1
     else:
-        self.pc_state.Fstatus.S = 0
+        self.pc_state.F.Fstatus.S = 0
 
     if (rs == 0): # Zero
-        self.pc_state.Fstatus.Z = 1
+        self.pc_state.F.Fstatus.Z = 1
     else:
-        self.pc_state.Fstatus.Z = 0
+        self.pc_state.F.Fstatus.Z = 0
 
     if (((r & 0x180) != 0) and 
          (r & 0x180) != 0x180): # Overflow
-        self.pc_state.Fstatus.PV = 1
+        self.pc_state.F.Fstatus.PV = 1
     else:
-        self.pc_state.Fstatus.PV = 0
+        self.pc_state.F.Fstatus.PV = 0
 
     r = (a & 0xF) - (b & 0xF) - c;
     if (r & 0x10): # Half carry
-        self.pc_state.Fstatus.H = 1
+        self.pc_state.F.Fstatus.H = 1
     else:
-        self.pc_state.Fstatus.H = 0
-    self.pc_state.Fstatus.N = 1;
+        self.pc_state.F.Fstatus.H = 0
+    self.pc_state.F.Fstatus.N = 1;
 
     r = (a & 0xFF) - (b & 0xFF) - c;
     if (r & 0x100): # Carry
-        self.pc_state.Fstatus.C = 1
+        self.pc_state.F.Fstatus.C = 1
     else:
-        self.pc_state.Fstatus.C = 0
+        self.pc_state.F.Fstatus.C = 0
     return (a - b - c) & 0xFF
     
 # self.pc_state.Add two 16 bit ints and set flags accordingly
 def add16c(pc_state, a, b, c):
     r = a + b + c;
     if (rs & 0x8000): # Negative
-        pc_state.Fstatus.S = 1
+        pc_state.F.Fstatus.S = 1
     else:
-        pc_state.Fstatus.S = 0
+        pc_state.F.Fstatus.S = 0
 
     if (rs == 0): # Zero
-        pc_state.Fstatus.Z = 1
+        pc_state.F.Fstatus.Z = 1
     else:
-        pc_state.Fstatus.Z = 0
+        pc_state.F.Fstatus.Z = 0
 
     # Overflow
     if (((r & 0x18000) != 0) and 
          (r & 0x18000) != 0x18000): # Overflow
-        pc_state.Fstatus.PV = 1
+        pc_state.F.Fstatus.PV = 1
     else:
-        pc_state.Fstatus.PV = 0
+        pc_state.F.Fstatus.PV = 0
 
     r = (a & 0xFFF) + (b & 0xFFF) + c;
     if (r & 0x1000): # Half carry
-        pc_state.Fstatus.H = 1
+        pc_state.F.Fstatus.H = 1
     else:
-        pc_state.Fstatus.H = 0
+        pc_state.F.Fstatus.H = 0
 
-    pc_state.Fstatus.N = 0;
+    pc_state.F.Fstatus.N = 0;
 
     r = (a & 0xFFFF) + (b & 0xFFFF) + c;
     if (r & 0x10000): # Carry
-        pc_state.Fstatus.C = 1
+        pc_state.F.Fstatus.C = 1
     else:
-        pc_state.Fstatus.C = 0
+        pc_state.F.Fstatus.C = 0
     return a + b + c;
     
     
@@ -121,34 +121,34 @@ def sub16c(pc_state, a, b, c):
 
     r = a - b - c;
     if (r & 0x8000): # Negative
-        pc_state.Fstatus.S = 1
+        pc_state.F.Fstatus.S = 1
     else:
-        pc_state.Fstatus.S = 0
+        pc_state.F.Fstatus.S = 0
 
     if(r == 0): # Zero
-        pc_state.Fstatus.Z = 1
+        pc_state.F.Fstatus.Z = 1
     else:
-        pc_state.Fstatus.Z = 0
+        pc_state.F.Fstatus.Z = 0
 
     if (((r & 0x18000) != 0) and 
          (r & 0x18000) != 0x18000): # Overflow
-        pc_state.Fstatus.PV = 1
+        pc_state.F.Fstatus.PV = 1
     else:
-        pc_state.Fstatus.PV = 0
+        pc_state.F.Fstatus.PV = 0
 
     r = (a & 0xFFF) - (b & 0xFFF) - c;
     if(r & 0x1000): #Half carry
-        pc_state.Fstatus.H = 1
+        pc_state.F.Fstatus.H = 1
     else:
-        pc_state.Fstatus.H = 0
+        pc_state.F.Fstatus.H = 0
 
-    pc_state.Fstatus.N = 1;
+    pc_state.F.Fstatus.N = 1;
 
     r = (a & 0xFFFF) - (b & 0xFFFF) - c;
     if(r & 0x10000): # Carry
-        pc_state.Fstatus.C = 1
+        pc_state.F.Fstatus.C = 1
     else:
-        pc_state.Fstatus.C = 0
+        pc_state.F.Fstatus.C = 0
 
     return a - b - c;
 
@@ -157,66 +157,66 @@ def calculateDAAAdd(pc_state):
     upper = (pc_state.A >> 4) & 0xF;
     lower = pc_state.A & 0xF;
     
-    if (pc_state.Fstatus.C == 0):
-        if ((upper <= 9) and (pc_state.Fstatus.H == 0) and (lower <= 9)):
+    if (pc_state.F.Fstatus.C == 0):
+        if ((upper <= 9) and (pc_state.F.Fstatus.H == 0) and (lower <= 9)):
             pass
-        elif ((upper <= 8) and (pc_state.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
+        elif ((upper <= 8) and (pc_state.F.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
             pc_state.A += 0x06;
-        elif ((upper <= 9) and (pc_state.Fstatus.H == 1) and (lower <= 0x3)):
+        elif ((upper <= 9) and (pc_state.F.Fstatus.H == 1) and (lower <= 0x3)):
             pc_state.A += 0x06;
-        elif (((upper >= 0xA) and (upper <= 0xF)) and (pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+        elif (((upper >= 0xA) and (upper <= 0xF)) and (pc_state.F.Fstatus.H == 0) and (lower <= 0x9)):
             pc_state.A += 0x60;
-            pc_state.Fstatus.C = 1;
-        elif (((upper >= 0x9) and (upper <= 0xF)) and (pc_state.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
+            pc_state.F.Fstatus.C = 1;
+        elif (((upper >= 0x9) and (upper <= 0xF)) and (pc_state.F.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
             pc_state.A += 0x66;
-            pc_state.Fstatus.C = 1;
-        elif (((upper >= 0xA) and (upper <= 0xF)) and (pc_state.Fstatus.H == 1) and (lower <= 0x3)):
+            pc_state.F.Fstatus.C = 1;
+        elif (((upper >= 0xA) and (upper <= 0xF)) and (pc_state.F.Fstatus.H == 1) and (lower <= 0x3)):
             pc_state.A += 0x66;
-            pc_state.Fstatus.C = 1;
+            pc_state.F.Fstatus.C = 1;
     else:
-        if ((upper <= 0x2) and (pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+        if ((upper <= 0x2) and (pc_state.F.Fstatus.H == 0) and (lower <= 0x9)):
             pc_state.A += 0x60;
-        elif ((upper <= 0x2) and (pc_state.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
+        elif ((upper <= 0x2) and (pc_state.F.Fstatus.H == 0) and ((lower >= 0xA) and (lower <= 0xF))):
             pc_state.A += 0x66;
-        elif ((upper <= 0x3) and (pc_state.Fstatus.H == 1) and (lower <= 0x3)):
+        elif ((upper <= 0x3) and (pc_state.F.Fstatus.H == 1) and (lower <= 0x3)):
             pc_state.A += 0x66;
 
-    pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(pc_state.A);
+    pc_state.F.Fstatus.PV = flagtables.FlagTables.calculateParity(pc_state.A);
     if (pc_state.A & 0x80): # Is negative
-        pc_state.Fstatus.S  = 1
+        pc_state.F.Fstatus.S  = 1
     else:
-        pc_state.Fstatus.S  = 0
+        pc_state.F.Fstatus.S  = 0
 
     if (pc_state.A==0): # Is zero
-        pc_state.Fstatus.Z = 1
+        pc_state.F.Fstatus.Z = 1
     else:
-        pc_state.Fstatus.Z = 0
+        pc_state.F.Fstatus.Z = 0
 
 # Fcpu_state->IXME, table in z80 guide is wrong, need to check values by hand
 def calculateDAASub(pc_state):
     upper = (pc_state.A >> 4) & 0xF;
     lower = pc_state.A & 0xF;
 
-    if (pc_state.Fstatus.C == 0):
-        if ((upper <= 0x9) and (pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+    if (pc_state.F.Fstatus.C == 0):
+        if ((upper <= 0x9) and (pc_state.F.Fstatus.H == 0) and (lower <= 0x9)):
             pass
-        elif ((upper <= 0x8) and (pc_state.Fstatus.H == 1) and ((lower >= 0x6) and (lower <= 0xF))):
+        elif ((upper <= 0x8) and (pc_state.F.Fstatus.H == 1) and ((lower >= 0x6) and (lower <= 0xF))):
             pc_state.A += 0xFA;
     else:
-        if (((upper >= 0x7) and (upper <= 0xF)) and (pc_state.Fstatus.H == 0) and (lower <= 0x9)):
+        if (((upper >= 0x7) and (upper <= 0xF)) and (pc_state.F.Fstatus.H == 0) and (lower <= 0x9)):
             pc_state.A += 0xA0;
-        elif (((upper >= 0x6) and (upper <= 0xF)) and (pc_state.Fstatus.H == 1) and ((lower >= 0x6) and (lower <= 0xF))):
-            pc_state.Fstatus.H = 0;
+        elif (((upper >= 0x6) and (upper <= 0xF)) and (pc_state.F.Fstatus.H == 1) and ((lower >= 0x6) and (lower <= 0xF))):
+            pc_state.F.Fstatus.H = 0;
             pc_state.A += 0x9A;
-    pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(pc_state.A);
+    pc_state.F.Fstatus.PV = flagtables.FlagTables.calculateParity(pc_state.A);
     if (pc_state.A & 0x80): #Is negative
-        pc_state.Fstatus.S = 1
+        pc_state.F.Fstatus.S = 1
     else:
-        pc_state.Fstatus.S = 0
+        pc_state.F.Fstatus.S = 0
     if (pc_state.A==0): # Is zero
-        pc_state.Fstatus.Z = 1
+        pc_state.F.Fstatus.Z = 1
     else:
-        pc_state.Fstatus.Z = 0
+        pc_state.F.Fstatus.Z = 0
     
 
 
@@ -288,9 +288,9 @@ class RRCA(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.Fstatus.C = self.pc_state.A & 0x1;
-        self.pc_state.Fstatus.H = 0;
-        self.pc_state.Fstatus.N = 0;
+        self.pc_state.F.Fstatus.C = self.pc_state.A & 0x1;
+        self.pc_state.F.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.N = 0;
         self.pc_state.A = (self.pc_state.A >> 1) | ((self.pc_state.A & 0x1) << 7);
         self.pc_state.PC += 1
 
@@ -306,7 +306,7 @@ class AND_r(Instruction):
         self.pc_state.A = int(self.pc_state.A) & int(self.src);
         self.pc_state.PC += 1
     
-        self.pc_state.F = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
     
         return 4;
 
@@ -318,7 +318,7 @@ class AND_n(Instruction):
     
         self.pc_state.A = self.pc_state.A & memory.read(self.pc_state.PC +1);
         self.pc_state.PC += 2;
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
     
         return 7;
 
@@ -331,7 +331,7 @@ class OR_r(Instruction):
         self.pc_state.A = self.pc_state.A | int(self.src);
         self.pc_state.PC += 1
     
-        self.pc_state.F = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
     
         return 4;
 
@@ -344,7 +344,7 @@ class XOR_r(Instruction):
         self.pc_state.A = int(self.pc_state.A) ^ int(self.src);
         self.pc_state.PC += 1
     
-        self.pc_state.F = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
     
         return 4;
 
@@ -375,7 +375,7 @@ class CP_n(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A, memory.read(self.pc_state.PC +1));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, memory.read(self.pc_state.PC +1));
         self.pc_state.PC += 2;
     
         return 7;
@@ -386,7 +386,7 @@ class CP_r(Instruction_r):
         self.r = r
 
     def execute(self, memory):
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.r);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.r);
         self.pc_state.PC += 1
     
         return 4;
@@ -399,7 +399,7 @@ class JRZe(Instruction):
     def execute(self, memory):
         cycles = 7
     
-        if (self.pc_state.Fstatus.Z == 1):
+        if (self.pc_state.F.Fstatus.Z == 1):
             self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC+1) & 0xFF)
             cycles+=5;
 
@@ -413,7 +413,7 @@ class JPNC(Instruction):
 
     # JP NC, e
     def execute(self, memory):
-         if (self.pc_state.Fstatus.C == 0):
+         if (self.pc_state.F.Fstatus.C == 0):
              self.pc_state.PC = memory.read16(self.pc_state.PC+1);
          else:
              self.pc_state.PC += 3;
@@ -427,7 +427,7 @@ class JPCnn(Instruction):
 
     # JP C, nn
     def execute(self, memory):
-         if (self.pc_state.Fstatus.C == 1):
+         if (self.pc_state.F.Fstatus.C == 1):
              self.pc_state.PC = memory.read16(self.pc_state.PC+1);
          else:
              self.pc_state.PC += 3;
@@ -442,7 +442,7 @@ class JRNZe(Instruction):
     def execute(self, memory):
         cycles = 7;
     
-        if (self.pc_state.Fstatus.Z == 0):
+        if (self.pc_state.F.Fstatus.Z == 0):
             self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC+1) & 0xFF)
             cycles+=5;
     
@@ -457,7 +457,7 @@ class INC_r(Instruction_r):
 
     def execute(self, memory):
         self.r += 1
-        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(self.r.get());
+        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(self.r.get());
         self.pc_state.PC += 1
     
         return 4;
@@ -496,7 +496,7 @@ class DEC_r(Instruction_r):
 
     def execute(self, memory):
         self.r -= 1;
-        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(self.r.get());
+        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(self.r.get());
         self.pc_state.PC += 1
     
         return 4;
@@ -519,7 +519,7 @@ class INC_HL(Instruction):
     # INC (self.pc_state.HL)
     def execute(self, memory):
         memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) + 1);
-        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(memory.read(self.pc_state.HL));
+        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(memory.read(self.pc_state.HL));
         self.pc_state.PC  += 1
         return 11;
 
@@ -529,7 +529,7 @@ class DEC_HL(Instruction):
 
     def execute(self, memory):
         memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) - 1)
-        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(memory.read(self.pc_state.HL));
+        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(memory.read(self.pc_state.HL));
         self.pc_state.PC  += 1
         return 11;
 
@@ -581,16 +581,16 @@ class ADD16(Instruction):
     
         r = (self.dst & 0xFFF) + (self.add & 0xFFF);
         if (r & 0x1000): # Half carry
-          self.pc_state.Fstatus.H = 1 # Half carry
+          self.pc_state.F.Fstatus.H = 1 # Half carry
         else:
-          self.pc_state.Fstatus.H = 0 # Half carry
-        self.pc_state.Fstatus.N = 0;
+          self.pc_state.F.Fstatus.H = 0 # Half carry
+        self.pc_state.F.Fstatus.N = 0;
     
         r = (self.dst & 0xFFFF) + (self.add & 0xFFFF);
         if (r & 0x10000): # Carry
-          self.pc_state.Fstatus.C = 1 # Carry
+          self.pc_state.F.Fstatus.C = 1 # Carry
         else:
-          self.pc_state.Fstatus.C = 0 # Carry
+          self.pc_state.F.Fstatus.C = 0 # Carry
     
         self.dst += self.add;
     
@@ -604,7 +604,7 @@ class ADD_r(Instruction):
         self.src = src
 
     def execute(self, memory):
-	    self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,self.src);
+	    self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,self.src);
 	    self.pc_state.A = self.pc_state.A + int(self.src);
 	    self.pc_state.PC += 1
 	    return 4;
@@ -615,7 +615,7 @@ class SUB_r(Instruction):
         self.src = src
 
     def execute(self, memory):
-	    self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.src);
+	    self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.src);
 	    self.pc_state.A = self.pc_state.A - int(self.src);
 	    self.pc_state.PC += 1
 	    return 4;
@@ -628,11 +628,11 @@ class BIT_r(Instruction):
     def execute(self, memory):
         tmp8 = memory.read(self.pc_state.PC+1)
 
-        self.pc_state.Fstatus.Z = (int(self.src) >> ((tmp8 >> 3) & 7)) ^ 0x1;
-        self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(int(self.src));
-        self.pc_state.Fstatus.H = 1;
-        self.pc_state.Fstatus.N = 0;
-        self.pc_state.Fstatus.S = 0;
+        self.pc_state.F.Fstatus.Z = (int(self.src) >> ((tmp8 >> 3) & 7)) ^ 0x1;
+        self.pc_state.F.Fstatus.PV = flagtables.FlagTables.calculateParity(int(self.src));
+        self.pc_state.F.Fstatus.H = 1;
+        self.pc_state.F.Fstatus.N = 0;
+        self.pc_state.F.Fstatus.S = 0;
         self.pc_state.PC += 2;
         return 8;
 
@@ -643,11 +643,11 @@ class BIT_HL(Instruction):
 
     def execute(self, memory):
         tmp8 = memory.read(self.pc_state.PC+1)
-        self.pc_state.Fstatus.Z = (memory.read(self.pc_state.HL) >> 
+        self.pc_state.F.Fstatus.Z = (memory.read(self.pc_state.HL) >> 
                             ((tmp8 >> 3) & 7)) ^ 0x1;
-        self.pc_state.Fstatus.H = 1;
-        self.pc_state.Fstatus.N = 0;
-        self.pc_state.Fstatus.S = 0;
+        self.pc_state.F.Fstatus.H = 1;
+        self.pc_state.F.Fstatus.N = 0;
+        self.pc_state.F.Fstatus.S = 0;
         self.pc_state.PC += 2;
 
         return 12;
@@ -705,9 +705,9 @@ class RLCA(Instruction):
 
     def execute(self, memory):
         self.pc_state.A = (self.pc_state.A << 1) | ((self.pc_state.A >> 7) & 0x1);
-        self.pc_state.Fstatus.C = self.pc_state.A & 0x1;
-        self.pc_state.Fstatus.N = 0;
-        self.pc_state.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.C = self.pc_state.A & 0x1;
+        self.pc_state.F.Fstatus.N = 0;
+        self.pc_state.F.Fstatus.H = 0;
         self.pc_state.PC += 1
         return 4;
 
@@ -719,8 +719,8 @@ class RLC_r(Instruction):
 
     def execute(self, memory):
         self.dst.set((int(self.dst) << 1) | ((int(self.dst) >> 7) & 0x1));
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
-        self.pc_state.Fstatus.C = int(self.dst) & 0x1; # bit-7 of src = bit-0
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.F.Fstatus.C = int(self.dst) & 0x1; # bit-7 of src = bit-0
         self.pc_state.PC+=2;
         return 8;
 
@@ -732,8 +732,8 @@ class RLC_HL(Instruction):
     def execute(self, memory):
         tmp8 = memory.read(self.pc_state.HL);
         memory.write(self.pc_state.HL, (tmp8 << 1) | ((tmp8 >> 7) & 0x1));
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
-        self.pc_state.Fstatus.C = (tmp8 >> 7) & 0x1; # bit-7 of src
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.F.Fstatus.C = (tmp8 >> 7) & 0x1; # bit-7 of src
         self.pc_state.PC+=2;
         return 15;
 
@@ -745,8 +745,8 @@ class RRC_r(Instruction):
 
     def execute(self, memory):
         self.dst.set((int(self.dst) >> 1) | ((int(self.dst) & 0x1) << 7));
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.dst);
-        self.pc_state.Fstatus.C = (self.dst >> 7) & 0x1; # bit-0 of src
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.dst);
+        self.pc_state.F.Fstatus.C = (self.dst >> 7) & 0x1; # bit-0 of src
         self.pc_state.PC+=2;
         return 8
 
@@ -758,8 +758,8 @@ class RRC_HL(Instruction):
     def execute(self, memory):
         tmp8 = memory.read(self.pc_state.HL);
         memory.write(self.pc_state.HL,(tmp8 >> 1) | ((tmp8 & 0x1) << 7));
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
-        self.pc_state.Fstatus.C = tmp8 & 0x1; # bit-0 of src
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.F.Fstatus.C = tmp8 & 0x1; # bit-0 of src
         self.pc_state.PC+=2;
         return 8;
 
@@ -771,9 +771,9 @@ class RL_r(Instruction):
 
     def execute(self, memory):
         tmp8 = int(self.dst);
-        self.dst.set((int(self.dst) << 1) | (self.pc_state.Fstatus.C));
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
-        self.pc_state.Fstatus.C = (tmp8 >> 7) & 0x1;
+        self.dst.set((int(self.dst) << 1) | (self.pc_state.F.Fstatus.C));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.F.Fstatus.C = (tmp8 >> 7) & 0x1;
         self.pc_state.PC+=2;
         return 8
 
@@ -785,9 +785,9 @@ class RR_r(Instruction):
 
     def execute(self, memory):
         tmp8 = int(self.dst);
-        self.dst.set((int(self.dst) >> 1) | (self.pc_state.Fstatus.C << 7));
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
-        self.pc_state.Fstatus.C = tmp8 & 0x1;
+        self.dst.set((int(self.dst) >> 1) | (self.pc_state.F.Fstatus.C << 7));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.F.Fstatus.C = tmp8 & 0x1;
         self.pc_state.PC+=2;
         return 8;
 
@@ -800,8 +800,8 @@ class SLA_r(Instruction):
     def execute(self, memory):
         tmp8 = (int(self.dst) >> 7) & 0x1;
         self.dst.set(int(self.dst) << 1)
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst))
-        self.pc_state.Fstatus.C = tmp8;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(int(self.dst))
+        self.pc_state.F.Fstatus.C = tmp8;
 
         self.pc_state.PC += 2;
         return 8
@@ -814,8 +814,8 @@ class SLA_HL(Instruction):
     def execute(self, memory):
         tmp8 = (memory.read(self.pc_state.HL) >> 7) & 0x1;
         memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) << 1);
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
-        self.pc_state.Fstatus.C = tmp8;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.F.Fstatus.C = tmp8;
 
         self.pc_state.PC += 2;
         return 15
@@ -830,8 +830,8 @@ class SRA_r(Instruction):
         tmp8 = int(self.dst);
         self.dst.set((int(self.dst) & 0x80) | ((self.dst >> 1) & 0x7F));
 
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.dst);
-        self.pc_state.Fstatus.C = tmp8 & 0x1;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.dst);
+        self.pc_state.F.Fstatus.C = tmp8 & 0x1;
 
         self.pc_state.PC += 2;
         return 8
@@ -845,8 +845,8 @@ class SRA_HL(Instruction):
         tmp8 = memory.read(self.pc_state.HL);
         memory.write(self.pc_state.HL, (tmp8 & 0x80) | ((tmp8 >> 1) & 0x7F));
 
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
-        self.pc_state.Fstatus.C = tmp8 & 0x1;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.F.Fstatus.C = tmp8 & 0x1;
 
         self.pc_state.PC += 2;
         return 15;
@@ -860,8 +860,8 @@ class SLL_r(Instruction):
     def execute(self, memory):
         tmp8 = (int(self.dst) >> 7) & 0x1;
         self.dst.set(int(self.dst) << 1 | 0x1);
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
-        self.pc_state.Fstatus.C = tmp8;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.F.Fstatus.C = tmp8;
 
         self.pc_state.PC += 2;
         return 8
@@ -874,8 +874,8 @@ class SLL_HL(Instruction):
     def execute(self, memory):
         tmp8 = (memory.read(self.pc_state.HL) >> 7) & 0x1;
         memory.write(self.pc_state.HL, memory.read(self.pc_state.HL) << 1 | 0x1);
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
-        self.pc_state.Fstatus.C = tmp8;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.F.Fstatus.C = tmp8;
 
         self.pc_state.PC += 2;
         return 15
@@ -890,8 +890,8 @@ class SRL_r(Instruction):
         tmp8 = int(self.dst);
         self.dst.set((int(self.dst) >> 1) & 0x7F);
 
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(int(self.dst));
-        self.pc_state.Fstatus.C = tmp8 & 0x1;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(int(self.dst));
+        self.pc_state.F.Fstatus.C = tmp8 & 0x1;
 
         self.pc_state.PC += 2;
         return 8;
@@ -905,8 +905,8 @@ class SRL_HL(Instruction):
         tmp8 = memory.read(self.pc_state.HL);
         memory.write(self.pc_state.HL, (tmp8 >> 1) & 0x7F);
 
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
-        self.pc_state.Fstatus.C = tmp8 & 0x1;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(memory.read(self.pc_state.HL));
+        self.pc_state.F.Fstatus.C = tmp8 & 0x1;
 
         self.pc_state.PC += 2;
         return 15;
@@ -1098,7 +1098,7 @@ class INC_I_d(Instruction):
     def execute(self, memory):
         tmp16 = self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))
         memory.write(tmp16, memory.read(tmp16) + 1)
-        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(memory.read(tmp16))
+        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(memory.read(tmp16))
         self.pc_state.PC+=3
         return 23
     
@@ -1111,7 +1111,7 @@ class DEC_I_d(Instruction):
     def execute(self, memory):
         tmp16 = self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))
         memory.write(tmp16, memory.read(tmp16) - 1)
-        self.pc_state.F = (self.pc_state.F & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(memory.read(tmp16))
+        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_DEC8) | flagtables.FlagTables.getStatusDec8(memory.read(tmp16))
         self.pc_state.PC+=3
         return 23
     
@@ -1163,7 +1163,7 @@ class ADDA_I_d(Instruction):
     def execute(self, memory):
         tmp8 = memory.read(self.I_reg.get() + 
                          signed_char_to_int(memory.read(self.pc_state.PC+2)))
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,tmp8)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,tmp8)
         self.pc_state.A = self.pc_state.A + tmp8
         self.pc_state.PC += 3
         return  19
@@ -1175,7 +1175,7 @@ class ADC_I_d(Instruction):
         self.I_reg = I_reg
 
     def execute(self, memory):
-        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, memory.read(self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))), self.pc_state.Fstatus.C)
+        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, memory.read(self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))), self.pc_state.F.Fstatus.C)
         self.pc_state.PC+=3
         return 19
     
@@ -1188,7 +1188,7 @@ class SUB_I_d(Instruction):
     def execute(self, memory):
         tmp8 = memory.read(self.I_reg.get() + 
                          signed_char_to_int(memory.read(self.pc_state.PC+2)))
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,tmp8)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,tmp8)
         self.pc_state.A = self.pc_state.A - tmp8
         self.pc_state.PC += 3
         return  19
@@ -1203,7 +1203,7 @@ class AND_I_d(Instruction):
         self.pc_state.A = self.pc_state.A & memory.read(self.I_reg.get() +
                          signed_char_to_int(memory.read(self.pc_state.PC+2)))
         self.pc_state.PC+=3
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A)
     
         return 19
     
@@ -1217,7 +1217,7 @@ class XOR_I_d(Instruction):
         self.pc_state.A = self.pc_state.A ^ memory.read(self.I_reg.get() +
                          signed_char_to_int(memory.read(self.pc_state.PC+2)))
         self.pc_state.PC+=3
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A)
     
         return  19
     
@@ -1231,7 +1231,7 @@ class OR_I_d(Instruction):
         tmp8 = memory.read(self.I_reg.get() + 
                          signed_char_to_int(memory.read(self.pc_state.PC+2)))
         self.pc_state.A = self.pc_state.A | tmp8
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A)
         self.pc_state.PC += 3
         return  19
     
@@ -1244,7 +1244,7 @@ class CP_I_d(Instruction):
     def execute(self, memory):
         tmp8 = memory.read(self.I_reg.get() + 
                          signed_char_to_int(memory.read(self.pc_state.PC+2)))
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,tmp8)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,tmp8)
         self.pc_state.PC+=3
         return 19
     
@@ -1261,11 +1261,11 @@ class BIT_I_d(Instruction):
     
         if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.I_reg.get() + d)
             tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1
-            self.pc_state.Fstatus.Z = tmp8 ^ 0x1
-            self.pc_state.Fstatus.PV = flagtables.FlagTables.calculateParity(tmp8)
-            self.pc_state.Fstatus.H = 1
-            self.pc_state.Fstatus.N = 0
-            self.pc_state.Fstatus.S = 0
+            self.pc_state.F.Fstatus.Z = tmp8 ^ 0x1
+            self.pc_state.F.Fstatus.PV = flagtables.FlagTables.calculateParity(tmp8)
+            self.pc_state.F.Fstatus.H = 1
+            self.pc_state.F.Fstatus.N = 0
+            self.pc_state.F.Fstatus.S = 0
         elif ((t8 & 0xC7) == 0x86): # RES b, (self.I_reg + d)
             tmp8 = tmp8 & ~(0x1 << ((t8 >> 3) & 0x7))
             memory.write(tmp16,tmp8)
@@ -1366,7 +1366,7 @@ class SBC_HL_r16(Instruction):
         self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.HL = sub16c(self.pc_state, self.pc_state.HL, int(self.reg), self.pc_state.Fstatus.C);
+        self.pc_state.HL = sub16c(self.pc_state, self.pc_state.HL, int(self.reg), self.pc_state.F.Fstatus.C);
     
         self.pc_state.PC += 2;
         return  15;
@@ -1389,7 +1389,7 @@ class NEG(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusSub(0,self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(0,self.pc_state.A);
         self.pc_state.A = -self.pc_state.A;
         self.pc_state.PC += 2;
         return 8;
@@ -1460,14 +1460,14 @@ class LD_A_I(Instruction):
 
     def execute(self, memory):
         self.pc_state.A = self.pc_state.I;
-        self.pc_state.Fstatus.N = 0;
-        self.pc_state.Fstatus.H = 0;
-        self.pc_state.Fstatus.PV = self.pc_state.IFF2;
-        self.pc_state.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
+        self.pc_state.F.Fstatus.N = 0;
+        self.pc_state.F.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.PV = self.pc_state.IFF2;
+        self.pc_state.F.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
         if (self.pc_state.A == 0):
-            self.pc_state.Fstatus.Z = 1
+            self.pc_state.F.Fstatus.Z = 1
         else:
-            self.pc_state.Fstatus.Z = 0
+            self.pc_state.F.Fstatus.Z = 0
     
         self.pc_state.PC += 2;
         return  9;
@@ -1491,14 +1491,14 @@ class LD_A_R(Instruction):
     def execute(self, memory):
         self.pc_state.R =  (self.pc_state.R & 0x80) | ((self.clocks.cycles + self.pc_state.R + 1) & 0x7F);
         self.pc_state.A = self.pc_state.R;
-        self.pc_state.Fstatus.N = 0;
-        self.pc_state.Fstatus.H = 0;
-        self.pc_state.Fstatus.PV = self.pc_state.IFF2;
-        self.pc_state.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
+        self.pc_state.F.Fstatus.N = 0;
+        self.pc_state.F.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.PV = self.pc_state.IFF2;
+        self.pc_state.F.Fstatus.S = (self.pc_state.A & 0x80) >> 7;
         if (self.pc_state.A == 0):
-            self.pc_state.Fstatus.Z = 1
+            self.pc_state.F.Fstatus.Z = 1
         else:
-            self.pc_state.Fstatus.Z = 0
+            self.pc_state.F.Fstatus.Z = 0
     
         self.pc_state.PC += 2;
         return  9;
@@ -1528,9 +1528,9 @@ class RRD(Instruction):
                ((memory.read(self.pc_state.HL) >> 4) & 0xF) | 
                ((tmp8 << 4) & 0xF0));
     
-        tmp8 = self.pc_state.Fstatus.C;
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
-        self.pc_state.Fstatus.C = tmp8;
+        tmp8 = self.pc_state.F.Fstatus.C;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.F.Fstatus.C = tmp8;
     
         self.pc_state.PC+=2;
         return  18;
@@ -1542,7 +1542,7 @@ class ADC_HL_r16(Instruction):
         self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.reg, self.pc_state.Fstatus.C);
+        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.reg, self.pc_state.F.Fstatus.C);
         self.pc_state.PC+=2;
         return 15;
     
@@ -1592,11 +1592,11 @@ class LDI(Instruction):
         self.pc_state.HL += 1
         self.pc_state.BC -= 1
         if (self.pc_state.BC == 0):
-            self.pc_state.Fstatus.PV = 1
+            self.pc_state.F.Fstatus.PV = 1
         else:
-            self.pc_state.Fstatus.PV = 0
-        self.pc_state.Fstatus.H = 0;
-        self.pc_state.Fstatus.N = 0;
+            self.pc_state.F.Fstatus.PV = 0
+        self.pc_state.F.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.N = 0;
         self.pc_state.PC += 2;
     
         return  16;
@@ -1607,13 +1607,13 @@ class CPI(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
         self.pc_state.HL += 1
         self.pc_state.BC -= 1
         if (self.pc_state.BC == 0):
-            self.pc_state.Fstatus.PV = 1
+            self.pc_state.F.Fstatus.PV = 1
         else:
-            self.pc_state.Fstatus.PV = 0
+            self.pc_state.F.Fstatus.PV = 0
         self.pc_state.PC += 2;
         return  16;
     
@@ -1627,11 +1627,11 @@ class INI(Instruction):
         self.pc_state.B -= 1
         memory.write(self.pc_state.HL, self.ports.portRead(self.pc_state.C));
         self.pc_state.HL += 1
-        self.pc_state.Fstatus.N = 1;
+        self.pc_state.F.Fstatus.N = 1;
         if (self.pc_state.B == 0):
-            self.pc_state.Fstatus.Z = 1;
+            self.pc_state.F.Fstatus.Z = 1;
         else:
-            self.pc_state.Fstatus.Z = 0;
+            self.pc_state.F.Fstatus.Z = 0;
     
         self.pc_state.PC += 2;
         return  16;
@@ -1647,10 +1647,10 @@ class OUTI(Instruction):
         self.ports.portWrite(self.pc_state.C, memory.read(self.pc_state.HL));
         self.pc_state.HL += 1
         if (self.pc_state.B == 0):
-            self.pc_state.Fstatus.Z = 1
+            self.pc_state.F.Fstatus.Z = 1
         else:
-            self.pc_state.Fstatus.Z = 0
-        self.pc_state.Fstatus.N = 1;
+            self.pc_state.F.Fstatus.Z = 0
+        self.pc_state.F.Fstatus.N = 1;
         self.pc_state.PC += 2;
         return  16;
     
@@ -1665,10 +1665,10 @@ class OUTD(Instruction):
         self.ports.portWrite(self.pc_state.C, memory.read(self.pc_state.HL));
         self.pc_state.HL -= 1
         if (self.pc_state.B == 0):
-            self.pc_state.Fstatus.Z = 1
+            self.pc_state.F.Fstatus.Z = 1
         else:
-            self.pc_state.Fstatus.Z = 0
-        self.pc_state.Fstatus.N = 1;
+            self.pc_state.F.Fstatus.Z = 0
+        self.pc_state.F.Fstatus.N = 1;
         self.pc_state.PC += 2;
         return  16;
     
@@ -1692,11 +1692,11 @@ class LDIR(Instruction):
             self.pc_state.HL += 1
             cycles += 21;
     
-        self.pc_state.Fstatus.H = 0;
-        self.pc_state.Fstatus.PV = 0;
-        self.pc_state.Fstatus.N = 1; # hmmm, not sure
+        self.pc_state.F.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.PV = 0;
+        self.pc_state.F.Fstatus.N = 1; # hmmm, not sure
         if (self.pc_state.BC == 0):
-            self.pc_state.Fstatus.N = 0;
+            self.pc_state.F.Fstatus.N = 0;
             self.pc_state.PC += 2;
             cycles -=5;
 
@@ -1710,17 +1710,17 @@ class CPIR(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.BC -= 1
-        tmp8 = self.pc_state.Fstatus.C;
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
+        tmp8 = self.pc_state.F.Fstatus.C;
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
         self.pc_state.HL += 1
-        self.pc_state.Fstatus.C = tmp8; 
+        self.pc_state.F.Fstatus.C = tmp8; 
     
-        if ((self.pc_state.BC == 0)or(self.pc_state.Fstatus.Z == 1)):
-            self.pc_state.Fstatus.PV = 0; 
+        if ((self.pc_state.BC == 0)or(self.pc_state.F.Fstatus.Z == 1)):
+            self.pc_state.F.Fstatus.PV = 0; 
             self.pc_state.PC += 2;
             cyles += 16;
         else:
-            self.pc_state.Fstatus.PV = 1; 
+            self.pc_state.F.Fstatus.PV = 1; 
             cyles += 21;
 
         return cycles
@@ -1745,13 +1745,13 @@ class OTIR(Instruction):
             self.ports.portWrite(self.pc_state.C, memory.read(self.pc_state.HL));
             self.pc_state.HL += 1
             cycles += 21;
-        self.pc_state.Fstatus.S = 0; # Unknown
-        self.pc_state.Fstatus.H = 0; # Unknown
-        self.pc_state.Fstatus.PV = 0; # Unknown
-        self.pc_state.Fstatus.N = 1;
-        self.pc_state.Fstatus.Z = 0;
+        self.pc_state.F.Fstatus.S = 0; # Unknown
+        self.pc_state.F.Fstatus.H = 0; # Unknown
+        self.pc_state.F.Fstatus.PV = 0; # Unknown
+        self.pc_state.F.Fstatus.N = 1;
+        self.pc_state.F.Fstatus.Z = 0;
         if (self.pc_state.B == 0):
-            self.pc_state.Fstatus.Z = 1;
+            self.pc_state.F.Fstatus.Z = 1;
             self.pc_state.PC += 2;
             cycles -= 5;
         return cycles
@@ -1770,9 +1770,9 @@ class LDDR(Instruction):
         if (self.pc_state.BC == 0):
             self.pc_state.PC += 2;
             cycles += 16;
-            self.pc_state.Fstatus.N = 0;
-            self.pc_state.Fstatus.H = 0;
-            self.pc_state.Fstatus.PV = 0;
+            self.pc_state.F.Fstatus.N = 0;
+            self.pc_state.F.Fstatus.H = 0;
+            self.pc_state.F.Fstatus.PV = 0;
         else:
             cycles += 21;
 
@@ -1788,9 +1788,9 @@ class EX(Instruction):
 
     def execute(self, memory):
         tmpa = self.pc_state.A;
-        tmpf = self.pc_state.F;
+        tmpf = self.pc_state.F.value;
         self.pc_state.A = self.pc_state.A_;
-        self.pc_state.F = self.pc_state.F_;
+        self.pc_state.F.value = self.pc_state.F_;
         self.pc_state.A_ = tmpa;
         self.pc_state.F_ = tmpf;
 
@@ -1814,10 +1814,10 @@ class RLA(Instruction):
 
     def execute(self, memory):
         tmp8 = self.pc_state.A;
-        self.pc_state.A = (self.pc_state.A << 1) | (self.pc_state.Fstatus.C);
-        self.pc_state.Fstatus.C = (tmp8 & 0x80) >> 7;
-        self.pc_state.Fstatus.H = 0;
-        self.pc_state.Fstatus.N = 0;
+        self.pc_state.A = (self.pc_state.A << 1) | (self.pc_state.F.Fstatus.C);
+        self.pc_state.F.Fstatus.C = (tmp8 & 0x80) >> 7;
+        self.pc_state.F.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.N = 0;
         self.pc_state.PC += 1
         return 4;
 
@@ -1840,10 +1840,10 @@ class RRA(Instruction):
 
     def execute(self, memory):
         tmp8 = self.pc_state.A;
-        self.pc_state.A = (self.pc_state.A >> 1) | (self.pc_state.Fstatus.C << 7);
-        self.pc_state.Fstatus.C = tmp8 & 0x1;
-        self.pc_state.Fstatus.H = 0;
-        self.pc_state.Fstatus.N = 0;
+        self.pc_state.A = (self.pc_state.A >> 1) | (self.pc_state.F.Fstatus.C << 7);
+        self.pc_state.F.Fstatus.C = tmp8 & 0x1;
+        self.pc_state.F.Fstatus.H = 0;
+        self.pc_state.F.Fstatus.N = 0;
         self.pc_state.PC += 1
         return 4;
 
@@ -1865,7 +1865,7 @@ class DAA(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        if (self.pc_state.Fstatus.N == 0): # self.pc_state.Addition instruction
+        if (self.pc_state.F.Fstatus.N == 0): # self.pc_state.Addition instruction
             calculateDAAAdd(self.pc_state);
         else: # Subtraction instruction
             calculateDAASub(self.pc_state);
@@ -1878,8 +1878,8 @@ class CPL(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.Fstatus.H = 1;
-        self.pc_state.Fstatus.N = 1;
+        self.pc_state.F.Fstatus.H = 1;
+        self.pc_state.F.Fstatus.N = 1;
         self.pc_state.A ^= 0xFF;
         self.pc_state.PC += 1
 
@@ -1892,7 +1892,7 @@ class JRNC_e(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.C == 0):
+        if (self.pc_state.F.Fstatus.C == 0):
             self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC+1))
             cycles +=5;
 
@@ -1919,9 +1919,9 @@ class SCF(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-         self.pc_state.Fstatus.H = 0;
-         self.pc_state.Fstatus.N = 0;
-         self.pc_state.Fstatus.C = 1;
+         self.pc_state.F.Fstatus.H = 0;
+         self.pc_state.F.Fstatus.N = 0;
+         self.pc_state.F.Fstatus.C = 1;
          self.pc_state.PC += 1
          return  4;
 
@@ -1932,7 +1932,7 @@ class JRC_e(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.C == 1):
+        if (self.pc_state.F.Fstatus.C == 1):
             self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC+1))
             cycles +=5;
 
@@ -1946,9 +1946,9 @@ class CCF(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.Fstatus.H = self.pc_state.Fstatus.C;
-        self.pc_state.Fstatus.N = 0;
-        self.pc_state.Fstatus.C = 1-self.pc_state.Fstatus.C; #Invert carry flag
+        self.pc_state.F.Fstatus.H = self.pc_state.F.Fstatus.C;
+        self.pc_state.F.Fstatus.N = 0;
+        self.pc_state.F.Fstatus.C = 1-self.pc_state.F.Fstatus.C; #Invert carry flag
         self.pc_state.PC += 1
         return  4;
 
@@ -1967,7 +1967,7 @@ class ADD_HL(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,memory.read(self.pc_state.HL));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,memory.read(self.pc_state.HL));
         self.pc_state.A = self.pc_state.A + memory.read(self.pc_state.HL);
         self.pc_state.PC += 1
         return 7;
@@ -1979,7 +1979,7 @@ class ADC_r(Instruction):
         self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, self.reg.get(), self.pc_state.Fstatus.C);
+        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, self.reg.get(), self.pc_state.F.Fstatus.C);
         self.pc_state.PC += 1
         return 4;
 
@@ -1989,7 +1989,7 @@ class ADC_HL(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
+        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, memory.read(self.pc_state.HL), self.pc_state.F.Fstatus.C);
         self.pc_state.PC += 1
         return 7;
 
@@ -1999,7 +1999,7 @@ class SUB_HL(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
         self.pc_state.A = self.pc_state.A - memory.read(self.pc_state.HL);
         self.pc_state.PC += 1
         return 7;
@@ -2011,7 +2011,7 @@ class SBC_A_r(Instruction):
         self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.A = sub8c(self.pc_state.A, self.reg.get(), self.pc_state.Fstatus.C);
+        self.pc_state.A = sub8c(self.pc_state.A, self.reg.get(), self.pc_state.F.Fstatus.C);
         self.pc_state.PC += 1
         return 4;
 
@@ -2021,7 +2021,7 @@ class SBC_A_HL(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.A = sub8c(self.pc_state.A, memory.read(self.pc_state.HL), self.pc_state.Fstatus.C);
+        self.pc_state.A = sub8c(self.pc_state.A, memory.read(self.pc_state.HL), self.pc_state.F.Fstatus.C);
         self.pc_state.PC += 1
         return 7;
 
@@ -2033,7 +2033,7 @@ class AND_HL(Instruction):
     def execute(self, memory):
         self.pc_state.A = self.pc_state.A & memory.read(self.pc_state.HL);
         self.pc_state.PC += 1
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
 
         return 7;
 
@@ -2045,7 +2045,7 @@ class XOR_HL(Instruction):
     def execute(self, memory):
         self.pc_state.A = self.pc_state.A ^ memory.read(self.pc_state.HL);
         self.pc_state.PC += 1
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
 
         return  7;
 
@@ -2057,7 +2057,7 @@ class OR_HL(Instruction):
     def execute(self, memory):
         self.pc_state.A = self.pc_state.A | memory.read(self.pc_state.HL);
         self.pc_state.PC += 1
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
 
         return  7;
 
@@ -2067,7 +2067,7 @@ class CP_HL(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.HL));
         self.pc_state.PC += 1
 
         return 7;
@@ -2079,7 +2079,7 @@ class RET_NZ(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.Z == 0):
+        if (self.pc_state.F.Fstatus.Z == 0):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2096,7 +2096,7 @@ class JPNZ_nn(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        if (self.pc_state.Fstatus.Z == 0):
+        if (self.pc_state.F.Fstatus.Z == 0):
             self.pc_state.PC = memory.read16(self.pc_state.PC+1);
         else:
             self.pc_state.PC += 3;
@@ -2121,7 +2121,7 @@ class CALL_NZ_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.Z == 0):
+        if (self.pc_state.F.Fstatus.Z == 0):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
@@ -2153,7 +2153,7 @@ class ADD_n(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,memory.read(self.pc_state.PC + 1));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,memory.read(self.pc_state.PC + 1));
         self.pc_state.A = self.pc_state.A + memory.read(self.pc_state.PC + 1);
         self.pc_state.PC+=2;
         return 7;
@@ -2182,7 +2182,7 @@ class RST_Z(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.Z == 1):
+        if (self.pc_state.F.Fstatus.Z == 1):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2199,7 +2199,7 @@ class JPZ_nn(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        if (self.pc_state.Fstatus.Z == 1):
+        if (self.pc_state.F.Fstatus.Z == 1):
             self.pc_state.PC = memory.read16(self.pc_state.PC+1);
         else:
             self.pc_state.PC += 3;
@@ -2214,7 +2214,7 @@ class CALL_Z_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.Z == 1):
+        if (self.pc_state.F.Fstatus.Z == 1):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
@@ -2247,7 +2247,7 @@ class ADC_nn(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, memory.read(self.pc_state.PC + 1), self.pc_state.Fstatus.C);
+        self.pc_state.A = add8c(self.pc_state, self.pc_state.A, memory.read(self.pc_state.PC + 1), self.pc_state.F.Fstatus.C);
         self.pc_state.PC+=2;
         return 4;
 
@@ -2258,7 +2258,7 @@ class RET_NC(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.C == 0):
+        if (self.pc_state.F.Fstatus.C == 0):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2291,7 +2291,7 @@ class CALL_NC_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.C == 0):
+        if (self.pc_state.F.Fstatus.C == 0):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
@@ -2309,7 +2309,7 @@ class SUB_n(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.F = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.PC + 1));
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,memory.read(self.pc_state.PC + 1));
         self.pc_state.A = self.pc_state.A - memory.read(self.pc_state.PC + 1);
         self.pc_state.PC += 2;
         return  7;
@@ -2321,7 +2321,7 @@ class RET_C(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.C == 1):
+        if (self.pc_state.F.Fstatus.C == 1):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2351,7 +2351,7 @@ class CALL_C_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.C == 1):
+        if (self.pc_state.F.Fstatus.C == 1):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
@@ -2368,7 +2368,7 @@ class SBC_n(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.A = sub8c(self.pc_state.A, memory.read(self.pc_state.PC + 1), self.pc_state.Fstatus.C);
+        self.pc_state.A = sub8c(self.pc_state.A, memory.read(self.pc_state.PC + 1), self.pc_state.F.Fstatus.C);
         self.pc_state.PC+=2;
         return 7;
 
@@ -2379,7 +2379,7 @@ class RET_PO(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.PV == 0):
+        if (self.pc_state.F.Fstatus.PV == 0):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2396,7 +2396,7 @@ class JP_PO_nn(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        if (self.pc_state.Fstatus.PV == 0):
+        if (self.pc_state.F.Fstatus.PV == 0):
             self.pc_state.PC = memory.read16(self.pc_state.PC+1);
         else:
             self.pc_state.PC += 3;
@@ -2426,7 +2426,7 @@ class CALL_PO_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.PV == 0):
+        if (self.pc_state.F.Fstatus.PV == 0):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
@@ -2444,7 +2444,7 @@ class RET_PE(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.PV == 1):
+        if (self.pc_state.F.Fstatus.PV == 1):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2471,7 +2471,7 @@ class JP_PE_nn(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        if (self.pc_state.Fstatus.PV == 1):
+        if (self.pc_state.F.Fstatus.PV == 1):
             self.pc_state.PC = memory.read16(self.pc_state.PC+1);
         else:
             self.pc_state.PC += 3;
@@ -2498,7 +2498,7 @@ class CALL_PE_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.PV == 1):
+        if (self.pc_state.F.Fstatus.PV == 1):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
@@ -2516,7 +2516,7 @@ class XOR_n(Instruction):
 
     def execute(self, memory):
         self.pc_state.A = self.pc_state.A ^ memory.read(self.pc_state.PC + 1);
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
         self.pc_state.PC+=2;
         return 7;
 
@@ -2527,7 +2527,7 @@ class RET_P(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.S == 0):
+        if (self.pc_state.F.Fstatus.S == 0):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2544,7 +2544,7 @@ class POP_AF(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.F = memory.read(self.pc_state.SP);
+        self.pc_state.F.value = memory.read(self.pc_state.SP);
         self.pc_state.SP += 1
         self.pc_state.A = memory.read(self.pc_state.SP);
         self.pc_state.SP += 1
@@ -2559,7 +2559,7 @@ class JP_P_nn(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        if (self.pc_state.Fstatus.S == 0):
+        if (self.pc_state.F.Fstatus.S == 0):
             self.pc_state.PC = memory.read16(self.pc_state.PC+1);
         else:
             self.pc_state.PC += 3;
@@ -2587,7 +2587,7 @@ class CALL_P_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.S == 0):
+        if (self.pc_state.F.Fstatus.S == 0):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
@@ -2607,7 +2607,7 @@ class PUSH_AF(Instruction):
         self.pc_state.SP -= 1
         memory.write(self.pc_state.SP, self.pc_state.A);
         self.pc_state.SP -= 1
-        memory.write(self.pc_state.SP, self.pc_state.F);
+        memory.write(self.pc_state.SP, self.pc_state.F.value);
         self.pc_state.PC += 1
 
         return 11;
@@ -2619,7 +2619,7 @@ class OR_n(Instruction):
 
     def execute(self, memory):
         self.pc_state.A = self.pc_state.A | memory.read(self.pc_state.PC + 1);
-        self.pc_state.Fstatus.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
         self.pc_state.PC += 2;
         return 7;
 
@@ -2630,7 +2630,7 @@ class RET_M(Instruction):
 
     def execute(self, memory):
         cycles = 0
-        if (self.pc_state.Fstatus.S == 1):
+        if (self.pc_state.F.Fstatus.S == 1):
             self.pc_state.PCLow  = memory.read(self.pc_state.SP);
             self.pc_state.SP += 1
             self.pc_state.PCHigh = memory.read(self.pc_state.SP);
@@ -2657,7 +2657,7 @@ class JP_M_nn(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        if (self.pc_state.Fstatus.S == 1):
+        if (self.pc_state.F.Fstatus.S == 1):
             self.pc_state.PC = memory.read16(self.pc_state.PC+1);
         else:
             self.pc_state.PC += 3;
@@ -2692,7 +2692,7 @@ class CALL_M_nn(Instruction):
     def execute(self, memory):
         cycles = 0
         self.pc_state.PC += 3;
-        if (self.pc_state.Fstatus.S == 1):
+        if (self.pc_state.F.Fstatus.S == 1):
             self.pc_state.SP -= 1
             memory.write(self.pc_state.SP, self.pc_state.PCHigh);
             self.pc_state.SP -= 1
