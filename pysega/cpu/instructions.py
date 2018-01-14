@@ -45,40 +45,40 @@ def add8c(pc_state, a, b, c):
     return (a + b + c) & 0xFF
 
 # Subtract two 8 bit ints and the carry bit, set flags accordingly
-def sub8c(self, a, b, c):
+def sub8c(pc_state, a, b, c):
     #static int16 r;
     #static int8 rs;
 
     r = a - b - c;
     rs = a - b - c;
     if (rs & 0x80): # Negative
-        self.pc_state.F.Fstatus.S = 1
+        pc_state.F.Fstatus.S = 1
     else:
-        self.pc_state.F.Fstatus.S = 0
+        pc_state.F.Fstatus.S = 0
 
     if (rs == 0): # Zero
-        self.pc_state.F.Fstatus.Z = 1
+        pc_state.F.Fstatus.Z = 1
     else:
-        self.pc_state.F.Fstatus.Z = 0
+        pc_state.F.Fstatus.Z = 0
 
     if (((r & 0x180) != 0) and 
          (r & 0x180) != 0x180): # Overflow
-        self.pc_state.F.Fstatus.PV = 1
+        pc_state.F.Fstatus.PV = 1
     else:
-        self.pc_state.F.Fstatus.PV = 0
+        pc_state.F.Fstatus.PV = 0
 
     r = (a & 0xF) - (b & 0xF) - c;
     if (r & 0x10): # Half carry
-        self.pc_state.F.Fstatus.H = 1
+        pc_state.F.Fstatus.H = 1
     else:
-        self.pc_state.F.Fstatus.H = 0
-    self.pc_state.F.Fstatus.N = 1;
+        pc_state.F.Fstatus.H = 0
+    pc_state.F.Fstatus.N = 1;
 
     r = (a & 0xFF) - (b & 0xFF) - c;
     if (r & 0x100): # Carry
-        self.pc_state.F.Fstatus.C = 1
+        pc_state.F.Fstatus.C = 1
     else:
-        self.pc_state.F.Fstatus.C = 0
+        pc_state.F.Fstatus.C = 0
     return (a - b - c) & 0xFF
     
 # self.pc_state.Add two 16 bit ints and set flags accordingly
@@ -2011,7 +2011,7 @@ class SBC_A_r(Instruction):
         self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.A = sub8c(self.pc_state.A, self.reg.get(), self.pc_state.F.Fstatus.C);
+        self.pc_state.A = sub8c(self.pc_state, self.pc_state.A, self.reg.get(), self.pc_state.F.Fstatus.C);
         self.pc_state.PC += 1
         return 4;
 
@@ -2021,7 +2021,7 @@ class SBC_A_HL(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.A = sub8c(self.pc_state.A, memory.read(self.pc_state.HL), self.pc_state.F.Fstatus.C);
+        self.pc_state.A = sub8c(self.pc_state, self.pc_state.A, memory.read(self.pc_state.HL), self.pc_state.F.Fstatus.C);
         self.pc_state.PC += 1
         return 7;
 
@@ -2368,7 +2368,7 @@ class SBC_n(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.A = sub8c(self.pc_state.A, memory.read(self.pc_state.PC + 1), self.pc_state.F.Fstatus.C);
+        self.pc_state.A = sub8c(self.pc_state, self.pc_state.A, memory.read(self.pc_state.PC + 1), self.pc_state.F.Fstatus.C);
         self.pc_state.PC+=2;
         return 7;
 
