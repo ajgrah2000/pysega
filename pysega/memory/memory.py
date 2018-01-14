@@ -154,7 +154,6 @@ class Memory(object):
                 self._update_fixed_read_page1()
             if (address == 0xFFFE):
                 self._update_fixed_read_page2()
-            self._update_fixed_read_page2()
             if ((address == 0xFFFC) or (address == 0xFFFF)):
                 self._update_fixed_read_ram()
 
