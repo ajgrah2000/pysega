@@ -73,9 +73,6 @@ class Memory(object):
     def set_z80memory(self, z80memory):
         self.z80memory = z80memory
 
-    def readMulti(self, address):
-        return [self.read(address + x) for x in range(10)]
-
     def _translate_read(self, address):
         """ Un-optimised address translation, uses paging registers. 
         """

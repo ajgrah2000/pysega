@@ -60,10 +60,6 @@ class Core(object):
     def step(self, loop=True, debug=False):
      op_code = self.memory.read(self.pc_state.PC)
     
-#    static uint16 tmp16;
-#    static uint8 tmp8, t8;
-#    static const Byte *atPC;
-
 #     while True:
      if True:
 
@@ -75,10 +71,9 @@ class Core(object):
           self.interuptor.setCycle(self.clocks.cycles);
           self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
 
-      atPC = self.memory.readMulti(self.pc_state.PC);
-      op_code = atPC[0]
+      op_code = self.memory.read(self.pc_state.PC);
       if debug:
-          print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, atPC[0], self.pc_state))
+          print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, op_code, self.pc_state))
 
       # This will raise an exception for unsupported op_code
       instruction = self.instruction_lookup.getInstruction(op_code)
@@ -102,44 +97,48 @@ class Core(object):
 
             elif (op_code == 0xCB):
                 # Temporary, until `all instructions are covered'
-                instruction = self.instruction_lookup.getExtendedCB(atPC[1]);# &atPC[1]);
+                op_code_extended = self.memory.read(self.pc_state.PC + 1);
+                instruction = self.instruction_lookup.getExtendedCB(op_code_extended);
                 if (instruction != None):
                     self.clocks.cycles += instruction.execute(self.memory);
                 else:
-                    errors.warning("OP 0xCB n, value %x unsupported"%(atPC[1]));
+                    errors.warning("OP 0xCB n, value %x unsupported"%(op_code_extended));
                     return -1;
 
 
             elif (op_code == 0xDD):
                 # Temporary, until `all instructions are covered'
-                instruction = self.instruction_lookup.getExtendedDD(atPC[1]);# &atPC[1]);
+                op_code_extended = self.memory.read(self.pc_state.PC + 1);
+                instruction = self.instruction_lookup.getExtendedDD(op_code_extended);
                 if (instruction):
                     self.clocks.cycles += instruction.execute(self.memory);
                 else:
-                    print("Unsupported op code DD %x"%(atPC[1]))
+                    print("Unsupported op code DD %x"%(op_code_extended))
                     return -1;
 
             elif (op_code == 0xFD):
                 # Temporary, until `all instructions are covered'
-                instruction = self.instruction_lookup.getExtendedFD(atPC[1]);# &atPC[1]);
+                op_code_extended = self.memory.read(self.pc_state.PC + 1);
+                instruction = self.instruction_lookup.getExtendedFD(op_code_extended);
                 if (instruction):
                     self.clocks.cycles += instruction.execute(self.memory);
                 else:
-                    print("Unsupported op code FD %x"%(atPC[1]))
+                    print("Unsupported op code FD %x"%(op_code_extended))
                     return -1;
 
               # Extended op_code
             elif (op_code == 0xED):
                 # Temporary, until `all instructions are covered'
-                instruction = self.instruction_lookup.getExtendedED(atPC[1]);# &atPC[1]);
+                op_code_extended = self.memory.read(self.pc_state.PC + 1);
+                instruction = self.instruction_lookup.getExtendedED(op_code_extended);
                 if (instruction):
                     self.clocks.cycles += instruction.execute(self.memory);
                 else:
-                    print("Unsupported op code ED %x"%(atPC[1]))
+                    print("Unsupported op code ED %x"%(op_code_extended))
                     return -1;
 
             else:
-                print("Unsupported op code %x"%(atPC[0]))
+                print("Unsupported op code %x"%(op_code))
                 return -1;
 
      return 0
