@@ -75,43 +75,39 @@ class Memory(object):
         self.cartridge = cartridge
 
         self._initialise_memory()
-        self._update_fixed_read()
+        self._initialise_read_cache()
 
-    def set_z80memory(self, z80memory):
-        self.z80memory = z80memory
-
-    def _update_fixed_read(self):
+    def _initialise_read_cache(self):
         """ Un-optimised address translation, uses paging registers. 
         """
 
+        self._update_fixed_read_page()
         self._update_fixed_read_page0()
         self._update_fixed_read_page1()
-        self._update_fixed_read_page2()
-        self._update_fixed_read_ram()
+        self._update_fixed_read_page2_ram()
 
-    def _update_fixed_read_page0(self):
+    def _update_fixed_read_page(self):
         bank_array = self.cartridge.cartridge_banks[0]
         for address in range(self.PAGE0):
             bank_address = address & 0x3FFF # BANK_MASK
             self._cached_read[address] = bank_array[bank_address]
 
-    def _update_fixed_read_page1(self):
+    def _update_fixed_read_page0(self):
         page0_bank = self._memory_map[0xFFFD]
         bank_array = self.cartridge.cartridge_banks[page0_bank]
         for address in range(self.PAGE0, self.PAGE1):
             bank_address = address & 0x3FFF # BANK_MASK
             self._cached_read[address] = bank_array[bank_address]
 
-    def _update_fixed_read_page2(self):
+    def _update_fixed_read_page1(self):
         page1_bank = self._memory_map[0xFFFE]
         bank_array = self.cartridge.cartridge_banks[page1_bank]
         for address in range(self.PAGE1, self.PAGE2):
             bank_address = address & 0x3FFF # BANK_MASK
             self._cached_read[address] = bank_array[bank_address]
 
-    def _update_fixed_read_ram(self):
+    def _update_fixed_read_page2_ram(self):
         ram_select = self._memory_map[0xFFFC]
-
 
         if (ram_select & 0x8): # page2_is_cartridge_ram
           if (ram_select & 0x4):
@@ -131,10 +127,6 @@ class Memory(object):
               bank_address = address & 0x3FFF # BANK_MASK
               self._cached_read[address] = bank_array[bank_address]
 
-        for address in range(self.RAM_OFFSET, self.PAGING_REGISTERS):
-            # This covers RAM & Mirrored RAM
-            self._cached_read[address] = self._ram[address & (self.RAM_SIZE - 1)]
-
     def _cache_write(self, address, data):
         """ Perform write.
             Copy write to the 'cached' memory array.
@@ -148,14 +140,19 @@ class Memory(object):
             self._memory_map[address] = data
             self._cached_read[address] = data
 
-
             # Should make these conditiona, 
             if (address == 0xFFFD):
-                self._update_fixed_read_page1()
-            if (address == 0xFFFE):
-                self._update_fixed_read_page2()
-            if ((address == 0xFFFC) or (address == 0xFFFF)):
-                self._update_fixed_read_ram()
+                if (self._pages[0] != data):
+                    self._update_fixed_read_page0()
+                    data = self._pages[0]
+            elif (address == 0xFFFE):
+                if (self._pages[1] != data):
+                    self._update_fixed_read_page1()
+                    data = self._pages[1]
+            elif ((address == 0xFFFC) or (address == 0xFFFF)):
+                if (self._pages[2] != data):
+                    self._update_fixed_read_page2_ram()
+                    data = self._pages[2]
 
             self._cached_read[address] = data
 

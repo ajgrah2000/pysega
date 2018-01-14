@@ -1,5 +1,4 @@
 from .memory import memory
-from .memory import z80memory
 from .memory import cartridge
 from .graphics import vdp
 from . import clocks
@@ -37,8 +36,6 @@ class Sega(object):
 
         self.sound     = DummySound()
         self.memory    = memory.Memory()
-        self.memory    = memory.Memory()
-        self.z80memory = z80memory.Z80Memory(self.clocks, self.inputs.joystick)
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
 
@@ -96,8 +93,6 @@ class Sega(object):
         pass
 
     def power_on(self, stop_clock, no_delay=False, debug=False):
-
-        self.memory.set_z80memory(self.z80memory)
 
         self.core.reset()
 
