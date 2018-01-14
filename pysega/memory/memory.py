@@ -41,6 +41,7 @@ class Memory(object):
         self._memory_map     = [0] * self.MEMMAPSIZE
 
     def read(self, address):
+#        return self._translate_read(address)
         return self._cached_read[address & 0xFFFF]
 
     def readArray(self, address, length):
@@ -67,7 +68,7 @@ class Memory(object):
             self.write(dest+i, self.read(src+i))
 
     def write(self, address, data):
-        # self._translate_write(address, int(data))
+        #self._translate_write(address, int(data))
         self._cache_write(address, int(data))
 
     def set_cartridge(self, cartridge):
@@ -125,7 +126,7 @@ class Memory(object):
 
         else:
           page2_bank = self._memory_map[0xFFFF]
-          bank_array = self.cartridge.ram[page2_bank]
+          bank_array = self.cartridge.cartridge_banks[page2_bank]
           for address in range(self.PAGE2, self.RAM_OFFSET):
               bank_address = address & 0x3FFF # BANK_MASK
               self._cached_read[address] = bank_array[bank_address]
@@ -143,32 +144,33 @@ class Memory(object):
         address = address & 0xFFFF # ADDRESS_MASK
         bank_address = address & 0x3FFF # BANK_MASK
 
-        self._cached_read[address] = data
-
         if(address >= self.PAGING_REGISTERS):
             self._memory_map[address] = data
+            self._cached_read[address] = data
 
-            # self._update_fixed_read_page0()
+
+            # Should make these conditiona, 
             if (address == 0xFFFD):
-                if (data != self._pages[1]):
-                    self._update_fixed_read_page1()
-                    self._pages[1] = data
-            elif (address == 0xFFFE):
-                if (data != self._pages[2]):
-                    self._update_fixed_read_page2()
-                    self._pages[2] = data
-            elif (address == 0xFFFC):
-                if (data != self._pages[3]):
-                    self._update_fixed_read_ram()
-                    self._pages[3] = data
+                self._update_fixed_read_page1()
+            if (address == 0xFFFE):
+                self._update_fixed_read_page2()
+            self._update_fixed_read_page2()
+            if ((address == 0xFFFC) or (address == 0xFFFF)):
+                self._update_fixed_read_ram()
+
+            self._cached_read[address] = data
+
         elif(address < self.PAGE0):
             self.cartridge.cartridge_banks[0][bank_address] = data
+            self._cached_read[address] = data
         elif(address < self.PAGE1):
             page0_bank = self._memory_map[0xFFFD]
             self.cartridge.cartridge_banks[page0_bank][bank_address] = data
+            self._cached_read[address] = data
         elif(address < self.PAGE2):
             page1_bank = self._memory_map[0xFFFE]
             self.cartridge.cartridge_banks[page1_bank][bank_address] = data
+            self._cached_read[address] = data
         elif(address < self.RAM_OFFSET):
             ram_select = self._memory_map[0xFFFC]
             if (ram_select & 0x8): # page2_is_cartridge_ram
@@ -178,12 +180,13 @@ class Memory(object):
                 cartridge_ram_page = 0
       
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
-            else:
               page2_bank = self._memory_map[0xFFFF]
               self.cartridge.cartridge_banks[page2_bank][bank_address] = data
+              self._cached_read[address] = data
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM
             self._ram[address & (self.RAM_SIZE - 1)] = data
+            self._cached_read[address] = data
 
     def _translate_read(self, address):
         """ Un-optimised address translation, uses paging registers. 
