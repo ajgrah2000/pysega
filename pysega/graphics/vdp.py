@@ -970,57 +970,64 @@ void Vdp::drawDisplay(void)
         fineScroll = 0;
         xOffset = 0;
     
+        TILE_SIZE = VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT
         for y in range(self._yEnd):
+
+            sprite_scan_y = self._spriteScanLines[y]
             verticalOffset = self._verticalScrollInfo[y];
-            if (self._horizontalScrollInfo[y].xOffset != self._lastHorizontalScrollInfo[y].xOffset) or (self._verticalScrollInfo[y] != self._lastVerticalScrollInfo[y]) or (self._spriteScanLines[y].lineChanged) or (self._backgroundScanLines[(y+verticalOffset)%(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].lineChanged):
-                self._lastHorizontalScrollInfo[y].xOffset = self._horizontalScrollInfo[y].xOffset;
+            v_y = verticalOffset + y
+            horizontal_info_y = self._horizontalScrollInfo[y]
+            background_scan_y = self._backgroundScanLines[v_y % TILE_SIZE]
+
+            if (horizontal_info_y.xOffset != self._lastHorizontalScrollInfo[y].xOffset) or (self._verticalScrollInfo[y] != self._lastVerticalScrollInfo[y]) or (sprite_scan_y.lineChanged) or (background_scan_y.lineChanged):
+                self._lastHorizontalScrollInfo[y].xOffset = horizontal_info_y.xOffset;
                 self._lastVerticalScrollInfo[y] = self._verticalScrollInfo[y];
+
+                scan_y = self._scanLines[y]
+                forground_scan_y  = self._forgroundScanLines[v_y % TILE_SIZE]
     
                 if (y >= self._yScroll):
-                    fineScroll = self._horizontalScrollInfo[y].fineScroll;
-                    xOffset = self._horizontalScrollInfo[y].xOffset;
+                    fineScroll = horizontal_info_y.fineScroll;
+                    xOffset = horizontal_info_y.xOffset;
     
                 if (self._startX > fineScroll):
                     x = self._startX;
                 else:
                     x = fineScroll;
     
-                verticalOffset = self._verticalScrollInfo[y];
-    
                 # Copy the source to the destination */
                 firstBlock = VdpConstants.SMS_WIDTH - ((x+xOffset) % VdpConstants.SMS_WIDTH);
                 if (firstBlock > (VdpConstants.SMS_WIDTH - x)):
                     firstBlock = VdpConstants.SMS_WIDTH - x;
 
-                for i in range(firstBlock): #firstBlock*sizeof(uint16))
-                    self._scanLines[y].scanLine[x + i] = self._backgroundScanLines[(y + verticalOffset) % (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset + i) % VdpConstants.SMS_WIDTH]; 
+                for i in range(firstBlock):
+                    scan_y.scanLine[x + i] = background_scan_y.scanLine[(x+xOffset + i) % VdpConstants.SMS_WIDTH]; 
 
                 secondBlock = VdpConstants.SMS_WIDTH - firstBlock - x;
     
-                for i in range(secondBlock): #secondBlock*sizeof(uint16));
-                    self._scanLines[y].scanLine[x + firstBlock + i] = self._backgroundScanLines[(y + verticalOffset) % (VdpConstants.YTILES * VdpConstants.PATTERNHEIGHT)].scanLine[i]; 
+                for i in range(secondBlock):
+                    scan_y.scanLine[x + firstBlock + i] = background_scan_y.scanLine[i]; 
     
-                if (self._spriteScanLines[y].numSprites > 0):
+                if (sprite_scan_y.numSprites > 0):
                     # If there is a transparent forground on this line
-                    if (self._forgroundScanLines[(y+verticalOffset) % 
-                        (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].hasPriority):
-                        for i in range(self._spriteScanLines[y].numSprites):
-                            spriteNumber = self._spriteScanLines[y].sprites[i];
+                    if (forground_scan_y.hasPriority):
+                        for i in range(sprite_scan_y.numSprites):
+                            spriteNumber = sprite_scan_y.sprites[i];
                             for x in range(self._sprites[spriteNumber].x, min(((self._sprites[spriteNumber].x & 0xFFFF)+ self._spriteWidth), VdpConstants.SMS_WIDTH)):
-                                if (self._spriteScanLines[y].scanLine[x] != 0) and (self._forgroundScanLines[(y+verticalOffset) % (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].scanLine[(x+xOffset) % VdpConstants.SMS_WIDTH] == False):
-                                    self._scanLines[y].scanLine[x] = self._screenPalette[self._spriteScanLines[y].scanLine[x] | 0x10]; 
+                                if (sprite_scan_y.scanLine[x] != 0) and (forground_scan_y.scanLine[(x+xOffset) % VdpConstants.SMS_WIDTH] == False):
+                                    scan_y.scanLine[x] = self._screenPalette[sprite_scan_y.scanLine[x] | 0x10]; 
 
                     else:
-                        for i in range(self._spriteScanLines[y].numSprites):
-                            spriteNumber = self._spriteScanLines[y].sprites[i];
+                        for i in range(sprite_scan_y.numSprites):
+                            spriteNumber = sprite_scan_y.sprites[i];
                             for x in range(self._sprites[spriteNumber].x, min(((self._sprites[spriteNumber].x + self._spriteWidth) & 0xFFFF, VdpConstants.SMS_WIDTH))):
-                                if (self._spriteScanLines[y].scanLine[x] != 0):
-                                    self._scanLines[y].scanLine[x] = self._screenPalette[self._spriteScanLines[y].scanLine[x] | 0x10]; 
+                                if (sprite_scan_y.scanLine[x] != 0):
+                                    scan_y.scanLine[x] = self._screenPalette[sprite_scan_y.scanLine[x] | 0x10]; 
 
-                    for i in range(self._startX): # self._startX*sizeof(uint16));
-                        self._scanLines[y].scanLine[i] = 0
-            self._spriteScanLines[y].lineChanged = False;
-            self._backgroundScanLines[(y+verticalOffset)%(VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)].lineChanged = False;
+                    for i in range(self._startX):
+                        scan_y.scanLine[i] = 0
+            sprite_scan_y.lineChanged = False;
+            background_scan_y.lineChanged = False;
     
         self.driver_update_display()
 
