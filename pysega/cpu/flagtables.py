@@ -27,6 +27,9 @@ class FlagTables(object):
 
       FlagTables._flagTableAdd = [[None for i in range(FlagTables.MAXBYTE)] for j in range(FlagTables.MAXBYTE)]
       FlagTables._flagTableSub = [[None for i in range(FlagTables.MAXBYTE)] for j in range(FlagTables.MAXBYTE)]
+      FlagTables._flagTableParity = [None] * FlagTables.MAXBYTE
+
+      FlagTables._createParityTable();
 
       FlagTables._createStatusInc8Table();
       FlagTables._createStatusDec8Table();
@@ -291,6 +294,18 @@ class FlagTables(object):
                 FlagTables._flagTableSub[i][j] = result.value
 
     @staticmethod
+    def _createParityTable():
+
+      for i in range(FlagTables.MAXBYTE):
+          # Calculate Parity
+          p = 1
+          # Step through each bit in the byte
+          for b in range(8):
+              p = (p ^ (i >> b)) & 0x1
+
+          FlagTables._flagTableParity[i] = p
+
+    @staticmethod
     def getStatusInc8(value):
       return FlagTables._flagTableInc8[value]
 
@@ -317,12 +332,5 @@ class FlagTables(object):
     # Determine the parity flag (even = 1, odd = 0)
     @staticmethod
     def calculateParity(a):
-
-      # Calculate Parity
-      p = 1
-      # Step through each bit in the byte
-      for b in range(8):
-          p = (p ^ (a >> b)) & 0x1
-
-      return p
+      return FlagTables._flagTableParity[a]
 

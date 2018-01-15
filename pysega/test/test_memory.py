@@ -145,21 +145,33 @@ class TestMemoryPaging(unittest.TestCase):
         uut2_memory = memory.MemoryShare()
 
         reference_memory.initialise_test_memory(self._catridge_ref)
-
         uut_memory.set_cartridge(self._catridge_uut)
         uut2_memory.set_cartridge(self._catridge_uut2)
 
         self.assertEqual(reference_memory.reference_read(0),0)
         self.assertEqual(reference_memory.reference_read(0x80),0x80)
+        self.assertEqual(uut2_memory.read(0x80),0x80)
 
         PAGE2      = 0x8000
         reference_memory.reference_write(0xFFFC,0x8)
         uut_memory.write(0xFFFC,0x8)
         uut2_memory.write(0xFFFC,0x8)
 
+        self.assertEqual(reference_memory.reference_read(0xFFFC),0x8)
+        self.assertEqual(uut_memory.read(0xFFFC),0x8)
+
         reference_memory.reference_write(PAGE2,2)
         uut_memory.write(PAGE2,2)
         uut2_memory.write(PAGE2,2)
+
+        for (a,d) in [(0xFFFC,0x80),(0xFFFD,0),(0xFFFE,1),(0xFFFF,2)]:
+            reference_memory.reference_write(a,d)
+            uut_memory.write(a,d)
+            uut2_memory.write(a,d)
+
+        reference_memory.reference_write(0xdfed,0xCD)
+        uut_memory.write(0xdfed,0xCD)
+        uut2_memory.write(0xdfed,0xCD)
 
         for i in range(0x10000):
             self.assertEqual(uut_memory.read(i),reference_memory.reference_read(i))
@@ -168,12 +180,17 @@ class TestMemoryPaging(unittest.TestCase):
         uut_memory.write(0x8000,0xC)
         uut2_memory.write(0x8000,0xC)
 
+
         reference_memory.reference_write(0x4000,0xC)
-        self.assertEqual(reference_memory.reference_read(0x4000), 0xC)
         uut_memory.write(0x4000,0xC)
         uut2_memory.write(0x4000,0xC)
+
+        self.assertEqual(reference_memory.reference_read(0x4000), 0xC)
+        self.assertEqual(reference_memory.reference_read(0), 0x0)
         self.assertEqual(uut_memory.read(0x4000), 0xC)
         self.assertEqual(uut2_memory.read(0x4000), 0xC)
+
+        self.assertEqual(uut_memory.read(0), 0x0)
 
         reference_memory.reference_write(0xFFFC,0xC)
         uut_memory.write(0xFFFC,0xC)

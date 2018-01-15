@@ -267,15 +267,15 @@ class MemoryCached(MemoryBase):
             if (address == 0xFFFD):
                 if (self._pages[0] != data):
                     self._update_fixed_read_page0()
-                    data = self._pages[0]
+                    self._pages[0] = data
             elif (address == 0xFFFE):
                 if (self._pages[1] != data):
                     self._update_fixed_read_page1()
-                    data = self._pages[1]
+                    self._pages[1] = data
             elif ((address == 0xFFFC) or (address == 0xFFFF)):
                 if (self._pages[2] != data):
                     self._update_fixed_read_page2_ram()
-                    data = self._pages[2]
+                    self._pages[2] = data
 
             self._cached_read[address] = data
 
@@ -303,12 +303,14 @@ class MemoryCached(MemoryBase):
               self.cartridge.cartridge_banks[page2_bank][bank_address] = data
               self._cached_read[address] = data
         elif(address < self.PAGING_REGISTERS):
-            # This covers RAM & Mirrored RAM
-            self._ram[address & (self.RAM_SIZE - 1)] = data
-            self._cached_read[address] = data
+            # Mirrored ram exists in two locations, so write to both.
+            self._cached_read[self.RAM_OFFSET + (address & (self.RAM_SIZE - 1))] = data
+            self._cached_read[self.RAM_OFFSET + (address & (self.RAM_SIZE - 1)) + self.RAM_SIZE] = data
 
 
 class MemoryShare(MemoryBase):
+    """ Swap 'references' to arrays on bank switching instead of copying lists.
+    """
     BANK_SIZE     = 0x4000
     MAX_BANKS     = 64;
     NUM_PAGES     = 3;
@@ -317,21 +319,23 @@ class MemoryShare(MemoryBase):
         self._last_page_number = 0
         self._last_bank_number = 0
 
-        self._ram     = [0] * self.RAM_SIZE
+        self._ram     = [0] * self.RAM_SIZE * 2
 
-        # 'cache' of memory.  Copy of memory to ready from, updated when paging changes.
-
+        # 'Page0' always contains bank 0 for the first 'PAGE0' bytes, then up
+        # to the page boundary may contain a different bank. This array is used
+        # to copy the 'mixed' banks to all possible 'page0' pages.
         self._page0_copies = [[0] * self.BANK_SIZE for x in range(self.MAX_BANKS)]
+
+        # Remember the last bank assignments per page, and only swap if they differ
         self._pages = [None] * 4
+
+        # Location to store the page references.
         self._memory_shared_lookup = [[0] * self.BANK_SIZE for x in range(4)]
 
         # Complete memory map
         self._memory_map     = None
 
-    def _initialise_memory(self):
-        """ Initialise memory bank allocations. """
-
-        self._memory_map     = [0] * self.MEMMAPSIZE
+        self._paging_registers     = [0] * self.MEMMAPSIZE
 
     def read(self, address):
         return self._memory_shared_lookup[(int(address) >> 14) & 0x3][address & 0x3FFF]
@@ -365,7 +369,6 @@ class MemoryShare(MemoryBase):
     def set_cartridge(self, cartridge):
         self.cartridge = cartridge
 
-        self._initialise_memory()
         self._initialise_read_cache()
 
     def _initialise_read_cache(self):
@@ -380,7 +383,6 @@ class MemoryShare(MemoryBase):
     def _populate_shared_lookups(self):
         for bank in range(self.cartridge.num_banks):
             # Page '0'/'1' lookup
-            bank_array = self.cartridge.cartridge_banks[0]
             for address in range(self.PAGE0):
                 bank_address = address & 0x3FFF # BANK_MASK
                 self._page0_copies[bank][bank_address] = self.cartridge.cartridge_banks[0][bank_address]
@@ -389,16 +391,18 @@ class MemoryShare(MemoryBase):
                 bank_address = address & 0x3FFF # BANK_MASK
                 self._page0_copies[bank][bank_address] = self.cartridge.cartridge_banks[bank][bank_address]
 
+        self._memory_shared_lookup[3] = self._ram
+
     def _update_fixed_read_page0(self):
-        page0_bank = self._memory_map[0xFFFD]
+        page0_bank = self._paging_registers[0xFFFD]
         self._memory_shared_lookup[0] = self._page0_copies[page0_bank]
 
     def _update_fixed_read_page1(self):
-        page1_bank = self._memory_map[0xFFFE]
-        self._memory_shared_lookup[1] = self._page0_copies[page1_bank]
+        page1_bank = self._paging_registers[0xFFFE]
+        self._memory_shared_lookup[1] = self.cartridge.cartridge_banks[page1_bank]
 
     def _update_fixed_read_page2_ram(self):
-        ram_select = self._memory_map[0xFFFC]
+        ram_select = self._paging_registers[0xFFFC]
 
         if (ram_select & 0x8): # page2_is_cartridge_ram
           if (ram_select & 0x4):
@@ -409,7 +413,7 @@ class MemoryShare(MemoryBase):
           self._memory_shared_lookup[2] = self.cartridge.ram[cartridge_ram_page]
 
         else:
-          page2_bank = self._memory_map[0xFFFF]
+          page2_bank = self._paging_registers[0xFFFF]
           self._memory_shared_lookup[2] = self.cartridge.cartridge_banks[page2_bank]
 
     def _cache_write(self, address, data):
@@ -422,32 +426,34 @@ class MemoryShare(MemoryBase):
         bank_address = address & 0x3FFF # BANK_MASK
 
         if(address >= self.PAGING_REGISTERS):
-            self._memory_map[address] = data
+            self._paging_registers[address] = data
 
             # Should make these conditiona, 
             if (address == 0xFFFD):
                 if (self._pages[0] != data):
                     self._update_fixed_read_page0()
-                    data = self._pages[0]
+                    self._pages[0] = data
             elif (address == 0xFFFE):
                 if (self._pages[1] != data):
                     self._update_fixed_read_page1()
-                    data = self._pages[1]
+                    self._pages[1] = data
             elif ((address == 0xFFFC) or (address == 0xFFFF)):
                 if (self._pages[2] != data):
                     self._update_fixed_read_page2_ram()
-                    data = self._pages[2]
+                    self._pages[2] = data
+
+            self._memory_shared_lookup[(int(address) >> 14) & 0x3][address & 0x3FFF] = data
 
         elif(address < self.PAGE0):
             self.cartridge.cartridge_banks[0][bank_address] = data
         elif(address < self.PAGE1):
-            page0_bank = self._memory_map[0xFFFD]
+            page0_bank = self._paging_registers[0xFFFD]
             self.cartridge.cartridge_banks[page0_bank][bank_address] = data
         elif(address < self.PAGE2):
-            page1_bank = self._memory_map[0xFFFE]
+            page1_bank = self._paging_registers[0xFFFE]
             self.cartridge.cartridge_banks[page1_bank][bank_address] = data
         elif(address < self.RAM_OFFSET):
-            ram_select = self._memory_map[0xFFFC]
+            ram_select = self._paging_registers[0xFFFC]
             if (ram_select & 0x8): # page2_is_cartridge_ram
               if (ram_select & 0x4):
                 cartridge_ram_page = 1
@@ -456,8 +462,9 @@ class MemoryShare(MemoryBase):
       
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
             else:
-              page2_bank = self._memory_map[0xFFFF]
+              page2_bank = self._paging_registers[0xFFFF]
               self.cartridge.cartridge_banks[page2_bank][bank_address] = data
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM
             self._ram[address & (self.RAM_SIZE - 1)] = data
+            self._ram[(address & (self.RAM_SIZE - 1)) + self.RAM_SIZE] = data

@@ -397,11 +397,12 @@ class JRZe(Instruction):
 
     # JR Z, e
     def execute(self, memory):
-        cycles = 7
     
         if (self.pc_state.F.Fstatus.Z == 1):
             self.pc_state.PC += signed_char_to_int(memory.read(self.pc_state.PC+1) & 0xFF)
-            cycles+=5;
+            cycles = 12
+        else:
+            cycles = 7
 
         self.pc_state.PC += 2;
     
@@ -1258,14 +1259,15 @@ class BIT_I_d(Instruction):
         tmp16 = self.I_reg.get() + signed_char_to_int(memory.read(self.pc_state.PC+2))
         tmp8 = memory.read(tmp16)
         t8 = memory.read(self.pc_state.PC+3)
-    
+
         if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.I_reg.get() + d)
             tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1
-            self.pc_state.F.Fstatus.Z = tmp8 ^ 0x1
-            self.pc_state.F.Fstatus.PV = flagtables.FlagTables.calculateParity(tmp8)
-            self.pc_state.F.Fstatus.H = 1
-            self.pc_state.F.Fstatus.N = 0
-            self.pc_state.F.Fstatus.S = 0
+            f = self.pc_state.F.Fstatus
+            f.Z = tmp8 ^ 0x1
+            f.PV = flagtables.FlagTables.calculateParity(tmp8)
+            f.H = 1
+            f.N = 0
+            f.S = 0
         elif ((t8 & 0xC7) == 0x86): # RES b, (self.I_reg + d)
             tmp8 = tmp8 & ~(0x1 << ((t8 >> 3) & 0x7))
             memory.write(tmp16,tmp8)
