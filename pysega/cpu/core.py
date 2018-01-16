@@ -20,9 +20,7 @@ class Core(object):
         self.ports      = ports
         self.interuptor = interuptor
 
-        self.instruction_exe = instructions.InstructionExec(self.pc_state)
-
-        self.instruction_lookup = instruction_store.InstructionStore(self.clocks, self.pc_state, self.ports, self.instruction_exe)
+        self.instruction_lookup = instruction_store.InstructionStore(self.clocks, self.pc_state, self.ports)
 
         self._nextPossibleInterupt = 0
 
@@ -73,7 +71,7 @@ class Core(object):
           # This will raise an exception for unsupported op_code
           # Need to add cycles *after* to ensure during recursive calls (ie
           # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
-          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute(self.memory) + self.clocks.cycles
+          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + self.clocks.cycles
 
     def step(self):
     
@@ -86,4 +84,4 @@ class Core(object):
           # This will raise an exception for unsupported op_code
           # Need to add cycles *after* to ensure during recursive calls (ie
           # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
-          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute(self.memory) + self.clocks.cycles
+          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + self.clocks.cycles
