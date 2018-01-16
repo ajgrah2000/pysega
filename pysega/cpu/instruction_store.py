@@ -14,14 +14,20 @@ class InstructionStore(object):
         self.instruction_ed_lookup = [None] * 256
         self.instruction_fd_lookup = [None] * 256
 
-    def populate_instruction_map(self, clocks, pc_state, memory):
+    def populate_instruction_map(self, clocks, pc_state, memory, interupt, poll_interupts, step_func):
         self._initialise_register_wrappers(pc_state)
 
-        self._populate_core_instruction_map(clocks, pc_state, memory, self.ports)
-        self._populate_extended_fd_instruction_map(clocks, pc_state, memory)
-        self._populate_extended_ed_instruction_map(clocks, pc_state, memory, self.ports)
-        self._populate_extended_dd_instruction_map(clocks, pc_state, memory)
-        self._populate_extended_cb_instruction_map(clocks, pc_state, memory)
+        self._populate_core_instruction_map(clocks, pc_state, memory, self.ports, interupt, poll_interupts, step_func)
+        self._populate_extended_fd_instruction_map(pc_state, memory)
+        self._populate_extended_ed_instruction_map(pc_state, memory, self.ports)
+        self._populate_extended_dd_instruction_map(pc_state, memory)
+        self._populate_extended_cb_instruction_map(pc_state, memory)
+
+        # Try 'installing' extended instructions.
+        self.instruction_lookup[0xCB] = instructions.ExtendedInstruction(pc_state, self.getExtendedCB)
+        self.instruction_lookup[0xDD] = instructions.ExtendedInstruction(pc_state, self.getExtendedDD)
+        self.instruction_lookup[0xFD] = instructions.ExtendedInstruction(pc_state, self.getExtendedFD)
+        self.instruction_lookup[0xED] = instructions.ExtendedInstruction(pc_state, self.getExtendedED)
 
     def _initialise_register_wrappers(self, pc_state):
         self._reg_wrapper_a  = addressing.RegWrapper_A(pc_state)
@@ -39,13 +45,15 @@ class InstructionStore(object):
         self._reg_wrapper_iy = addressing.RegWrapper_IY(pc_state)
         self._reg_wrapper_sp = addressing.RegWrapper_SP(pc_state)
 
-    def _populate_core_instruction_map(self, clocks, pc_state, memory, ports):
+    def _populate_core_instruction_map(self, clocks, pc_state, memory, ports, interupt, poll_interupts, step_func):
 
         self._instruction_exec = instructions.InstructionExec(pc_state)
-        self.instruction_lookup[0xC3] = instructions.JumpInstruction(clocks, pc_state)
+        self.instruction_lookup[0xFB] = instructions.EI(clocks, pc_state, interupt, poll_interupts, step_func)
+
+        self.instruction_lookup[0xC3] = instructions.JumpInstruction(pc_state)
         self.instruction_lookup[0x31] = instructions.LD_16_nn(self.pc_state, self._reg_wrapper_sp); # LD DE, nn
 
-        self.instruction_lookup[0x00] = instructions.Noop(self.clocks, pc_state);
+        self.instruction_lookup[0x00] = instructions.Noop(pc_state);
         self.instruction_lookup[0x01] = instructions.Load16BC(pc_state, self._reg_wrapper_bc);
         self.instruction_lookup[0x02] = instructions.LD_mem_r(pc_state, self._reg_wrapper_bc, self._reg_wrapper_a); # LD (BC), A
         self.instruction_lookup[0x03] = instructions.INC_BC(pc_state); # INC cpu_state->BC
@@ -289,7 +297,7 @@ class InstructionStore(object):
 
 
 
-    def _populate_extended_fd_instruction_map(self, clocks, pc_state, memory):
+    def _populate_extended_fd_instruction_map(self, pc_state, memory):
         self.instruction_fd_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_iy, self._reg_wrapper_bc,15,2);
         self.instruction_fd_lookup[0x19] = instructions.ADD16(pc_state, self._reg_wrapper_iy, self._reg_wrapper_de,15,2);
         self.instruction_fd_lookup[0x23] = instructions.INC_16(pc_state, self._reg_wrapper_iy, 10,2);
@@ -334,7 +342,7 @@ class InstructionStore(object):
         self.instruction_fd_lookup[0xE5] = instructions.PUSH_I(pc_state, self._reg_wrapper_iy)
         self.instruction_fd_lookup[0xE9] = instructions.LD_PC_I(pc_state, self._reg_wrapper_iy)
 
-    def _populate_extended_ed_instruction_map(self, clocks, pc_state, memory, ports):
+    def _populate_extended_ed_instruction_map(self, pc_state, memory, ports):
         self.instruction_ed_lookup[0x40] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_b)
         self.instruction_ed_lookup[0x48] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_c)
         self.instruction_ed_lookup[0x50] = instructions.IN_r_C(pc_state, ports, self._reg_wrapper_d)
@@ -384,7 +392,7 @@ class InstructionStore(object):
         self.instruction_ed_lookup[0xB3] = instructions.OTIR(pc_state, ports)
         self.instruction_ed_lookup[0xB8] = instructions.LDDR(pc_state)
 
-    def _populate_extended_dd_instruction_map(self, clocks, pc_state, memory):
+    def _populate_extended_dd_instruction_map(self, pc_state, memory):
         self.instruction_dd_lookup[0x09] = instructions.ADD16(pc_state, self._reg_wrapper_ix, self._reg_wrapper_bc,15,2);
         self.instruction_dd_lookup[0x19] = instructions.ADD16(pc_state, self._reg_wrapper_ix, self._reg_wrapper_de,15,2);
         self.instruction_dd_lookup[0x23] = instructions.INC_16(pc_state, self._reg_wrapper_ix, 10,2);
@@ -429,7 +437,7 @@ class InstructionStore(object):
         self.instruction_dd_lookup[0xE5] = instructions.PUSH_I(pc_state, self._reg_wrapper_ix)
         self.instruction_dd_lookup[0xE9] = instructions.LD_PC_I(pc_state, self._reg_wrapper_ix)
 
-    def _populate_extended_cb_instruction_map(self, clocks, pc_state, memory):
+    def _populate_extended_cb_instruction_map(self, pc_state, memory):
         for extra in [0x0, 0x8, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38]:
             self.instruction_cb_lookup[0x40 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_b); # BIT r, cpu_state->B
             self.instruction_cb_lookup[0x41 + extra] = instructions.BIT_r(pc_state, self._reg_wrapper_c); # BIT r, cpu_state->C

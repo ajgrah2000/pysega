@@ -9,6 +9,7 @@ class Core(object):
     """
         CPU Core - Contains op code mappings.
     """
+
     IRQIM1ADDR = 0x38;
 
     def __init__(self, clocks, memory, pc_state, ports, interuptor):
@@ -40,9 +41,6 @@ class Core(object):
         # TODO
         pass
 
-    def initialise(self):
-        self.instruction_lookup.populate_instruction_map(self.clocks, self.pc_state, self.memory)
-
     def interupt(self):
         if (self.pc_state.IFF1 == 1):
             if (self.pc_state.IM == 1):
@@ -57,87 +55,22 @@ class Core(object):
             else:
                 errors.unsupported("interupt mode not supported");
 
-    def step(self, loop=True, debug=False):
+    def initialise(self):
+        self.instruction_lookup.populate_instruction_map(self.clocks, self.pc_state, self.memory, self.interupt, self.interuptor.pollInterupts, self.step)
+
+    def step(self, debug=False):
     
-#     while True:
-     if True:
+          if debug:
+              print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
+  
+          if (self.clocks.cycles >= self._nextPossibleInterupt):
+              self.interuptor.setCycle(self.clocks.cycles);
+              self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
+  
+          op_code = self.memory.read(self.pc_state.PC);
 
-          # Check for any possible interupts
-      if debug:
-          print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
-
-      if (self.clocks.cycles >= self._nextPossibleInterupt):
-          self.interuptor.setCycle(self.clocks.cycles);
-          self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
-
-      op_code = self.memory.read(self.pc_state.PC);
-      if debug:
-          print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, op_code, self.pc_state))
-
-      # This will raise an exception for unsupported op_code
-      instruction = self.instruction_lookup.getInstruction(op_code)
-      if instruction:
-        self.clocks.cycles += instruction.execute(self.memory)
-      else:
-            # EI
-            if (op_code == 0xFB):
-                self.pc_state.PC += 1
-           
-                # Process next instruction before enabling interupts
-                self.step(False); # Single step, no loop
-           
-                self.pc_state.IFF1 = 1;
-                self.pc_state.IFF2 = 1;
-                self.clocks.cycles+=4;
-           
-                  # Check for any pending interupts
-                if (self.interuptor.pollInterupts(self.clocks.cycles) == True):
-                    self.interupt()
-
-            elif (op_code == 0xCB):
-                # Temporary, until `all instructions are covered'
-                op_code_extended = self.memory.read(self.pc_state.PC + 1);
-                instruction = self.instruction_lookup.getExtendedCB(op_code_extended);
-                if (instruction != None):
-                    self.clocks.cycles += instruction.execute(self.memory);
-                else:
-                    errors.warning("OP 0xCB n, value %x unsupported"%(op_code_extended));
-                    return -1;
-
-
-            elif (op_code == 0xDD):
-                # Temporary, until `all instructions are covered'
-                op_code_extended = self.memory.read(self.pc_state.PC + 1);
-                instruction = self.instruction_lookup.getExtendedDD(op_code_extended);
-                if (instruction):
-                    self.clocks.cycles += instruction.execute(self.memory);
-                else:
-                    print("Unsupported op code DD %x"%(op_code_extended))
-                    return -1;
-
-            elif (op_code == 0xFD):
-                # Temporary, until `all instructions are covered'
-                op_code_extended = self.memory.read(self.pc_state.PC + 1);
-                instruction = self.instruction_lookup.getExtendedFD(op_code_extended);
-                if (instruction):
-                    self.clocks.cycles += instruction.execute(self.memory);
-                else:
-                    print("Unsupported op code FD %x"%(op_code_extended))
-                    return -1;
-
-              # Extended op_code
-            elif (op_code == 0xED):
-                # Temporary, until `all instructions are covered'
-                op_code_extended = self.memory.read(self.pc_state.PC + 1);
-                instruction = self.instruction_lookup.getExtendedED(op_code_extended);
-                if (instruction):
-                    self.clocks.cycles += instruction.execute(self.memory);
-                else:
-                    print("Unsupported op code ED %x"%(op_code_extended))
-                    return -1;
-
-            else:
-                print("Unsupported op code %x"%(op_code))
-                return -1;
-
-     return 0
+          if debug:
+              print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, op_code, self.pc_state))
+  
+          # This will raise an exception for unsupported op_code
+          self.clocks.cycles += self.instruction_lookup.getInstruction(op_code).execute(self.memory)

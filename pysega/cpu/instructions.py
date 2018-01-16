@@ -224,8 +224,7 @@ class Instruction(object):
     FLAG_MASK_INC8 = 0x01; # Bits to leave unchanged
     FLAG_MASK_DEC8 = 0x01; # Bits to leave unchanged
 
-    def __init__(self, clocks, pc_state, instruction_exec):
-        self.clocks = clocks
+    def __init__(self, pc_state, instruction_exec):
         self.pc_state = pc_state
         self.instruction_exec = instruction_exec
 
@@ -238,8 +237,8 @@ class Instruction(object):
 
 class JumpInstruction(Instruction):
      
-    def __init__(self, clocks, pc_state):
-        super(JumpInstruction, self).__init__(clocks, pc_state, None)
+    def __init__(self, pc_state):
+        super(JumpInstruction, self).__init__(pc_state, None)
 
     def execute(self, memory):
         self.pc_state.PC = memory.read16(self.pc_state.PC + 1)
@@ -255,14 +254,23 @@ class JumpInstruction(Instruction):
 #    def execute(self):
 #        return self.instruction_exec(self.memory)
 
+class ExtendedInstruction(Instruction):
+    def __init__(self, pc_state, get_function):
+        self.pc_state = pc_state
+        self.instruction_get_function = get_function
+
+    def execute(self, memory):
+        # Ignore unsupported instructions (will result in a dereference of 'None')
+        op_code_extended = memory.read(self.pc_state.PC + 1);
+        return self.instruction_get_function(op_code_extended).execute(memory)
+
 class Instruction_r(Instruction):
     # TODO
     pass
 
 class Noop(Instruction):
-    def __init__(self, clocks, pc_state):
+    def __init__(self, pc_state):
         self.pc_state = pc_state
-        self.clocks = clocks
 
     def execute(self, data):
         """NOP"""
@@ -1491,7 +1499,8 @@ class LD_A_R(Instruction):
         self.pc_state = pc_state
 
     def execute(self, memory):
-        self.pc_state.R =  (self.pc_state.R & 0x80) | ((self.clocks.cycles + self.pc_state.R + 1) & 0x7F);
+        # HMM??? Random???
+        self.pc_state.R =  (self.pc_state.R & 0x80) | ((self.pc_state.R + 1) & 0x7F);
         self.pc_state.A = self.pc_state.R;
         self.pc_state.F.Fstatus.N = 0;
         self.pc_state.F.Fstatus.H = 0;
@@ -2666,26 +2675,31 @@ class JP_M_nn(Instruction):
 
         return 10;
 
-## Enable interupts
-## EI
-#class EI(Instruction):
-#    def __init__(self, pc_state):
-#        self.pc_state = pc_state
-#
-#    def execute(self, memory):
-#        self.pc_state.PC += 1
-#
-#        # Process next instruction before enabling interupts
-#        self.step(False); # Single step, no loop
-#
-#        self.pc_state.IFF1 = 1;
-#        self.pc_state.IFF2 = 1;
-#        self.clocks.cycles+=4;
-#
-#          # Check for any pending interupts
-#        if (self.interuptor.pollInterupts(self.clocks.cycles) == True):
-#            self.interupt()
-#
+# Enable interupts
+# EI
+class EI(Instruction):
+    def __init__(self, clocks, pc_state, interupt, poll_interupts, step):
+        self.pc_state = pc_state
+        self.interupt = interupt
+        self.poll_interupts = poll_interupts
+        self.step = step
+        self.clocks = clocks
+
+    def execute(self, memory):
+        self.pc_state.PC += 1
+
+        # Process next instruction before enabling interupts
+        self.step(); # Single step, no loop
+
+        self.pc_state.IFF1 = 1;
+        self.pc_state.IFF2 = 1;
+
+          # Check for any pending interupts
+        if (self.poll_interupts(self.clocks.cycles) == True):
+            self.interupt()
+
+        return 4
+
 # CALL M, nn  if Negative
 class CALL_M_nn(Instruction):
     def __init__(self, pc_state):
