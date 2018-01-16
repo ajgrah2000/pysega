@@ -4,9 +4,8 @@ class RegWrapper(object):
         self.pc_state = pc_state
 
 class RegWrapperGeneric(RegWrapper):
-    def __init__(self, pc_state, reg_string):
+    def __init__(self, pc_state):
         super(RegWrapperGeneric, self).__init__(pc_state)
-        self._reg_string = reg_string
 
     def __int__(self):
         return self.get()
@@ -19,85 +18,278 @@ class RegWrapperGeneric(RegWrapper):
         self.set(self.get() - value)
         return self
 
-    def __and__(self, value):
-        return self.get() & value
-
-    def set(self, value):
-        self.pc_state.__setattr__(self._reg_string, value)
-
-    def get(self):
-        return self.pc_state.__getattribute__(self._reg_string)
-
     def get_low(self):
-        value = self.pc_state.__getattribute__(self._reg_string)
+        value = self.get()
         return value & 0xFF
 
     def get_high(self):
-        value = self.pc_state.__getattribute__(self._reg_string)
+        value = self.get()
         return (value >> 8) & 0xFF
 
     def set_high(self, value):
-        new = self.pc_state.__getattribute__(self._reg_string)
         new = self.get_low() + (value << 8)
         self.set(new)
 
     def set_low(self, value):
-        new = self.pc_state.__getattribute__(self._reg_string)
         new = value + (self.get_high() << 8)
         self.set(new)
 
 class RegWrapper_A(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_A, self).__init__(pc_state, "A")
+        super(RegWrapper_A, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.A
+
+    def __and__(self, value):
+        return self.pc_state.A & value
+
+    def __add__(self, value):
+        self.pc_state.A += value
+        return self
+
+    def get(self):
+        return self.pc_state.A
+
+    def set(self, data):
+        self.pc_state.A = data
 
 class RegWrapper_B(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_B, self).__init__(pc_state, "B")
+        super(RegWrapper_B, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.B
+
+    def __and__(self, value):
+        return self.pc_state.B & value
+
+    def __add__(self, value):
+        self.pc_state.B += value
+        return self
+
+    def get(self):
+        return self.pc_state.B
+
+    def set(self, data):
+        self.pc_state.B = data
 
 class RegWrapper_C(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_C, self).__init__(pc_state, "C")
+        super(RegWrapper_C, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.C
+
+    def __and__(self, value):
+        return self.pc_state.C & value
+
+    def __add__(self, value):
+        self.pc_state.C += value
+        return self
+
+    def get(self):
+        return self.pc_state.C
+
+    def set(self, data):
+        self.pc_state.C = data
 
 class RegWrapper_D(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_D, self).__init__(pc_state, "D")
+        super(RegWrapper_D, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.D
+
+    def __and__(self, value):
+        return self.pc_state.D & value
+
+    def __add__(self, value):
+        self.pc_state.D += value
+        return self
+
+    def get(self):
+        return self.pc_state.D
+
+    def set(self, data):
+        self.pc_state.D = data
 
 class RegWrapper_E(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_E, self).__init__(pc_state, "E")
+        super(RegWrapper_E, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.E
+
+    def __and__(self, value):
+        return self.pc_state.E & value
+
+    def __add__(self, value):
+        self.pc_state.E += value
+        return self
+
+    def get(self):
+        return self.pc_state.E
+
+    def set(self, data):
+        self.pc_state.E = data
 
 class RegWrapper_H(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_H, self).__init__(pc_state, "H")
+        super(RegWrapper_H, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.H
+
+    def __and__(self, value):
+        return self.pc_state.H & value
+
+    def __add__(self, value):
+        self.pc_state.H += value
+        return self
+
+    def get(self):
+        return self.pc_state.H
+
+    def set(self, data):
+        self.pc_state.H = data
 
 class RegWrapper_L(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_L, self).__init__(pc_state, "L")
+        super(RegWrapper_L, self).__init__(pc_state)
 
-class RegWrapper_SP(RegWrapperGeneric):
-    def __init__(self, pc_state):
-        super(RegWrapper_SP, self).__init__(pc_state, "SP")
+    def __int__(self):
+        return self.pc_state.L
+
+    def __and__(self, value):
+        return self.pc_state.L & value
+
+    def __add__(self, value):
+        self.pc_state.L += value
+        return self
+
+    def get(self):
+        return self.pc_state.L
+
+    def set(self, data):
+        self.pc_state.L = data
 
 class RegWrapper_BC(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_BC, self).__init__(pc_state, "BC")
+        super(RegWrapper_BC, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.BC
+
+    def __and__(self, value):
+        return self.pc_state.BC & value
+
+    def __add__(self, value):
+        self.pc_state.BC += value
+        return self
+
+    def get(self):
+        return self.pc_state.BC
+
+    def set(self, data):
+        self.pc_state.BC = data
 
 class RegWrapper_DE(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_DE, self).__init__(pc_state, "DE")
+        super(RegWrapper_DE, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.DE
+
+    def __and__(self, value):
+        return self.pc_state.DE & value
+
+    def __add__(self, value):
+        self.pc_state.DE += value
+        return self
+
+    def get(self):
+        return self.pc_state.DE
+
+    def set(self, data):
+        self.pc_state.DE = data
 
 class RegWrapper_HL(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_HL, self).__init__(pc_state, "HL")
+        super(RegWrapper_HL, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.HL
+
+    def __and__(self, value):
+        return self.pc_state.HL & value
+
+    def __add__(self, value):
+        self.pc_state.HL += value
+        return self
+
+    def get(self):
+        return self.pc_state.HL
+
+    def set(self, data):
+        self.pc_state.HL = data
 
 class RegWrapper_IX(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_IX, self).__init__(pc_state, "IX")
+        super(RegWrapper_IX, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.IX
+
+    def __and__(self, value):
+        return self.pc_state.IX & value
+
+    def __add__(self, value):
+        self.pc_state.IX += value
+        return self
+
+    def get(self):
+        return self.pc_state.IX
+
+    def set(self, data):
+        self.pc_state.IX = data
 
 class RegWrapper_IY(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_IY, self).__init__(pc_state, "IY")
+        super(RegWrapper_IY, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.IY
+
+    def __and__(self, value):
+        return self.pc_state.IY & value
+
+    def __add__(self, value):
+        self.pc_state.IY += value
+        return self
+
+    def get(self):
+        return self.pc_state.IY
+
+    def set(self, data):
+        self.pc_state.IY = data
 
 class RegWrapper_SP(RegWrapperGeneric):
     def __init__(self, pc_state):
-        super(RegWrapper_SP, self).__init__(pc_state, "SP")
+        super(RegWrapper_SP, self).__init__(pc_state)
+
+    def __int__(self):
+        return self.pc_state.SP
+
+    def __and__(self, value):
+        return self.pc_state.SP & value
+
+    def __add__(self, value):
+        self.pc_state.SP += value
+        return self
+
+    def get(self):
+        return self.pc_state.SP
+
+    def set(self, data):
+        self.pc_state.SP = data

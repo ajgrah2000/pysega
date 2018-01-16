@@ -81,7 +81,7 @@ def sub8c(pc_state, a, b, c):
 # self.pc_state.Add two 16 bit ints and set flags accordingly
 def add16c(pc_state, a, b, c):
     r = a + b + c;
-    rs = (a + b + c) & 0xFFFF;
+    rs = r & 0xFFFF;
     if (rs & 0x8000): # Negative
         pc_state.F.Fstatus.S = 1
     else:
@@ -314,7 +314,7 @@ class AND_r(Instruction):
         self.src = src
 
     def execute(self):
-        self.pc_state.A = int(self.pc_state.A) & int(self.src);
+        self.pc_state.A = self.pc_state.A & int(self.src);
         self.pc_state.PC += 1
     
         self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
@@ -355,7 +355,7 @@ class XOR_r(Instruction):
         self.src = src
 
     def execute(self):
-        self.pc_state.A = int(self.pc_state.A) ^ int(self.src);
+        self.pc_state.A = self.pc_state.A ^ int(self.src);
         self.pc_state.PC += 1
     
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
@@ -416,7 +416,7 @@ class JRZe(Instruction):
     def execute(self):
     
         if (self.pc_state.F.Fstatus.Z == 1):
-            self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC+1) & 0xFF)
+            self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC+1))
             cycles = 12
         else:
             cycles = 7
@@ -464,7 +464,7 @@ class JRNZe(Instruction):
         cycles = 7;
     
         if (self.pc_state.F.Fstatus.Z == 0):
-            self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC+1) & 0xFF)
+            self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC+1))
             cycles+=5;
     
         self.pc_state.PC += 2;
@@ -573,7 +573,7 @@ class DJNZ(Instruction):
         self.pc_state.B -= 1;
         if (self.pc_state.B != 0):
 
-            self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC + 1)) #(int) (signed char) self.memory.read(self.pc_state.PC + 1);
+            self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC + 1))
             cycles += 5
     
         self.pc_state.PC += 2
@@ -606,8 +606,8 @@ class ADD16(Instruction):
         self.pcInc = pcInc
 
     def execute(self):
-        a = self.dst
-        b = self.add
+        a = self.dst.get()
+        b = self.add.get()
 
         r = (a & 0xFFF) + (b & 0xFFF);
         if (r & 0x1000): # Half carry
@@ -1336,8 +1336,8 @@ class BIT_I_d(Instruction):
 
     def execute(self):
         tmp16 = self.I_reg.get() + signed_char_to_int(self.memory.read(self.pc_state.PC+2))
-        tmp8 = self.memory.read(tmp16)
-        t8 = self.memory.read(self.pc_state.PC+3)
+        tmp8  = self.memory.read(tmp16)
+        t8    = self.memory.read(self.pc_state.PC+3)
 
         if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.I_reg.get() + d)
             tmp8 = (tmp8 >> ((t8 & 0x38) >> 3)) & 0x1
@@ -1644,7 +1644,7 @@ class ADC_HL_r16(Instruction):
         self.reg = reg
 
     def execute(self):
-        self.pc_state.HL = add16c(self.pc_state, int(self.pc_state.HL), int(self.reg), self.pc_state.F.Fstatus.C);
+        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, int(self.reg), self.pc_state.F.Fstatus.C);
         self.pc_state.PC+=2;
         return 15;
     
