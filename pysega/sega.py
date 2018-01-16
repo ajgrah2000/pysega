@@ -98,11 +98,11 @@ class Sega(object):
 
         self.core.reset()
 
-        step_func = self.core.step
         quit_func = self.inputs.get_quit
 
         try:
           if debug:
+              step_func = self.core.step_debug
               if 0 == stop_clock:
                   while 0 == quit_func():
                       step_func(debug=True)
@@ -111,6 +111,7 @@ class Sega(object):
                   while clk.cycles < stop_clock:
                       step_func()
           else:
+              step_func = self.core.step
               if 0 == stop_clock:
                   while 0 == quit_func():
                       step_func()

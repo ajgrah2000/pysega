@@ -2689,7 +2689,7 @@ class EI(Instruction):
         self.pc_state.PC += 1
 
         # Process next instruction before enabling interupts
-        self.step(); # Single step, no loop
+        self.step(); # Single step
 
         self.pc_state.IFF1 = 1;
         self.pc_state.IFF2 = 1;

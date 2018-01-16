@@ -58,10 +58,9 @@ class Core(object):
     def initialise(self):
         self.instruction_lookup.populate_instruction_map(self.clocks, self.pc_state, self.memory, self.interupt, self.interuptor.pollInterupts, self.step)
 
-    def step(self, debug=False):
+    def step_debug(self):
     
-          if debug:
-              print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
+          print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
   
           if (self.clocks.cycles >= self._nextPossibleInterupt):
               self.interuptor.setCycle(self.clocks.cycles);
@@ -69,8 +68,22 @@ class Core(object):
   
           op_code = self.memory.read(self.pc_state.PC);
 
-          if debug:
-              print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, op_code, self.pc_state))
+          print("%d %x %x (%x) %s"%(self.clocks.cycles, op_code, self.pc_state.PC, op_code, self.pc_state))
   
           # This will raise an exception for unsupported op_code
-          self.clocks.cycles += self.instruction_lookup.getInstruction(op_code).execute(self.memory)
+          # Need to add cycles *after* to ensure during recursive calls (ie
+          # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
+          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute(self.memory) + self.clocks.cycles
+
+    def step(self):
+    
+          if (self.clocks.cycles >= self._nextPossibleInterupt):
+              self.interuptor.setCycle(self.clocks.cycles);
+              self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
+  
+          op_code = self.memory.read(self.pc_state.PC);
+
+          # This will raise an exception for unsupported op_code
+          # Need to add cycles *after* to ensure during recursive calls (ie
+          # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
+          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute(self.memory) + self.clocks.cycles
