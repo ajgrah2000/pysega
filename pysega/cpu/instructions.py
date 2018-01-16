@@ -584,24 +584,23 @@ class ADD16(Instruction):
         self.pcInc = pcInc
 
     def execute(self, memory):
-        #static int32 r;
-    
-        r =  int(self.dst) + int(self.add);
-    
-        r = (self.dst & 0xFFF) + (self.add & 0xFFF);
+        a = self.dst
+        b = self.add
+
+        r = (a & 0xFFF) + (b & 0xFFF);
         if (r & 0x1000): # Half carry
           self.pc_state.F.Fstatus.H = 1 # Half carry
         else:
           self.pc_state.F.Fstatus.H = 0 # Half carry
         self.pc_state.F.Fstatus.N = 0;
     
-        r = (self.dst & 0xFFFF) + (self.add & 0xFFFF);
+        r = (a & 0xFFFF) + (b & 0xFFFF);
         if (r & 0x10000): # Carry
           self.pc_state.F.Fstatus.C = 1 # Carry
         else:
           self.pc_state.F.Fstatus.C = 0 # Carry
     
-        self.dst += self.add;
+        self.dst.set(r)
     
         self.pc_state.PC += self.pcInc;
     

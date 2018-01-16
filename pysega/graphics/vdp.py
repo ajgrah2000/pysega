@@ -886,77 +886,83 @@ void Vdp::drawDisplay(void)
     
         for y in range(0, VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT, VdpConstants.PATTERNHEIGHT):
             for x in range(0, VdpConstants.XTILES*VdpConstants.PATTERNWIDTH, VdpConstants.PATTERNWIDTH):
-                if ((self._forgroundScanLines[y].hasPriority == False) and (self._tileAttributes[tile].priority == True)):
-                    for py in range(VdpConstants.PATTERNHEIGHT):
-                        self._forgroundScanLines[y+py].hasPriority = True
-    
-                if(self._tileAttributes[tile].changed or self._patternInfo[self._tileAttributes[tile].tileNumber].changed):
-                    if(False == self._patternInfo[self._tileAttributes[tile].tileNumber].screenVersionCached):
-                        self.updateScreenPattern(self._tileAttributes[tile].tileNumber)
-    
-                    priority = self._tileAttributes[tile].priority
 
-                    patterns16_offset = (self._tileAttributes[tile].tileNumber << 6)
+                _tile_attribute = self._tileAttributes[tile]
+                _patterns16_palette = self._patterns16[_tile_attribute.paletteSelect]
+
+                if ((self._forgroundScanLines[y].hasPriority == False) and (_tile_attribute.priority == True)):
+                    for py in range(y, y+ VdpConstants.PATTERNHEIGHT):
+                        self._forgroundScanLines[py].hasPriority = True
+    
+                if(_tile_attribute.changed or self._patternInfo[_tile_attribute.tileNumber].changed):
+                    if(False == self._patternInfo[_tile_attribute.tileNumber].screenVersionCached):
+                        self.updateScreenPattern(_tile_attribute.tileNumber)
+    
+                    patterns16_offset = (_tile_attribute.tileNumber << 6)
                     patternYdelta = 0
                     patternXdelta = 1
     
-                    if (self._tileAttributes[tile].horizontalFlip != 0):
+                    if (_tile_attribute.horizontalFlip != 0):
                         patterns16_offset += VdpConstants.PATTERNWIDTH-1
                         patternXdelta = -1
                         patternYdelta = VdpConstants.PATTERNWIDTH * 2
     
-                    if (self._tileAttributes[tile].verticalFlip != 0):
+                    if (_tile_attribute.verticalFlip != 0):
                         patterns16_offset += ((VdpConstants.PATTERNHEIGHT-1) << 3)
                         patternYdelta -= 2 * VdpConstants.PATTERNWIDTH
     
-                    if (priority):
-                        pattern4_offset = (self._tileAttributes[tile].tileNumber << 6)
+                    if (_tile_attribute.priority):
+                        pattern4_offset = (_tile_attribute.tileNumber << 6)
     
-                        if (self._tileAttributes[tile].horizontalFlip != 0):
+                        if (_tile_attribute.horizontalFlip != 0):
                             pattern4_offset += VdpConstants.PATTERNWIDTH-1
     
-                        if (self._tileAttributes[tile].verticalFlip != 0):
+                        if (_tile_attribute.verticalFlip != 0):
                             pattern4_offset += ((VdpConstants.PATTERNHEIGHT-1) << 3)
     
-                        for py in range(VdpConstants.PATTERNHEIGHT):
-                            for px in range(VdpConstants.PATTERNWIDTH):
-                                self._backgroundScanLines[y+py].scanLine[x+px] = self._patterns16[self._tileAttributes[tile].paletteSelect][patterns16_offset]
+                        for py in range(y, y + VdpConstants.PATTERNHEIGHT):
+                            _background_y_line = self._backgroundScanLines[py]
+                            _forground_y_line = self._forgroundScanLines[py]
+                            for px in range(x, x + VdpConstants.PATTERNWIDTH):
+                                _background_y_line.scanLine[px] = _patterns16_palette[patterns16_offset]
     
                                 # Indicate a forground pixel if the value is
                                 # non-zero and it is set as a forground pixel...
                                 # well tile
-                                self._forgroundScanLines[y+py].scanLine[x+px] = False
+                                _forground_y_line.scanLine[px] = False
     
-                                if (priority and (self._patterns4[pattern4_offset] != 0x0)):
-                                    self._forgroundScanLines[y+py].scanLine[x+px] = True
+                                # 'priority' is always true in this branch
+                                if (self._patterns4[pattern4_offset] != 0x0):
+                                    _forground_y_line.scanLine[px] = True
     
                                 patterns16_offset += patternXdelta
                                 pattern4_offset += patternXdelta
                             patterns16_offset += patternYdelta
                             pattern4_offset += patternYdelta
     
-                            self._backgroundScanLines[y+py].lineChanged = True
+                            _background_y_line.lineChanged = True
                     else:
-                        if (self._tileAttributes[tile].priorityCleared):
-                            for py in range(VdpConstants.PATTERNHEIGHT):
-                                for px in range(VdpConstants.PATTERNWIDTH):
-                                    self._forgroundScanLines[y+py].scanLine[x+px] = False
-                            self._tileAttributes[tile].priorityCleared = False
+                        if (_tile_attribute.priorityCleared):
+                            for py in range(y, y + VdpConstants.PATTERNHEIGHT):
+                                _forground_y_line = self._forgroundScanLines[py]
+                                for px in range(x, x + VdpConstants.PATTERNWIDTH):
+                                    _forground_y_line.scanLine[px] = False
+                            _tile_attribute.priorityCleared = False
     
-                        for py in range(VdpConstants.PATTERNHEIGHT):
+                        for py in range(y, y + VdpConstants.PATTERNHEIGHT):
+                            _background_y_line = self._backgroundScanLines[py]
                             if (patternXdelta == 1):
                                 for i in range(VdpConstants.PATTERNWIDTH):
-                                    self._backgroundScanLines[y+py].scanLine[x + i] = self._patterns16[self._tileAttributes[tile].paletteSelect][patterns16_offset + i]
+                                    _background_y_line.scanLine[x + i] = _patterns16_palette[patterns16_offset + i]
                                 patterns16_offset += VdpConstants.PATTERNWIDTH
                             else:
                                 for px in range(VdpConstants.PATTERNWIDTH):
-                                    self._backgroundScanLines[y+py].scanLine[x+px] = self._patterns16[self._tileAttributes[tile].paletteSelect][patterns16_offset]
-    
+                                    _background_y_line.scanLine[x+px]  = _patterns16_palette[patterns16_offset]
                                     patterns16_offset += patternXdelta
                             patterns16_offset += patternYdelta
     
-                            self._backgroundScanLines[y+py].lineChanged = True
-                    self._tileAttributes[tile].changed = False
+                            _background_y_line.lineChanged = True
+                    _tile_attribute.changed = False
 
                 tile += 1
 
@@ -971,6 +977,9 @@ void Vdp::drawDisplay(void)
         self.driver_update_display()
 
     def single_scan(self, y):
+            """ Could split this into the forst '_yScroll' rows, to reduce some computation.
+            """
+
             fineScroll = 0
             xOffset = 0
     
