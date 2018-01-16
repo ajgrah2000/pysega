@@ -1,5 +1,6 @@
 import unittest
 import pysega.memory.memory as memory
+import pysega.memory.memory_legacy as memory_legacy
 
 class MemoryReferenceImplementation(object):
     """ Memory map management of sega master system/cartridges/ram
@@ -141,7 +142,7 @@ class TestMemoryPaging(unittest.TestCase):
 
     def testMemoryRead(self):
         reference_memory = MemoryReferenceImplementation()
-        uut_memory = memory.MemoryCached()
+        uut_memory = memory_legacy.MemoryCached()
         uut2_memory = memory.MemoryShare()
 
         reference_memory.initialise_test_memory(self._catridge_ref)

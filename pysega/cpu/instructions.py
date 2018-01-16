@@ -1008,7 +1008,7 @@ class LD_r_mem (Instruction):
 
     # Load the value at the address into a register.
     def execute(self, memory):
-      self.r.set(memory.read(self.addr));
+      self.r.set(memory.read(int(self.addr)));
       self.pc_state.PC += 1;
       return 7;
 
