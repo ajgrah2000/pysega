@@ -88,7 +88,8 @@ class MemoryShare(MemoryBase):
             self.write(dest+i, self.read(src+i))
 
     def write(self, address, data):
-        self._cache_write(address, int(data))
+        # Should check inputs, see which instructions/condition can overflow
+        self._cache_write(address, int(data) & 0xFF)
 
     def set_cartridge(self, cartridge):
         self.cartridge = cartridge

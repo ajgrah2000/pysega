@@ -59,7 +59,11 @@ class PC_State_8BitStructure(ctypes.Structure):
                ('DE_', ctypes.c_ushort),
                ('HL_', ctypes.c_ushort),
                ('A_',  ctypes.c_ushort),
-               ('F_',  ctypes.c_ushort)]
+               ('F_',  ctypes.c_ushort),
+
+               ('R', ctypes.c_ubyte), # TODO: Check, not sure if this is a 'real' register, used for random?
+               ]
+
 
 class PC_State_16BitStructure(ctypes.BigEndianStructure):
 

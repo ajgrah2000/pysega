@@ -967,24 +967,30 @@ void Vdp::drawDisplay(void)
         self.driver_update_display()
 
     def updateDisplay(self):
-        fineScroll = 0;
-        xOffset = 0;
-    
-        TILE_SIZE = VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT
         for y in range(self._yEnd):
+            self.single_scan(y)
 
+        self.driver_update_display()
+
+    def single_scan(self, y):
+            fineScroll = 0;
+            xOffset = 0;
+    
             sprite_scan_y = self._spriteScanLines[y]
             verticalOffset = self._verticalScrollInfo[y];
             v_y = verticalOffset + y
+            tile_offset = v_y % (VdpConstants.YTILES*VdpConstants.PATTERNHEIGHT)
             horizontal_info_y = self._horizontalScrollInfo[y]
-            background_scan_y = self._backgroundScanLines[v_y % TILE_SIZE]
+            background_scan_y = self._backgroundScanLines[tile_offset]
 
+            # This check helps if not much changes, but not so much during scrolls.
             if (horizontal_info_y.xOffset != self._lastHorizontalScrollInfo[y].xOffset) or (self._verticalScrollInfo[y] != self._lastVerticalScrollInfo[y]) or (sprite_scan_y.lineChanged) or (background_scan_y.lineChanged):
+
                 self._lastHorizontalScrollInfo[y].xOffset = horizontal_info_y.xOffset;
                 self._lastVerticalScrollInfo[y] = self._verticalScrollInfo[y];
 
                 scan_y = self._scanLines[y]
-                forground_scan_y  = self._forgroundScanLines[v_y % TILE_SIZE]
+                forground_scan_y  = self._forgroundScanLines[tile_offset]
     
                 if (y >= self._yScroll):
                     fineScroll = horizontal_info_y.fineScroll;
@@ -997,6 +1003,7 @@ void Vdp::drawDisplay(void)
     
                 # Copy the source to the destination */
                 firstBlock = VdpConstants.SMS_WIDTH - ((x+xOffset) % VdpConstants.SMS_WIDTH);
+
                 if (firstBlock > (VdpConstants.SMS_WIDTH - x)):
                     firstBlock = VdpConstants.SMS_WIDTH - x;
 
@@ -1029,8 +1036,6 @@ void Vdp::drawDisplay(void)
             sprite_scan_y.lineChanged = False;
             background_scan_y.lineChanged = False;
     
-        self.driver_update_display()
-
     # Draw the background tiles
     def drawPatterns(self):
 

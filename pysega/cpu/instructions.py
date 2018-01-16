@@ -84,6 +84,7 @@ def sub8c(pc_state, a, b, c):
 # self.pc_state.Add two 16 bit ints and set flags accordingly
 def add16c(pc_state, a, b, c):
     r = a + b + c;
+    rs = (a + b + c) & 0xFFFF;
     if (rs & 0x8000): # Negative
         pc_state.F.Fstatus.S = 1
     else:
@@ -261,8 +262,7 @@ class ExtendedInstruction(Instruction):
 
     def execute(self, memory):
         # Ignore unsupported instructions (will result in a dereference of 'None')
-        op_code_extended = memory.read(self.pc_state.PC + 1);
-        return self.instruction_get_function(op_code_extended).execute(memory)
+        return self.instruction_get_function(memory.read(self.pc_state.PC + 1)).execute(memory)
 
 class Instruction_r(Instruction):
     # TODO
@@ -466,7 +466,7 @@ class INC_r(Instruction_r):
 
     def execute(self, memory):
         self.r += 1
-        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(self.r.get());
+        self.pc_state.F.value = (self.pc_state.F.value & Instruction.FLAG_MASK_INC8) | flagtables.FlagTables.getStatusInc8(self.r.get() & 0xFF);
         self.pc_state.PC += 1
     
         return 4;
@@ -1553,7 +1553,7 @@ class ADC_HL_r16(Instruction):
         self.reg = reg
 
     def execute(self, memory):
-        self.pc_state.HL = add16c(self.pc_state, self.pc_state.HL, self.reg, self.pc_state.F.Fstatus.C);
+        self.pc_state.HL = add16c(self.pc_state, int(self.pc_state.HL), int(self.reg), self.pc_state.F.Fstatus.C);
         self.pc_state.PC+=2;
         return 15;
     
