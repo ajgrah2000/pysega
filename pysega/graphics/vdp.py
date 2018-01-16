@@ -197,6 +197,7 @@ class VDP(object):
         self._yEnd = 0
         self._enableDisplay = True
 
+        self._nextPossibleInterupt = 0
         self._interupt = None
 
 
@@ -288,17 +289,14 @@ class VDP(object):
         self._horizontalScroll = 0
 
     def _draw_display(self):
-        self.poll_events()
         self.driver_draw_display()
 
     def setCycle(self, cycle):
-        if (cycle >= self.getNextInterupt(cycle)):
-            if (self.pollInterupts(cycle) == True):
-                self._interupt.interupt()
-
-    def getNextInterupt(self, cycles):
-        print("getNextInterupt Not implemented")
-        return 0
+        if (cycle >= self._nextPossibleInterupt):
+                if (self.pollInterupts(cycle) == True):
+                    self.poll_events()
+                    self._interupt.interupt()
+                self.getNextInterupt(cycle)
 
     def pollInterupts(self, cycle):
 
@@ -780,14 +778,17 @@ class VDP(object):
 
     def getNextInterupt(self, cycle):
         # Check conditions to see if a line interupt is next 
-        if ((self._lineIntTime < VdpConstants.VFRAMETIME) and
-            (self._vSync < self._lineIntTime)):
-            # Next interupt will be a line interupt
-            return self._lastVSync + self._lineIntTime
-        elif (self._vSync < VdpConstants.VFRAMETIME):  # Check for a frame interupt
-            return self._lastVSync + VdpConstants.VFRAMETIME
-        else:
-            return self._lastVSync + VdpConstants.VSYNCCYCLETIME
+        if (self.clocks.cycles >= self._nextPossibleInterupt):
+          if ((self._lineIntTime < VdpConstants.VFRAMETIME) and
+              (self._vSync < self._lineIntTime)):
+              # Next interupt will be a line interupt
+              self._nextPossibleInterupt = self._lastVSync + self._lineIntTime
+          elif (self._vSync < VdpConstants.VFRAMETIME):  # Check for a frame interupt
+              self._nextPossibleInterupt = self._lastVSync + VdpConstants.VFRAMETIME
+          else:
+              self._nextPossibleInterupt = self._lastVSync + VdpConstants.VSYNCCYCLETIME
+
+        return self._nextPossibleInterupt
 
     def openDisplay(self):
         # Initialise the scanlines

@@ -22,7 +22,6 @@ class DummySound(object):
         pass
 
     def writePort(self, value):
-        print "Sound port not implemented"
         pass
 
 class Sega(object):

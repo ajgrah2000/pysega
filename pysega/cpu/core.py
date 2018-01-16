@@ -22,8 +22,6 @@ class Core(object):
 
         self.instruction_lookup = instruction_store.InstructionStore(self.clocks, self.pc_state, self.ports)
 
-        self._nextPossibleInterupt = 0
-
         flagtables.FlagTables.init()
 
     def get_save_state(self):
@@ -58,11 +56,9 @@ class Core(object):
 
     def step_debug(self):
     
-          print ("%d %d"%(self.clocks.cycles, self._nextPossibleInterupt))
+          print ("%d %d"%(self.clocks.cycles, self.interuptor._nextPossibleInterupt))
   
-          if (self.clocks.cycles >= self._nextPossibleInterupt):
-              self.interuptor.setCycle(self.clocks.cycles);
-              self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
+          self.interuptor.setCycle(self.clocks.cycles);
   
           op_code = self.memory.read(self.pc_state.PC);
 
@@ -75,13 +71,11 @@ class Core(object):
 
     def step(self):
     
-          if (self.clocks.cycles >= self._nextPossibleInterupt):
-              self.interuptor.setCycle(self.clocks.cycles);
-              self._nextPossibleInterupt = self.interuptor.getNextInterupt(self.clocks.cycles);
-  
+          c = self.clocks.cycles
+          self.interuptor.setCycle(c);
           op_code = self.memory.read(self.pc_state.PC);
 
           # This will raise an exception for unsupported op_code
           # Need to add cycles *after* to ensure during recursive calls (ie
           # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
-          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + self.clocks.cycles
+          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + c
