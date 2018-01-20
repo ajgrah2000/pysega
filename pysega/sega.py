@@ -13,7 +13,7 @@ class DummyPort(object):
         print "Dummy write not implemented"
         pass
 
-    def readPort(self, value):
+    def readPort(self):
         print "Dummy read not implemented"
         return 0
 
@@ -104,7 +104,7 @@ class Sega(object):
               step_func = self.core.step_debug
               if 0 == stop_clock:
                   while 0 == quit_func():
-                      step_func(debug=True)
+                      step_func()
               else:
                   clk = self.clocks
                   while clk.cycles < stop_clock:

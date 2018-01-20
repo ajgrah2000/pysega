@@ -41,7 +41,7 @@ class VdpConstants(object):
         NUMVDPREGISTERS = 16
 
         # VDP status register 
-        VSYNCFLAG = 0x80
+        VSYNCFLAG   = 0x80
 
         # VDP register 0
         MODE_CONTROL_NO_1 = 0x0
@@ -210,6 +210,9 @@ class VDP(object):
         #self._tileDefinitions = 0
         self._enableDisplay = False
 
+        self._tileAttributesAddress = 0
+        self._spriteAttributesAddress = 0
+
         self._vdpRAM        = [0] * VdpConstants.RAMSIZE
         self._cRAM          = [0] * VdpConstants.CRAMSIZE
         self._screenPalette = [0] * VdpConstants.CRAMSIZE
@@ -219,6 +222,7 @@ class VDP(object):
         self._vIntPending = False
 
         self._addressLatch = False
+        self._lowaddress   = 0
         self._isFullSpeed = False
 
         self._codeRegister = 0
@@ -861,6 +865,7 @@ class VDP(object):
         self._patternInfo[pattern].colorCheck = True
 
     def drawBuffer(self):
+
         self.drawBackground()
         self.drawSprites()
 
