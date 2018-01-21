@@ -1,4 +1,5 @@
 from .memory import memory
+from .memory import memory_absolute
 from .memory import cartridge
 from .graphics import vdp
 from . import clocks
@@ -36,7 +37,8 @@ class Sega(object):
         self.sound     = DummySound()
 #        self.memory    = memory.MemoryReference()
 #        self.memory    = memory.MemoryCached()
-        self.memory    = memory.MemoryShare()
+#        self.memory    = memory.MemoryShare()
+        self.memory    = memory_absolute.MemoryAbsolute()
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
 

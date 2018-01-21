@@ -7,7 +7,7 @@ class MemoryBase(object):
     ADDRESS_MASK    = 0xFFFF
     RAMMASK         = 0xDFFF;
 
-    RAM_SELECT_REGISTER = 0xFFFC
+    RAM_SELECT_REGISTER        = 0xFFFC
     PAGE0_BANK_SELECT_REGISTER = 0xFFFD
     PAGE1_BANK_SELECT_REGISTER = 0xFFFE
     PAGE2_BANK_SELECT_REGISTER = 0xFFFF
@@ -178,12 +178,6 @@ class MemoryShare(MemoryBase):
                         self._update_fixed_read_page2_ram()
                         self._pages[2] = data
     
-                    self._memory_shared_lookup[(int(address & self.RAMMASK) >> self.UPPERSHIFT) & 0x3][address & self.LOWERMASK & self.RAMMASK] = data
-    
-                self._memory_shared_lookup[(int(address) >> self.UPPERSHIFT) & 0x3][address & self.LOWERMASK] = data
-    
-        elif(address < self.PAGE2):
-            print "Warning writting to ROM address %x"%(address)
         elif (address < self.RAM_OFFSET) and (address >= self.PAGE2):
             ram_select = self._paging_register_ram
             if (ram_select & 0x8): # page2_is_cartridge_ram
@@ -195,3 +189,5 @@ class MemoryShare(MemoryBase):
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
             else:
               print "Warning writting to ROM address %x"%(address)
+        else:
+            print "Warning to unexpected address %x"%(address)

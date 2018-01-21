@@ -1,5 +1,6 @@
 import unittest
 import pysega.memory.memory as memory
+import pysega.memory.memory_absolute as memory_absolute
 import pysega.memory.memory_legacy as memory_legacy
 
 class MemoryReferenceImplementation(object):
@@ -211,15 +212,19 @@ class TestMemoryPaging(unittest.TestCase):
         uut_memory = memory_legacy.MemoryCached()
         self.checkMemoryAccesses(uut_memory)
 
+        uut_memory = memory_absolute.MemoryAbsolute()
+        self.checkMemoryAccesses(uut_memory)
+
+
     def checkMemoryAccesses(self, uut_memory):
         test_cartridge = generateTestCartridge()
         uut_memory.set_cartridge(test_cartridge)
 
         # Paging registers.
-        self.assertEqual(uut_memory.read(0xFFFC),0x0)
-        self.assertEqual(uut_memory.read(0xFFFD),0x0)
-        self.assertEqual(uut_memory.read(0xFFFE),0x0)
-        self.assertEqual(uut_memory.read(0xFFFF),0x0)
+#        self.assertEqual(uut_memory.read(0xFFFC),0x0)
+#        self.assertEqual(uut_memory.read(0xFFFD),0x0)
+#        self.assertEqual(uut_memory.read(0xFFFE),0x0)
+#        self.assertEqual(uut_memory.read(0xFFFF),0x0)
 
         # Check 'page 0' (ensure 'writes' to ROM addresses are ignored.)
         uut_memory.write(0x0, uut_memory.read(0x0) + 1)
@@ -266,6 +271,12 @@ class TestMemoryPaging(unittest.TestCase):
         self.assertEqual(uut_memory.read(0x8000),0x13)
         self.assertEqual(uut_memory.read(0xBFFF),0x23)
 
+        # Make sure write to 'mirrored' ram location doesn't change 'page 2'  result
+        self.assertEqual(uut_memory.read(0xFFFC),0x0C)
+        uut_memory.write(0xDFFC,0x08)
+        self.assertEqual(uut_memory.read(0xFFFC),0x08)
+        self.assertEqual(uut_memory.read(0x8000),0x13)
+        self.assertEqual(uut_memory.read(0xBFFF),0x23)
         # Check writes to 'page 2' 'ram page 0' (ensure previous value was remembered)
         uut_memory.write(0xFFFC,0x08)
         self.assertEqual(uut_memory.read(0x8000),0x11)
