@@ -9,8 +9,6 @@ class MemoryBaseLegacy(object):
     PAGEOFRAM       = 0x04
     PAGEOFRAMBITPOS = 2
 
-    RAMOFFSET  = 0xC000
-
     PAGE0      = 0x400
     PAGE1      = 0x4000
     PAGE2      = 0x8000
@@ -58,7 +56,7 @@ class MemoryReference(MemoryBaseLegacy):
         """ write multiple bytes to memory.
         """
 
-        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAMOFFSET)):
+        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAM_OFFSET)):
             errors.warning("Write out of range %x"%(dest + length))
             return
 
@@ -119,14 +117,9 @@ class MemoryReference(MemoryBaseLegacy):
 
         if(address >= self.PAGING_REGISTERS):
             self._memory_map[address] = data
-        elif(address < self.PAGE0):
-            self.cartridge.cartridge_banks[0][bank_address] = data
-        elif(address < self.PAGE1):
-            page0_bank = self._memory_map[0xFFFD]
-            self.cartridge.cartridge_banks[page0_bank][bank_address] = data
         elif(address < self.PAGE2):
-            page1_bank = self._memory_map[0xFFFE]
-            self.cartridge.cartridge_banks[page1_bank][bank_address] = data
+            # No writes to PAGE0, PAGE1
+            pass
         elif(address < self.RAM_OFFSET):
             ram_select = self._memory_map[0xFFFC]
             if (ram_select & 0x8): # page2_is_cartridge_ram
@@ -136,9 +129,6 @@ class MemoryReference(MemoryBaseLegacy):
                 cartridge_ram_page = 0
       
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
-            else:
-              page2_bank = self._memory_map[0xFFFF]
-              self.cartridge.cartridge_banks[page2_bank][bank_address] = data
         elif(address < self.PAGING_REGISTERS):
             # This covers RAM & Mirrored RAM
             self._ram[address & (self.RAM_SIZE - 1)] = data
@@ -184,7 +174,7 @@ class MemoryCached(MemoryBaseLegacy):
         """ write multiple bytes to memory.
         """
 
-        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAMOFFSET)):
+        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAM_OFFSET)):
             errors.warning("Write out of range %x"%(dest + length))
             return
 
@@ -259,37 +249,37 @@ class MemoryCached(MemoryBaseLegacy):
         address = address & 0xFFFF # ADDRESS_MASK
         bank_address = address & 0x3FFF # BANK_MASK
 
-        if(address >= self.PAGING_REGISTERS):
-            self._memory_map[address] = data
-            self._cached_read[address] = data
+        if (address >= self.RAM_OFFSET):
+            # Mirrored ram exists in two locations, so write to both.
+            self._cached_read[self.RAM_OFFSET + (address & (self.RAM_SIZE - 1))] = data
+            self._cached_read[self.RAM_OFFSET + (address & (self.RAM_SIZE - 1)) + self.RAM_SIZE] = data
 
-            # Should make these conditiona, 
-            if (address == 0xFFFD):
-                if (self._pages[0] != data):
-                    self._update_fixed_read_page0()
-                    self._pages[0] = data
-            elif (address == 0xFFFE):
-                if (self._pages[1] != data):
-                    self._update_fixed_read_page1()
-                    self._pages[1] = data
-            elif ((address == 0xFFFC) or (address == 0xFFFF)):
-                if (self._pages[2] != data):
-                    self._update_fixed_read_page2_ram()
-                    self._pages[2] = data
-
-            self._cached_read[address] = data
-
+            if(address >= self.PAGING_REGISTERS):
+                self._memory_map[address] = data
+                self._cached_read[address] = data
+    
+                # Should make these conditiona, 
+                if (address == 0xFFFD):
+                    if (self._pages[0] != data):
+                        self._update_fixed_read_page0()
+                        self._pages[0] = data
+                elif (address == 0xFFFE):
+                    if (self._pages[1] != data):
+                        self._update_fixed_read_page1()
+                        self._pages[1] = data
+                elif ((address == 0xFFFC) or (address == 0xFFFF)):
+                    if (self._pages[2] != data):
+                        self._update_fixed_read_page2_ram()
+                        self._pages[2] = data
+    
+                self._cached_read[address] = data
+    
         elif(address < self.PAGE0):
-            self.cartridge.cartridge_banks[0][bank_address] = data
-            self._cached_read[address] = data
+            pass
         elif(address < self.PAGE1):
-            page0_bank = self._memory_map[0xFFFD]
-            self.cartridge.cartridge_banks[page0_bank][bank_address] = data
-            self._cached_read[address] = data
+            pass
         elif(address < self.PAGE2):
-            page1_bank = self._memory_map[0xFFFE]
-            self.cartridge.cartridge_banks[page1_bank][bank_address] = data
-            self._cached_read[address] = data
+            pass
         elif(address < self.RAM_OFFSET):
             ram_select = self._memory_map[0xFFFC]
             if (ram_select & 0x8): # page2_is_cartridge_ram
@@ -300,10 +290,4 @@ class MemoryCached(MemoryBaseLegacy):
       
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
               page2_bank = self._memory_map[0xFFFF]
-              self.cartridge.cartridge_banks[page2_bank][bank_address] = data
               self._cached_read[address] = data
-        elif(address < self.PAGING_REGISTERS):
-            # Mirrored ram exists in two locations, so write to both.
-            self._cached_read[self.RAM_OFFSET + (address & (self.RAM_SIZE - 1))] = data
-            self._cached_read[self.RAM_OFFSET + (address & (self.RAM_SIZE - 1)) + self.RAM_SIZE] = data
-

@@ -16,8 +16,6 @@ class MemoryBase(object):
     PAGEOFRAM       = 0x04
     PAGEOFRAMBITPOS = 2
 
-    RAMOFFSET  = 0xC000
-
     # Memory map offsets
     PAGE0      = 0x400  # 0 to Page0 offset always holds bank 0 
     PAGE1      = 0x4000
@@ -50,9 +48,9 @@ class MemoryShare(MemoryBase):
         # Remember the last bank assignments per page, and only swap if they differ
         self._pages = [None] * 4
         self._paging_register_page0 = 0
-        self._paging_register_page1 = 1
-        self._paging_register_page2 = 2
-        self._paging_register_ram   = 3
+        self._paging_register_page1 = 0
+        self._paging_register_page2 = 0
+        self._paging_register_ram   = 0
 
         # Location to store the page references.
         self._memory_shared_lookup = [[0] * self.BANK_SIZE for x in range(4)]
@@ -81,7 +79,7 @@ class MemoryShare(MemoryBase):
         """ write multiple bytes to memory.
         """
 
-        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAMOFFSET)):
+        if (((dest + length) >= self.MEMMAPSIZE) or (dest < self.RAM_OFFSET)):
             errors.warning("Write out of range %x"%(dest + length))
             return
 
@@ -140,42 +138,53 @@ class MemoryShare(MemoryBase):
 
         else:
           page2_bank = self._paging_register_page2
-          self._memory_shared_lookup[2] = self.cartridge.cartridge_banks[page2_bank]
+          if (page2_bank < len(self.cartridge.cartridge_banks)):
+             self._memory_shared_lookup[2] = self.cartridge.cartridge_banks[page2_bank]
+          else:
+             # Assume this is a 'transient' situation, force an error if
+             # subsequently accessed.
+             print "Page 2: slection larger than cratridge. 0x%x"%(data)
+             self._memory_shared_lookup[2] = None
 
     def _write(self, address, data):
         address = address & self.ADDRESS_MASK # ADDRESS_MASK
         bank_address = address & self.LOWERMASK # BANK_MASK
 
-        if(address >= self.MEMREGISTERS):
+        if(address >= self.RAM_OFFSET):
+            # Memory control registers are written through to RAM
+            self._ram[address & (self.RAM_SIZE - 1)] = data
+            # Ram is 'half' size, so duplicate write to mirror section of array
+            self._ram[(address & (self.RAM_SIZE - 1)) + self.RAM_SIZE] = data
 
-            # Should make these conditiona, 
-            if (address == self.PAGE0_BANK_SELECT_REGISTER):
-                self._paging_register_page0 = data
-                if (self._pages[0] != data):
-                    self._update_fixed_read_page0()
-                    self._pages[0] = data
-            elif (address == self.PAGE1_BANK_SELECT_REGISTER):
-                self._paging_register_page1 = data
-                if (self._pages[1] != data):
-                    self._update_fixed_read_page1()
-                    self._pages[1] = data
-            elif ((address == self.RAM_SELECT_REGISTER) or (address == self.PAGE2_BANK_SELECT_REGISTER)):
-                if   (address == self.RAM_SELECT_REGISTER):
-                    self._paging_register_ram = data
-                elif (address == self.PAGE2_BANK_SELECT_REGISTER):
-                    self._paging_register_page2 = data
-
-                if (self._pages[2] != data):
-                    self._update_fixed_read_page2_ram()
-                    self._pages[2] = data
-
-                self._memory_shared_lookup[(int(address & self.RAMMASK) >> self.UPPERSHIFT) & 0x3][address & self.LOWERMASK & self.RAMMASK] = data
-
-            self._memory_shared_lookup[(int(address) >> self.UPPERSHIFT) & 0x3][address & self.LOWERMASK] = data
-
+            if(address >= self.MEMREGISTERS):
+                # Should make these conditiona, 
+                if (address == self.PAGE0_BANK_SELECT_REGISTER):
+                    self._paging_register_page0 = data
+                    if (self._pages[0] != data):
+                        self._update_fixed_read_page0()
+                        self._pages[0] = data
+                elif (address == self.PAGE1_BANK_SELECT_REGISTER):
+                    self._paging_register_page1 = data
+                    if (self._pages[1] != data):
+                        self._update_fixed_read_page1()
+                        self._pages[1] = data
+                elif ((address == self.RAM_SELECT_REGISTER) or (address == self.PAGE2_BANK_SELECT_REGISTER)):
+                    if   (address == self.RAM_SELECT_REGISTER):
+                        self._paging_register_ram = data
+                    elif (address == self.PAGE2_BANK_SELECT_REGISTER):
+                        self._paging_register_page2 = data
+    
+                    if (self._pages[2] != data):
+                        self._update_fixed_read_page2_ram()
+                        self._pages[2] = data
+    
+                    self._memory_shared_lookup[(int(address & self.RAMMASK) >> self.UPPERSHIFT) & 0x3][address & self.LOWERMASK & self.RAMMASK] = data
+    
+                self._memory_shared_lookup[(int(address) >> self.UPPERSHIFT) & 0x3][address & self.LOWERMASK] = data
+    
         elif(address < self.PAGE2):
             print "Warning writting to ROM address %x"%(address)
-        elif (address < self.RAM_OFFSET) and (address > self.PAGE2):
+        elif (address < self.RAM_OFFSET) and (address >= self.PAGE2):
             ram_select = self._paging_register_ram
             if (ram_select & 0x8): # page2_is_cartridge_ram
               if (ram_select & 0x4):
@@ -186,7 +195,3 @@ class MemoryShare(MemoryBase):
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
             else:
               print "Warning writting to ROM address %x"%(address)
-        elif(address < self.MEMREGISTERS):
-            # This covers RAM & Mirrored RAM
-            self._ram[address & (self.RAM_SIZE - 1)] = data
-            self._ram[(address & (self.RAM_SIZE - 1)) + self.RAM_SIZE] = data
