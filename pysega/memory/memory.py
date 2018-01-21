@@ -48,8 +48,8 @@ class MemoryShare(MemoryBase):
         # Remember the last bank assignments per page, and only swap if they differ
         self._pages = [None] * 4
         self._paging_register_page0 = 0
-        self._paging_register_page1 = 0
-        self._paging_register_page2 = 0
+        self._paging_register_page1 = 1
+        self._paging_register_page2 = 2
         self._paging_register_ram   = 0
 
         # Location to store the page references.

@@ -35,6 +35,9 @@ class MemoryReferenceImplementation(object):
         # Complete memory map
         self._memory_map     = [0] * self.MEMMAPSIZE
 
+        self._memory_map[0xFFFE] = 1
+        self._memory_map[0xFFFF] = 2
+
     def set_cartridge(self, cartridge):
         self.cartridge = cartridge
 
@@ -237,13 +240,13 @@ class TestMemoryPaging(unittest.TestCase):
 
         # Check 'page 1' (ensure 'writes' to ROM addresses are ignored.)
         uut_memory.write(0x4000, uut_memory.read(0x4000) + 1)
-        self.assertEqual(uut_memory.read(0x4000),get_generated_rom_data(0, 0x0))
-        self.assertEqual(uut_memory.read(0x7FFF),get_generated_rom_data(0, 0x3FFF))
+        self.assertEqual(uut_memory.read(0x4000),get_generated_rom_data(1, 0x0))
+        self.assertEqual(uut_memory.read(0x7FFF),get_generated_rom_data(1, 0x3FFF))
 
         # Check 'page 2' (ensure 'writes' to ROM addresses are ignored.)
         uut_memory.write(0x8000, uut_memory.read(0x8000) + 1)
-        self.assertEqual(uut_memory.read(0x8000),get_generated_rom_data(0, 0x0))
-        self.assertEqual(uut_memory.read(0xBFFF),get_generated_rom_data(0, 0x3FFF))
+        self.assertEqual(uut_memory.read(0x8000),get_generated_rom_data(2, 0x0))
+        self.assertEqual(uut_memory.read(0xBFFF),get_generated_rom_data(2, 0x3FFF))
 
         # Check writes to 'page 2' 'ram page 0'
         uut_memory.write(0xFFFC,0x08)
@@ -279,16 +282,16 @@ class TestMemoryPaging(unittest.TestCase):
         # Reset page registers
         uut_memory.write(0xFFFC,0x0)
         uut_memory.write(0xFFFD,0x0) # PAGE 0
-        uut_memory.write(0xFFFE,0x0) # PAGE 1
-        uut_memory.write(0xFFFF,0x0) # PAGE 2
+        uut_memory.write(0xFFFE,0x1) # PAGE 1
+        uut_memory.write(0xFFFF,0x2) # PAGE 2
 
         # Check RAM
         self.assertEqual(uut_memory.read(0xC000),0x0)
-        self.assertEqual(uut_memory.read(0xDFFF),0x0)
+        self.assertEqual(uut_memory.read(0xDFFF),0x2)
 
         # Check Mirror RAM
         self.assertEqual(uut_memory.read(0xE000),0x0)
-        self.assertEqual(uut_memory.read(0xFFFF),0x0)
+        self.assertEqual(uut_memory.read(0xFFFF),0x2)
 
         uut_memory.write(0xDFFF,0x55)
         uut_memory.write(0xE000,0x3)

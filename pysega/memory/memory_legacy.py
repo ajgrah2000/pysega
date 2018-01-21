@@ -155,6 +155,9 @@ class MemoryCached(MemoryBaseLegacy):
 
         self._memory_map     = [0] * self.MEMMAPSIZE
 
+        self._memory_map[0xFFFE] = 1
+        self._memory_map[0xFFFF] = 2
+
     def read(self, address):
         return self._cached_read[address & 0xFFFF]
 
