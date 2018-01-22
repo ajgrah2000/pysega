@@ -95,10 +95,13 @@ class MemoryAbsolute(memory.MemoryBase):
         self._memory_map     = [0] * max(self.ABSOLUTE_CART_RAM_OFFSET + self.ABSOLUTE_SEGMENT_SIZE,
                                          self.ABSOLUTE_SYS_RAM_OFFSET + self.ABSOLUTE_SEGMENT_SIZE)
 
+    def get_absolute_address(self, address):
+        return self._upper_mappings[address >> 13] | address & 0x1FFF
+
     def read(self, address):
         """ Assumes 'address' is 'int' or accepts >> operator. """
         # Using constants here to increase speed.
-        return self._memory_map[self._upper_mappings[address >> 13] | address & 0x1FFF]
+        return self._memory_map[self.get_absolute_address(address)]
 
     def readArray(self, address, length):
 
@@ -189,6 +192,6 @@ class MemoryAbsolute(memory.MemoryBase):
                         self._upper_mappings[4] = self.ABSOLUTE_PAGE_X_ROM_OFFSET + (self.BANK_SIZE * self._page_2)
                         self._upper_mappings[5] = self.ABSOLUTE_PAGE_X_ROM_OFFSET + (self.BANK_SIZE * self._page_2) + self.ABSOLUTE_SEGMENT_SIZE
     
-        if (self._upper_mappings[address >> 13] | address & 0x1FFF >= min(self.ABSOLUTE_CART_RAM_OFFSET, self.ABSOLUTE_SYS_RAM_OFFSET)):
-            self._memory_map[self._upper_mappings[address >> 13] | address & 0x1FFF] = data
+        if (self.get_absolute_address(address) >= min(self.ABSOLUTE_CART_RAM_OFFSET, self.ABSOLUTE_SYS_RAM_OFFSET)):
+            self._memory_map[self.get_absolute_address(address)] = data
 

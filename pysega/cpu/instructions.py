@@ -388,9 +388,15 @@ class CP_n(Instruction):
     def __init__(self, memory, pc_state):
         self.memory = memory
         self.pc_state = pc_state
+        self._last_pc = 0
 
     def execute(self):
-        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, self.memory.read(self.pc_state.PC +1));
+        if (self._last_pc != self.pc_state.PC):
+            self._last_pc = self.pc_state.PC
+            self._r = self.memory.read(self.pc_state.PC +1)
+
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, self._r)
+
         self.pc_state.PC += 2;
     
         return 7;
@@ -458,13 +464,20 @@ class JRNZe(Instruction):
     def __init__(self, memory, pc_state):
         self.memory = memory
         self.pc_state = pc_state
+        self._last_pc = 0
+        self._next_pc = 0
 
     # JR NZ, e
     def execute(self):
         cycles = 7;
     
         if (self.pc_state.F.Fstatus.Z == 0):
-            self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC+1))
+            if (self._last_pc == self.pc_state.PC):
+                self.pc_state.PC = self._next_pc
+            else:
+                self._last_pc = self.pc_state.PC
+                self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC+1))
+                self._next_pc = self.pc_state.PC
             cycles+=5;
     
         self.pc_state.PC += 2;

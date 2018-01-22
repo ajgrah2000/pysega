@@ -1,4 +1,6 @@
 class Clock(object):
+    __slots__ = ('cycles')
+
     def __init__(self):
         self.cycles = 0
 

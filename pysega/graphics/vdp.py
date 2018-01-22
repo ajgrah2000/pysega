@@ -229,20 +229,6 @@ class VDP(object):
         self._readBELatch = 0
         self._lastSpriteAttributesAddress = 0
 
-#        self._interupt= NULL
-
-    # Initialise interupt counters */
-#    self._vSync = 0
-#    self._lineIntTime = 0
-#    self._lastVSync = 0
-
-#        self._currentYpos = 0
-        self._hCounter = 0
-#        self._vCounter = 0
-#        self._yEnd = 0
-        self._displayMode = 0
-#        self._videoChange = False
-
         self._spriteHeight = 8 
         self._spriteWidth = 8
 

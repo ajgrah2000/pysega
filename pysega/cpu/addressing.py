@@ -11,7 +11,7 @@ class RegWrapperGeneric(RegWrapper):
         return self.get()
 
     def __add__(self, value):
-        self.set(self.get() + int(value))
+        self.set(self.get() + value)
         return self
 
     def __sub__(self, value):
@@ -48,6 +48,10 @@ class RegWrapper_A(RegWrapperGeneric):
         self.pc_state.A += value
         return self
 
+    def __sub__(self, value):
+        self.pc_state.A -= value
+        return self
+
     def get(self):
         return self.pc_state.A
 
@@ -66,6 +70,10 @@ class RegWrapper_B(RegWrapperGeneric):
 
     def __add__(self, value):
         self.pc_state.B += value
+        return self
+
+    def __sub__(self, value):
+        self.pc_state.B -= value
         return self
 
     def get(self):
@@ -88,6 +96,10 @@ class RegWrapper_C(RegWrapperGeneric):
         self.pc_state.C += value
         return self
 
+    def __sub__(self, value):
+        self.pc_state.C -= value
+        return self
+
     def get(self):
         return self.pc_state.C
 
@@ -106,6 +118,10 @@ class RegWrapper_D(RegWrapperGeneric):
 
     def __add__(self, value):
         self.pc_state.D += value
+        return self
+
+    def __sub__(self, value):
+        self.pc_state.D -= value
         return self
 
     def get(self):
@@ -128,6 +144,10 @@ class RegWrapper_E(RegWrapperGeneric):
         self.pc_state.E += value
         return self
 
+    def __sub__(self, value):
+        self.pc_state.E -= value
+        return self
+
     def get(self):
         return self.pc_state.E
 
@@ -146,6 +166,10 @@ class RegWrapper_H(RegWrapperGeneric):
 
     def __add__(self, value):
         self.pc_state.H += value
+        return self
+
+    def __sub__(self, value):
+        self.pc_state.H -= value
         return self
 
     def get(self):
@@ -168,6 +192,10 @@ class RegWrapper_L(RegWrapperGeneric):
         self.pc_state.L += value
         return self
 
+    def __sub__(self, value):
+        self.pc_state.L -= value
+        return self
+
     def get(self):
         return self.pc_state.L
 
@@ -186,6 +214,10 @@ class RegWrapper_BC(RegWrapperGeneric):
 
     def __add__(self, value):
         self.pc_state.BC += value
+        return self
+
+    def __sub__(self, value):
+        self.pc_state.BC -= value
         return self
 
     def get(self):
@@ -208,6 +240,10 @@ class RegWrapper_DE(RegWrapperGeneric):
         self.pc_state.DE += value
         return self
 
+    def __sub__(self, value):
+        self.pc_state.DE -= value
+        return self
+
     def get(self):
         return self.pc_state.DE
 
@@ -226,6 +262,10 @@ class RegWrapper_HL(RegWrapperGeneric):
 
     def __add__(self, value):
         self.pc_state.HL += value
+        return self
+
+    def __sub__(self, value):
+        self.pc_state.HL -= value
         return self
 
     def get(self):
@@ -248,6 +288,10 @@ class RegWrapper_IX(RegWrapperGeneric):
         self.pc_state.IX += value
         return self
 
+    def __sub__(self, value):
+        self.pc_state.IX -= value
+        return self
+
     def get(self):
         return self.pc_state.IX
 
@@ -268,6 +312,10 @@ class RegWrapper_IY(RegWrapperGeneric):
         self.pc_state.IY += value
         return self
 
+    def __sub__(self, value):
+        self.pc_state.IY -= value
+        return self
+
     def get(self):
         return self.pc_state.IY
 
@@ -286,6 +334,10 @@ class RegWrapper_SP(RegWrapperGeneric):
 
     def __add__(self, value):
         self.pc_state.SP += value
+        return self
+
+    def __sub__(self, value):
+        self.pc_state.SP -= value
         return self
 
     def get(self):

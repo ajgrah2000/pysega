@@ -1,6 +1,8 @@
 import ctypes
 
 class PC_StatusFlagFields(ctypes.Structure):
+    __slots__ = ()
+
     _fields_ = [
                 ('C' , ctypes.c_ubyte, 1),
                 ('N' , ctypes.c_ubyte, 1),
@@ -18,15 +20,19 @@ class PC_StatusFlagFields(ctypes.Structure):
                 self.H, self.X2, self.Z, self.S)
 
 class PC_StatusFlags(ctypes.Union):
+    __slots__ = ()
     _fields_ = [('Fstatus', PC_StatusFlagFields),
                 ('value' , ctypes.c_ubyte)]
 
 class Bytes(ctypes.Structure):
+    __slots__ = ()
     _fields_ = [('low', ctypes.c_ubyte),
                 ('high', ctypes.c_ubyte),
                 ]
 
 class PC_State_8BitStructure(ctypes.Structure):
+
+    __slots__ = ()
 
     _fields_ =[
                # Register overlays
@@ -62,6 +68,9 @@ class PC_State_8BitStructure(ctypes.Structure):
                ('F_',  ctypes.c_ushort),
 
                ('R', ctypes.c_ubyte), # TODO: Check, not sure if this is a 'real' register, used for random?
+               ('IFF1', ctypes.c_ubyte),
+               ('IFF2', ctypes.c_ubyte),
+               ('IM', ctypes.c_ubyte)
                ]
 
 
@@ -82,6 +91,8 @@ class PC_State_16BitStructure(ctypes.BigEndianStructure):
 class PC_State(ctypes.Union):
     """ Initially, an ineficient but convinient representation of PC State.
     """
+    __slots__ = ()
+
     _fields_ = [('_registers_8bit',  PC_State_8BitStructure),
                 ('_registers_16bit', PC_State_16BitStructure)]
 
