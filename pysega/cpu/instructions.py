@@ -348,6 +348,19 @@ class OR_r(Instruction):
     
         return 4;
 
+class OR_e(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+        self.pc_state.A = self.pc_state.A | self.pc_state.E
+        self.pc_state.PC += 1
+    
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+    
+        return 4;
+
 class XOR_r(Instruction):
     def __init__(self, memory, pc_state, src):
         self.memory = memory
@@ -391,15 +404,23 @@ class CP_n(Instruction):
         self._last_pc = 0
 
     def execute(self):
-        if (self._last_pc != self.pc_state.PC):
-            self._last_pc = self.pc_state.PC
-            self._r = self.memory.read(self.pc_state.PC +1)
-
-        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, self._r)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, self.memory.read(self.pc_state.PC +1))
 
         self.pc_state.PC += 2;
     
         return 7;
+
+    def get_cached_execute(self):
+        r =  self.memory.read(self.pc_state.PC +1)
+        pc = self.pc_state.PC + 2;
+
+        def _get_cached_execute(self):
+            self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, r)
+            self.pc_state.PC = pc;
+        
+            return 7;
+
+        return _get_cached_execute
 
 class CP_r(Instruction_r):
     def __init__(self, memory, pc_state, r):
@@ -444,6 +465,20 @@ class JPNC(Instruction):
              self.pc_state.PC += 3;
     
          return 10;
+
+    def get_cached_execute(self):
+        jump_pc = self.memory.read16(self.pc_state.PC+1);
+        no_jump_pc = self.pc_state.PC + 3
+
+        def _get_cached_execute(self):
+            if (self.pc_state.F.Fstatus.C == 0):
+                self.pc_state.PC = jump_pc
+            else:
+                self.pc_state.PC = no_jump_pc
+    
+            return 10;
+
+        return _get_cached_execute
     
 
 class JPCnn(Instruction):
@@ -483,6 +518,22 @@ class JRNZe(Instruction):
         self.pc_state.PC += 2;
     
         return cycles;
+
+    def get_cached_execute(self):
+        jump_pc = self.pc_state.PC + signed_char_to_int(self.memory.read(self.pc_state.PC+1)) + 2
+        no_jump_pc = self.pc_state.PC + 2
+    
+        def _get_cached_execute(self):
+            if (self.pc_state.F.Fstatus.Z == 0):
+                self.pc_state.PC = jump_pc
+                cycles = 12;
+            else:
+                self.pc_state.PC = no_jump_pc
+                cycles = 7;
+        
+            return cycles;
+
+        return _get_cached_execute
 
 class INC_r(Instruction_r):
     def __init__(self, memory, pc_state, r):
@@ -1116,6 +1167,18 @@ class LD_r8_mem(Instruction):
         self.pc_state.PC += 3;
 
         return 13;
+
+    def get_cached_execute(self):
+        r = self.memory.read16(self.pc_state.PC+1)
+        s = self.r.set
+        pc = self.pc_state.PC + 3;
+
+        def _get_cached_execute(self):
+            s(self.memory.read(r));
+            self.pc_state.PC = pc
+            return 13;
+
+        return _get_cached_execute
 
 class LD_r(Instruction_r):
     # r - 8-bit

@@ -1,5 +1,39 @@
 from . import instructions
 import addressing
+import types
+
+class InstructionDecode(object):
+    def __init__(self, clocks, pc_state, memory, instruction_lookup):
+        self.pc_state           = pc_state
+        self.clocks             = clocks
+        self.memory             = memory
+        self.instruction        = None
+        self.instruction_lookup = instruction_lookup 
+
+    def execute(self):
+        if (None == self.instruction):
+            op_code = self.memory.read(self.pc_state.PC);
+            ins = self.instruction_lookup.getInstruction(op_code)
+            if hasattr(ins, 'get_cached_execute'):
+              self.instruction_exec = types.MethodType(ins.get_cached_execute(), ins)
+            else:
+              self.instruction_exec = ins.execute
+
+        def _execute_replacement(self):
+            # Need to add cycles *after* to ensure during recursive calls (ie
+            # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
+            c = self.clocks.cycles
+            self.clocks.cycles = self.instruction_exec() + c
+
+        _execute_replacement(self)
+
+        # Bind inner method
+        self.execute = types.MethodType(_execute_replacement, self)
+
+class InstructionCache(object):
+    def __init__(self, clocks, pc_state, memory, instruction_lookup):
+        self.absolute_instruction_cache = [InstructionDecode(clocks, pc_state, memory, instruction_lookup) for _ in range(memory.get_max_absolute_instruction_address())]
+
 
 class InstructionStore(object):
     def __init__(self, clocks, pc_state, ports):
@@ -148,7 +182,8 @@ class InstructionStore(object):
         self.instruction_lookup[0xB0] = instructions.OR_r(memory, pc_state, self._reg_wrapper_b); # OR r, cpu_state->A
         self.instruction_lookup[0xB1] = instructions.OR_r(memory, pc_state, self._reg_wrapper_c); # OR r, cpu_state->A
         self.instruction_lookup[0xB2] = instructions.OR_r(memory, pc_state, self._reg_wrapper_d); # OR r, cpu_state->A
-        self.instruction_lookup[0xB3] = instructions.OR_r(memory, pc_state, self._reg_wrapper_e); # OR r, cpu_state->A
+#        self.instruction_lookup[0xB3] = instructions.OR_r(memory, pc_state, self._reg_wrapper_e); # OR r, cpu_state->A
+        self.instruction_lookup[0xB3] = instructions.OR_e(memory, pc_state); # OR r, cpu_state->A
         self.instruction_lookup[0xB4] = instructions.OR_r(memory, pc_state, self._reg_wrapper_h); # OR r, cpu_state->A
         self.instruction_lookup[0xB5] = instructions.OR_r(memory, pc_state, self._reg_wrapper_l); # OR r, cpu_state->A
         self.instruction_lookup[0xB7] = instructions.OR_r(memory, pc_state, self._reg_wrapper_a); # OR r, cpu_state->A

@@ -50,11 +50,6 @@ mapped memory:
 
 """
 
-#        page_select = (address >> 14)
-#        bank_address = address & self.LOWERMASK 
-#        page0_bank = self._paging_register_page0
-
-
 class MemoryAbsolute(memory.MemoryBase):
     """ Map the PC to an absolute address.
     """
@@ -74,6 +69,7 @@ class MemoryAbsolute(memory.MemoryBase):
         self._page0_copies = [[0] * self.BANK_SIZE for x in range(self.MAX_BANKS)]
 
         # Remember the last bank assignments per page, and only swap if they differ
+        self.MAX_ROM_SIZE = 0x100000
         self.ABSOLUTE_PAGE_0_ROM_OFFSET = 0x000000
         self.ABSOLUTE_PAGE_X_ROM_OFFSET = 0x100000
         self.ABSOLUTE_CART_RAM_OFFSET   = 0x200000
@@ -97,6 +93,9 @@ class MemoryAbsolute(memory.MemoryBase):
 
     def get_absolute_address(self, address):
         return self._upper_mappings[address >> 13] | address & 0x1FFF
+
+    def get_max_absolute_instruction_address(self):
+        return self.ABSOLUTE_PAGE_X_ROM_OFFSET + self.MAX_ROM_SIZE
 
     def read(self, address):
         """ Assumes 'address' is 'int' or accepts >> operator. """

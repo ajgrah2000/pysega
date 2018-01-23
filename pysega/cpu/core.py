@@ -54,6 +54,9 @@ class Core(object):
     def initialise(self):
         self.instruction_lookup.populate_instruction_map(self.clocks, self.pc_state, self.memory, self.interupt, self.interuptor.pollInterupts, self.step)
 
+        self.instruction_cache = instruction_store.InstructionCache(self.clocks, self.pc_state, self.memory, self.instruction_lookup)
+
+
     def step_debug(self):
     
           print ("%d %d"%(self.clocks.cycles, self.interuptor._nextPossibleInterupt))
@@ -73,9 +76,12 @@ class Core(object):
     
           c = self.clocks.cycles
           self.interuptor.setCycle(c);
-          op_code = self.memory.read(self.pc_state.PC);
 
-          # This will raise an exception for unsupported op_code
+#          op_code = self.memory.read(self.pc_state.PC);
+
           # Need to add cycles *after* to ensure during recursive calls (ie
           # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
-          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + c
+#          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + c
+
+          self.instruction_cache.absolute_instruction_cache[self.memory.get_absolute_address(self.pc_state.PC)].execute()
+
