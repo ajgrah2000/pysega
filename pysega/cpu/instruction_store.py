@@ -14,6 +14,9 @@ class InstructionDecode(object):
         if (None == self.instruction):
             op_code = self.memory.read(self.pc_state.PC);
             ins = self.instruction_lookup.getInstruction(op_code)
+            if hasattr(ins, 'get_extended_instruction'):
+                ins = ins.get_extended_instruction()
+
             if hasattr(ins, 'get_cached_execute'):
               self.instruction_exec = types.MethodType(ins.get_cached_execute(), ins)
             else:
