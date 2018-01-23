@@ -5,6 +5,7 @@ from .graphics import vdp
 from . import clocks
 from . import inputs
 from . import ports
+import time
 
 class DummyPort(object):
     def __init__(self):
@@ -98,6 +99,7 @@ class Sega(object):
     def power_on(self, stop_clock, no_delay=False, debug=False):
 
         self.core.reset()
+        start_time = time.clock()
 
         quit_func = self.inputs.get_quit
 
@@ -128,4 +130,5 @@ class Sega(object):
         finally:
             pass
 
-        print("Sega finished")
+        
+        print("Sega finished %fs"%(time.clock() - start_time))
