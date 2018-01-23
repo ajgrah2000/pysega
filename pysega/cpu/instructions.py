@@ -458,16 +458,16 @@ class JRZe(Instruction):
     def get_cached_execute(self):
         jump_pc = self.pc_state.PC + signed_char_to_int(self.memory.read(self.pc_state.PC+1)) + 2
         no_jump_pc = self.pc_state.PC + 2;
+        ps = self.pc_state
 
         def _get_cached_execute(self):
-            if (self.pc_state.F.Fstatus.Z == 1):
-                self.pc_state.PC = jump_pc
+            if (ps.F.Fstatus.Z == 1):
+                ps.PC = jump_pc
                 cycles = 12
             else:
-                self.pc_state.PC = no_jump_pc
+                ps.PC = no_jump_pc
                 cycles = 7
 
-        
             return cycles;
 
         return _get_cached_execute
