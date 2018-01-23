@@ -19,11 +19,12 @@ class InstructionDecode(object):
             else:
               self.instruction_exec = ins.execute
 
+        cs = self.clocks
         def _execute_replacement(self):
             # Need to add cycles *after* to ensure during recursive calls (ie
             # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
-            c = self.clocks.cycles
-            self.clocks.cycles = self.instruction_exec() + c
+            c = cs.cycles
+            cs.cycles = self.instruction_exec() + c
 
         _execute_replacement(self)
 

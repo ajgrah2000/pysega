@@ -4,6 +4,7 @@ from . import instruction_store
 from . import pc_state
 from . import flagtables
 from .. import errors
+import types
 
 class Core(object):
     """
@@ -74,14 +75,15 @@ class Core(object):
 
     def step(self):
     
-          c = self.clocks.cycles
-          self.interuptor.setCycle(c);
+        cs = self.clocks
+        sc = self.interuptor.setCycle
+        ai = self.instruction_cache.absolute_instruction_cache
+        aa = self.memory.get_absolute_address
+        ps = self.pc_state
+        def _step(self):
+          sc(cs.cycles);
+          ai[aa(ps.PC)].execute()
 
-#          op_code = self.memory.read(self.pc_state.PC);
+        _step(self)
 
-          # Need to add cycles *after* to ensure during recursive calls (ie
-          # EI), the 'child' clock increase doesn't get clobbered. (ie self.clocks isn't on stack).
-#          self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + c
-
-          self.instruction_cache.absolute_instruction_cache[self.memory.get_absolute_address(self.pc_state.PC)].execute()
-
+        self.step = types.MethodType(_step, self)

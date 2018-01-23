@@ -112,6 +112,7 @@ class Sega(object):
                   while clk.cycles < stop_clock:
                       step_func()
           else:
+              self.core.step()
               step_func = self.core.step
               if 0 == stop_clock:
                   while 0 == quit_func():
