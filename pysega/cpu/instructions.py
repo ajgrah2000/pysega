@@ -2862,6 +2862,19 @@ class PUSH_AF(Instruction):
 
         return 11;
 
+    def get_cached_execute(self):
+        ps = self.pc_state
+        w = self.memory.write
+        def _get_cached_execute(self):
+            ps.SP -= 1
+            w(ps.SP, ps.A);
+            ps.SP -= 1
+            w(ps.SP, ps.F.value);
+            ps.PC += 1
+
+            return 11;
+        return _get_cached_execute
+
 # OR n
 class OR_n(Instruction):
     def __init__(self, memory, pc_state):
