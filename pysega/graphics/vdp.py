@@ -237,6 +237,8 @@ class VDP(object):
         self._vdpRegister = [0] *VdpConstants.NUMVDPREGISTERS
     
         self._displayMode = 0
+        self._displayMode1 = 0
+        self._displayMode2 = 0
     
         # Allocate memory for pattern tiles
         self._patternInfo = [PatternInfo() for x in range(VdpConstants.MAXPATTERNS)]
@@ -273,6 +275,9 @@ class VDP(object):
             sprite.tileNumber = 0
             self._patternInfo[sprite.tileNumber].references += 1
             sprite.changed = False
+
+        self._populateMode1Control()
+        self._populateMode2Control()
     
         self.openDisplay()
 
@@ -661,9 +666,10 @@ class VDP(object):
         self._vdpRegister[registerNumber] = data # Update register data
     
         # Only need to react immediately to some register changes
-        if ((0 == registerNumber) or
-            (1 == registerNumber)):
-            self.updateModeControl()
+        if (0 == registerNumber):
+            self.updateMode1Control()
+        elif (1 == registerNumber):
+            self.updateMode2Control()
         elif (2 == registerNumber):
             self._tileAttributesAddress = (data & 0xE) << 10
             #self._nameTable = &self._vdpRAM[self._tileAttributesAddress]
@@ -699,62 +705,91 @@ class VDP(object):
         elif (10 == registerNumber):
             self._lineInterupt = data
     
-    def updateModeControl(self):
-        # Set first scrolling line
-        if(self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0DISHSCROLL):
-            self._yScroll = 16
+    def _populateMode1Control(self):
+        self._mode_control_1_lookup = [None] * 256
+
+        for _mode_control_1 in range(0x100):
+            # Set first scrolling line
+            if(_mode_control_1 & VdpConstants.VDP0DISHSCROLL):
+                _yScroll = 16
+            else:
+                _yScroll = 0
+    
+            # Set last scrolling position
+            if(_mode_control_1 & VdpConstants.VDP0DISHSCROLL):
+                _xScroll = 192
+            else:
+                _xScroll = VdpConstants.SMS_WIDTH
+    
+            if (_mode_control_1 & VdpConstants.VDP0LINEINTENABLE):
+                _hsyncInteruptEnable = True
+            else:
+                _hsyncInteruptEnable = False
+    
+            if (_mode_control_1 & VdpConstants.VDP0COL0OVERSCAN):
+                _startX = VdpConstants.PATTERNWIDTH
+            else:
+                _startX = 0
+    
+#            if (_mode_control_1 & VdpConstants.VDP0SHIFTSPRITES):
+#                errors.warning("Sprite shift not implemented")
+#    
+#            if (_mode_control_1 & VdpConstants.VDP0NOSYNC):
+#                errors.warning("No sync, not implemented")
+    
+            _displayMode1 = 0
+            if (0 != (_mode_control_1 & VdpConstants.VDP0M4)):
+                _displayMode1 |= 8
+            if (0 != (_mode_control_1 & VdpConstants.VDP0M2)):
+                _displayMode1 |= 2
+
+            self._mode_control_1_lookup[_mode_control_1] = (_yScroll, _xScroll, _hsyncInteruptEnable, _startX, _displayMode1)
+
+    def _populateMode2Control(self):
+        self._mode_control_2_lookup = [0] * 256
+        for _mode_control_2 in range(256):
+            if (_mode_control_2 & VdpConstants.VDP1VSYNC):
+                _vsyncInteruptEnable = True
+            else:
+                _vsyncInteruptEnable = False
+    
+            if (_mode_control_2 & VdpConstants.VDP1ENABLEDISPLAY):
+                _enableDisplay = True
+            else:
+                _enableDisplay = False
+    
+            if (_mode_control_2 & VdpConstants.VDP1BIGSPRITES):
+                _spriteHeight = 16
+            else:
+                _spriteHeight = 8
+    
+#            if (_mode_control_2 & VdpConstants.VDP1DOUBLESPRITES):
+#                errors.warning("Double sprites not implemented")
+    
+            _displayMode2 = 0
+            if (0 != (_mode_control_2 & VdpConstants.VDP1M3)):
+                _displayMode2 |= 4
+            if (0 != (_mode_control_2 & VdpConstants.VDP1M1)):
+                _displayMode2 |= 1
+
+            self._mode_control_2_lookup[_mode_control_2] = (_vsyncInteruptEnable, _enableDisplay, _spriteHeight, _displayMode2)
+
+    def updateMode1Control(self):
+        (self._yScroll, self._xScroll, self._hsyncInteruptEnable, self._startX, self._displayMode1) = self._mode_control_1_lookup[self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1]]
+
+        self._displayMode = self._displayMode1 | self._displayMode2
+
+        # Need to see what the modes do/mean.
+        if ((self._displayMode == 0x8) or (self._displayMode == 0xA)):
+            self._yEnd = 192
         else:
-            self._yScroll = 0
-    
-        # Set last scrolling position
-        if(self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0DISHSCROLL):
-            self._xScroll = 192
-        else:
-            self._xScroll = VdpConstants.SMS_WIDTH
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1VSYNC):
-            self._vsyncInteruptEnable = True
-        else:
-            self._vsyncInteruptEnable = False
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0LINEINTENABLE):
-            self._hsyncInteruptEnable = True
-        else:
-            self._hsyncInteruptEnable = False
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0COL0OVERSCAN):
-            self._startX = VdpConstants.PATTERNWIDTH
-        else:
-            self._startX = 0
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0SHIFTSPRITES):
-            errors.warning("Sprite shift not implemented")
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0NOSYNC):
-            errors.warning("No sync, not implemented")
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1ENABLEDISPLAY):
-            self._enableDisplay = True
-        else:
-            self._enableDisplay = False
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1BIGSPRITES):
-            self._spriteHeight = 16
-        else:
-            self._spriteHeight = 8
-    
-        if (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1DOUBLESPRITES):
-            errors.warning("Double sprites not implemented")
-    
-        self._displayMode = 0
-        if (0 != (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0M4)):
-            self._displayMode |= 8
-        if (0 != (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1M3)):
-            self._displayMode |= 4
-        if (0 != (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_1] & VdpConstants.VDP0M2)):
-            self._displayMode |= 2
-        if (0 != (self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2] & VdpConstants.VDP1M1)):
-            self._displayMode |= 1
+            self._yEnd = 0
+            errors.warning("Mode not supported")
+
+    def updateMode2Control(self):
+        (self._vsyncInteruptEnable, self._enableDisplay, self._spriteHeight, self._displayMode2) = self._mode_control_2_lookup[self._vdpRegister[VdpConstants.MODE_CONTROL_NO_2]]
+
+        self._displayMode = self._displayMode1 | self._displayMode2
 
         # Need to see what the modes do/mean.
         if ((self._displayMode == 0x8) or (self._displayMode == 0xA)):

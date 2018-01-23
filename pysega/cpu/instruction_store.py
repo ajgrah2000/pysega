@@ -34,9 +34,24 @@ class InstructionDecode(object):
         # Bind inner method
         self.execute = types.MethodType(_execute_replacement, self)
 
+class InstructionDecodeNoReplace(object):
+    def __init__(self, clocks, pc_state, memory, instruction_lookup):
+        self.pc_state           = pc_state
+        self.clocks             = clocks
+        self.memory             = memory
+        self.instruction        = None
+        self.instruction_lookup = instruction_lookup 
+
+    def execute(self):
+        c = self.clocks.cycles
+        op_code = self.memory.read(self.pc_state.PC);
+        self.clocks.cycles = self.instruction_lookup.getInstruction(op_code).execute() + c
+
 class InstructionCache(object):
     def __init__(self, clocks, pc_state, memory, instruction_lookup):
         self.absolute_instruction_cache = [InstructionDecode(clocks, pc_state, memory, instruction_lookup) for _ in range(memory.get_max_absolute_instruction_address())]
+
+        self.absolute_instruction_cache.extend([InstructionDecodeNoReplace(clocks, pc_state, memory, instruction_lookup) for _ in range(0xA000)])
 
 
 class InstructionStore(object):
