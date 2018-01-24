@@ -324,6 +324,16 @@ class AND_r(Instruction):
     
         return 4;
 
+class AND_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+        self.pc_state.PC += 1
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
+        return 4;
+
 class AND_n(Instruction):
     def __init__(self, memory, pc_state):
         self.memory = memory
@@ -351,6 +361,16 @@ class OR_r(Instruction):
     
         return 4;
 
+class OR_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+        self.pc_state.PC += 1
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        return 4;
+
 class OR_e(Instruction):
     def __init__(self, memory, pc_state):
         self.memory = memory
@@ -375,6 +395,19 @@ class XOR_r(Instruction):
         self.pc_state.PC += 1
     
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+    
+        return 4;
+
+class XOR_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+        self.status = flagtables.FlagTables.getStatusOr(0);
+
+    def execute(self):
+        self.pc_state.A = 0
+        self.pc_state.PC += 1
+        self.pc_state.F.value = self.status
     
         return 4;
 
@@ -736,6 +769,17 @@ class SUB_r(Instruction):
 	    self.pc_state.PC += 1
 	    return 4;
 
+class SUB_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+	    self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.pc_state.A);
+	    self.pc_state.A = 0
+	    self.pc_state.PC += 1
+	    return 4;
+
 class BIT_r(Instruction):
     def __init__(self, memory, pc_state, src):
         self.memory = memory
@@ -872,7 +916,7 @@ class RRC_r(Instruction):
     def execute(self):
         self.dst.set((int(self.dst) >> 1) | ((int(self.dst) & 0x1) << 7));
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.dst);
-        self.pc_state.F.Fstatus.C = (self.dst >> 7) & 0x1; # bit-0 of src
+        self.pc_state.F.Fstatus.C = (int(self.dst) >> 7) & 0x1; # bit-0 of src
         self.pc_state.PC+=2;
         return 8
 
@@ -960,7 +1004,7 @@ class SRA_r(Instruction):
 
     def execute(self):
         tmp8 = int(self.dst);
-        self.dst.set((int(self.dst) & 0x80) | ((self.dst >> 1) & 0x7F));
+        self.dst.set((int(self.dst) & 0x80) | ((int(self.dst) >> 1) & 0x7F));
 
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.dst);
         self.pc_state.F.Fstatus.C = tmp8 & 0x1;
@@ -2384,6 +2428,19 @@ class JPNZ_nn(Instruction):
             self.pc_state.PC += 3;
 
         return  10;
+
+    def get_cached_execute(self):
+        jump_pc = self.memory.read16(self.pc_state.PC+1);
+        no_jump_pc = self.pc_state.PC + 3;
+
+        def _get_cached_execute(self):
+            if (self.pc_state.F.Fstatus.Z == 0):
+                self.pc_state.PC = jump_pc
+            else:
+                self.pc_state.PC = no_jump_pc
+            return  10;
+
+        return _get_cached_execute
 
 # JP nn
 class JP_nn(Instruction):

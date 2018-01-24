@@ -180,7 +180,7 @@ class InstructionStore(object):
         self.instruction_lookup[0x93] = instructions.SUB_r(memory, pc_state, self._reg_wrapper_e); # SUB r, cpu_state->E
         self.instruction_lookup[0x94] = instructions.SUB_r(memory, pc_state, self._reg_wrapper_h); # SUB r, cpu_state->H
         self.instruction_lookup[0x95] = instructions.SUB_r(memory, pc_state, self._reg_wrapper_l); # SUB r, cpu_state->L
-        self.instruction_lookup[0x97] = instructions.SUB_r(memory, pc_state, self._reg_wrapper_a); # SUB r, cpu_state->A
+        self.instruction_lookup[0x97] = instructions.SUB_a(memory, pc_state); # SUB r, cpu_state->A
  
         self.instruction_lookup[0xA0] = instructions.AND_r(memory, pc_state, self._reg_wrapper_b); # AND r, cpu_state->A
         self.instruction_lookup[0xA1] = instructions.AND_r(memory, pc_state, self._reg_wrapper_c); # AND r, cpu_state->A
@@ -188,7 +188,7 @@ class InstructionStore(object):
         self.instruction_lookup[0xA3] = instructions.AND_r(memory, pc_state, self._reg_wrapper_e); # AND r, cpu_state->A
         self.instruction_lookup[0xA4] = instructions.AND_r(memory, pc_state, self._reg_wrapper_h); # AND r, cpu_state->A
         self.instruction_lookup[0xA5] = instructions.AND_r(memory, pc_state, self._reg_wrapper_l); # AND r, cpu_state->A
-        self.instruction_lookup[0xA7] = instructions.AND_r(memory, pc_state, self._reg_wrapper_a); # AND r, cpu_state->A
+        self.instruction_lookup[0xA7] = instructions.AND_a(memory, pc_state); # AND r, cpu_state->A
  
         self.instruction_lookup[0xA8] = instructions.XOR_r(memory, pc_state, self._reg_wrapper_b); # XOR r, cpu_state->A
         self.instruction_lookup[0xA9] = instructions.XOR_r(memory, pc_state, self._reg_wrapper_c); # XOR r, cpu_state->A
@@ -196,16 +196,15 @@ class InstructionStore(object):
         self.instruction_lookup[0xAB] = instructions.XOR_r(memory, pc_state, self._reg_wrapper_e); # XOR r, cpu_state->A
         self.instruction_lookup[0xAC] = instructions.XOR_r(memory, pc_state, self._reg_wrapper_h); # XOR r, cpu_state->A
         self.instruction_lookup[0xAD] = instructions.XOR_r(memory, pc_state, self._reg_wrapper_l); # XOR r, cpu_state->A
-        self.instruction_lookup[0xAF] = instructions.XOR_r(memory, pc_state, self._reg_wrapper_a); # XOR r, cpu_state->A
+        self.instruction_lookup[0xAF] = instructions.XOR_a(memory, pc_state); # XOR r, cpu_state->A
  
         self.instruction_lookup[0xB0] = instructions.OR_r(memory, pc_state, self._reg_wrapper_b); # OR r, cpu_state->A
         self.instruction_lookup[0xB1] = instructions.OR_r(memory, pc_state, self._reg_wrapper_c); # OR r, cpu_state->A
         self.instruction_lookup[0xB2] = instructions.OR_r(memory, pc_state, self._reg_wrapper_d); # OR r, cpu_state->A
-#        self.instruction_lookup[0xB3] = instructions.OR_r(memory, pc_state, self._reg_wrapper_e); # OR r, cpu_state->A
         self.instruction_lookup[0xB3] = instructions.OR_e(memory, pc_state); # OR r, cpu_state->A
         self.instruction_lookup[0xB4] = instructions.OR_r(memory, pc_state, self._reg_wrapper_h); # OR r, cpu_state->A
         self.instruction_lookup[0xB5] = instructions.OR_r(memory, pc_state, self._reg_wrapper_l); # OR r, cpu_state->A
-        self.instruction_lookup[0xB7] = instructions.OR_r(memory, pc_state, self._reg_wrapper_a); # OR r, cpu_state->A
+        self.instruction_lookup[0xB7] = instructions.OR_a(memory, pc_state); # OR r, cpu_state->A
  
         self.instruction_lookup[0xB8] = instructions.CP_r(memory, pc_state, self._reg_wrapper_b); # CP r, cpu_state->A
         self.instruction_lookup[0xB9] = instructions.CP_r(memory, pc_state, self._reg_wrapper_c); # CP r, cpu_state->A
