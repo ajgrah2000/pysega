@@ -263,6 +263,9 @@ class ExtendedInstruction(Instruction):
         # Ignore unsupported instructions (will result in a dereference of 'None')
         return self.instruction_get_function(self.memory.read(self.pc_state.PC + 1)).execute()
 
+    def get_extended_instruction(self):
+        return self.instruction_get_function(self.memory.read(self.pc_state.PC + 1))
+
 class Instruction_r(Instruction):
     # TODO
     pass
@@ -321,6 +324,16 @@ class AND_r(Instruction):
     
         return 4;
 
+class AND_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+        self.pc_state.PC += 1
+        self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
+        return 4;
+
 class AND_n(Instruction):
     def __init__(self, memory, pc_state):
         self.memory = memory
@@ -348,6 +361,29 @@ class OR_r(Instruction):
     
         return 4;
 
+class OR_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+        self.pc_state.PC += 1
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+        return 4;
+
+class OR_e(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+        self.pc_state.A = self.pc_state.A | self.pc_state.E
+        self.pc_state.PC += 1
+    
+        self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+    
+        return 4;
+
 class XOR_r(Instruction):
     def __init__(self, memory, pc_state, src):
         self.memory = memory
@@ -359,6 +395,19 @@ class XOR_r(Instruction):
         self.pc_state.PC += 1
     
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
+    
+        return 4;
+
+class XOR_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+        self.status = flagtables.FlagTables.getStatusOr(0);
+
+    def execute(self):
+        self.pc_state.A = 0
+        self.pc_state.PC += 1
+        self.pc_state.F.value = self.status
     
         return 4;
 
@@ -391,15 +440,23 @@ class CP_n(Instruction):
         self._last_pc = 0
 
     def execute(self):
-        if (self._last_pc != self.pc_state.PC):
-            self._last_pc = self.pc_state.PC
-            self._r = self.memory.read(self.pc_state.PC +1)
-
-        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, self._r)
+        self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, self.memory.read(self.pc_state.PC +1))
 
         self.pc_state.PC += 2;
     
         return 7;
+
+    def get_cached_execute(self):
+        r =  self.memory.read(self.pc_state.PC +1)
+        pc = self.pc_state.PC + 2;
+
+        def _get_cached_execute(self):
+            self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A, r)
+            self.pc_state.PC = pc;
+        
+            return 7;
+
+        return _get_cached_execute
 
 class CP_r(Instruction_r):
     def __init__(self, memory, pc_state, r):
@@ -420,7 +477,6 @@ class JRZe(Instruction):
 
     # JR Z, e
     def execute(self):
-    
         if (self.pc_state.F.Fstatus.Z == 1):
             self.pc_state.PC += signed_char_to_int(self.memory.read(self.pc_state.PC+1))
             cycles = 12
@@ -430,6 +486,24 @@ class JRZe(Instruction):
         self.pc_state.PC += 2;
     
         return cycles;
+
+    # JR Z, e
+    def get_cached_execute(self):
+        jump_pc = self.pc_state.PC + signed_char_to_int(self.memory.read(self.pc_state.PC+1)) + 2
+        no_jump_pc = self.pc_state.PC + 2;
+        ps = self.pc_state
+
+        def _get_cached_execute(self):
+            if (ps.F.Fstatus.Z == 1):
+                ps.PC = jump_pc
+                cycles = 12
+            else:
+                ps.PC = no_jump_pc
+                cycles = 7
+
+            return cycles;
+
+        return _get_cached_execute
 
 class JPNC(Instruction):
     def __init__(self, memory, pc_state):
@@ -444,6 +518,20 @@ class JPNC(Instruction):
              self.pc_state.PC += 3;
     
          return 10;
+
+    def get_cached_execute(self):
+        jump_pc = self.memory.read16(self.pc_state.PC+1);
+        no_jump_pc = self.pc_state.PC + 3
+
+        def _get_cached_execute(self):
+            if (self.pc_state.F.Fstatus.C == 0):
+                self.pc_state.PC = jump_pc
+            else:
+                self.pc_state.PC = no_jump_pc
+    
+            return 10;
+
+        return _get_cached_execute
     
 
 class JPCnn(Instruction):
@@ -483,6 +571,22 @@ class JRNZe(Instruction):
         self.pc_state.PC += 2;
     
         return cycles;
+
+    def get_cached_execute(self):
+        jump_pc = self.pc_state.PC + signed_char_to_int(self.memory.read(self.pc_state.PC+1)) + 2
+        no_jump_pc = self.pc_state.PC + 2
+    
+        def _get_cached_execute(self):
+            if (self.pc_state.F.Fstatus.Z == 0):
+                self.pc_state.PC = jump_pc
+                cycles = 12;
+            else:
+                self.pc_state.PC = no_jump_pc
+                cycles = 7;
+        
+            return cycles;
+
+        return _get_cached_execute
 
 class INC_r(Instruction_r):
     def __init__(self, memory, pc_state, r):
@@ -665,6 +769,17 @@ class SUB_r(Instruction):
 	    self.pc_state.PC += 1
 	    return 4;
 
+class SUB_a(Instruction):
+    def __init__(self, memory, pc_state):
+        self.memory = memory
+        self.pc_state = pc_state
+
+    def execute(self):
+	    self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.pc_state.A);
+	    self.pc_state.A = 0
+	    self.pc_state.PC += 1
+	    return 4;
+
 class BIT_r(Instruction):
     def __init__(self, memory, pc_state, src):
         self.memory = memory
@@ -801,7 +916,7 @@ class RRC_r(Instruction):
     def execute(self):
         self.dst.set((int(self.dst) >> 1) | ((int(self.dst) & 0x1) << 7));
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.dst);
-        self.pc_state.F.Fstatus.C = (self.dst >> 7) & 0x1; # bit-0 of src
+        self.pc_state.F.Fstatus.C = (int(self.dst) >> 7) & 0x1; # bit-0 of src
         self.pc_state.PC+=2;
         return 8
 
@@ -889,7 +1004,7 @@ class SRA_r(Instruction):
 
     def execute(self):
         tmp8 = int(self.dst);
-        self.dst.set((int(self.dst) & 0x80) | ((self.dst >> 1) & 0x7F));
+        self.dst.set((int(self.dst) & 0x80) | ((int(self.dst) >> 1) & 0x7F));
 
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.dst);
         self.pc_state.F.Fstatus.C = tmp8 & 0x1;
@@ -1116,6 +1231,18 @@ class LD_r8_mem(Instruction):
         self.pc_state.PC += 3;
 
         return 13;
+
+    def get_cached_execute(self):
+        r = self.memory.read16(self.pc_state.PC+1)
+        s = self.r.set
+        pc = self.pc_state.PC + 3;
+
+        def _get_cached_execute(self):
+            s(self.memory.read(r));
+            self.pc_state.PC = pc
+            return 13;
+
+        return _get_cached_execute
 
 class LD_r(Instruction_r):
     # r - 8-bit
@@ -1372,6 +1499,52 @@ class BIT_I_d(Instruction):
         self.pc_state.PC += 4
     
         return  23
+
+    def get_cached_execute(self):
+        offset = signed_char_to_int(self.memory.read(self.pc_state.PC+2))
+        t8    = self.memory.read(self.pc_state.PC+3)
+
+        if ((t8 & 0xC7) == 0x46): # self.pc_state.BIT b, (self.I_reg.get() + d)
+         t8_2 = (t8 & 0x38) >> 3
+         def _get_cached_execute(self):
+            tmp16 = self.I_reg.get() + offset
+            tmp8  = self.memory.read(tmp16)
+
+            tmp8 = (tmp8 >> t8_2) & 0x1
+
+            f = self.pc_state.F.Fstatus
+            f.Z = tmp8 ^ 0x1
+            f.PV = flagtables.FlagTables.calculateParity(tmp8)
+            f.H = 1
+            f.N = 0
+            f.S = 0
+    
+            self.pc_state.PC += 4
+    
+            return  23
+        elif ((t8 & 0xC7) == 0x86): # RES b, (self.I_reg + d)
+          t8_2 = ~(0x1 << ((t8 >> 3) & 0x7))
+          def _get_cached_execute(self):
+            tmp16 = self.I_reg.get() + offset
+            tmp8  = self.memory.read(tmp16) & t8_2
+            self.memory.write(tmp16,tmp8)
+    
+            self.pc_state.PC += 4
+    
+            return  23
+
+        elif ((t8 & 0xC7) == 0xC6): # SET b, (self.I_reg + d)
+          t8_2 =(0x1 << ((t8 >> 3) & 0x7))
+          def _get_cached_execute(self):
+            tmp16 = self.I_reg.get() + offset
+            tmp8  = self.memory.read(tmp16) | t8_2
+            self.memory.write(tmp16,tmp8)
+    
+            self.pc_state.PC += 4
+    
+            return  23
+
+        return _get_cached_execute
     
 # POP self.I_reg
 class POP_I(Instruction):
@@ -2256,6 +2429,19 @@ class JPNZ_nn(Instruction):
 
         return  10;
 
+    def get_cached_execute(self):
+        jump_pc = self.memory.read16(self.pc_state.PC+1);
+        no_jump_pc = self.pc_state.PC + 3;
+
+        def _get_cached_execute(self):
+            if (self.pc_state.F.Fstatus.Z == 0):
+                self.pc_state.PC = jump_pc
+            else:
+                self.pc_state.PC = no_jump_pc
+            return  10;
+
+        return _get_cached_execute
+
 # JP nn
 class JP_nn(Instruction):
     def __init__(self, memory, pc_state):
@@ -2798,6 +2984,19 @@ class PUSH_AF(Instruction):
         self.pc_state.PC += 1
 
         return 11;
+
+    def get_cached_execute(self):
+        ps = self.pc_state
+        w = self.memory.write
+        def _get_cached_execute(self):
+            ps.SP -= 1
+            w(ps.SP, ps.A);
+            ps.SP -= 1
+            w(ps.SP, ps.F.value);
+            ps.PC += 1
+
+            return 11;
+        return _get_cached_execute
 
 # OR n
 class OR_n(Instruction):
