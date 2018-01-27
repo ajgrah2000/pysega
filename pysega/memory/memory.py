@@ -143,7 +143,7 @@ class MemoryShare(MemoryBase):
           else:
              # Assume this is a 'transient' situation, force an error if
              # subsequently accessed.
-             print "Page 2: slection larger than cratridge. 0x%x"%(data)
+             print("Page 2: slection larger than cratridge. 0x%x"%(data))
              self._memory_shared_lookup[2] = None
 
     def _write(self, address, data):
@@ -188,6 +188,6 @@ class MemoryShare(MemoryBase):
       
               self.cartridge.ram[cartridge_ram_page][bank_address] = data
             else:
-              print "Warning writting to ROM address %x"%(address)
+              print("Warning writting to ROM address %x"%(address))
         else:
-            print "Warning to unexpected address %x"%(address)
+            print("Warning to unexpected address %x"%(address))

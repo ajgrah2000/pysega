@@ -12,11 +12,11 @@ class DummyPort(object):
         pass
 
     def writePort(self, value):
-        print "Dummy write not implemented"
+        print("Dummy write not implemented")
         pass
 
     def readPort(self):
-        print "Dummy read not implemented"
+        print("Dummy read not implemented")
         return 0
 
 class DummySound(object):
