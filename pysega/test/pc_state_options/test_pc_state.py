@@ -12,7 +12,7 @@ class TimeTests(unittest.TestCase):
 
     def tearDown(self):
         t = time.time() - self.startTime
-        print "%s: %.4f" % (self.id(), t)
+        print("%s: %.4f" % (self.id(), t))
 
 class TestPC_StateVariations(TimeTests):
 

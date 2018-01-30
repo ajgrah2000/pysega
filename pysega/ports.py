@@ -1,4 +1,4 @@
-import errors
+from . import errors
 
 class Port(object):
     def __init__(self, read_func, write_func = None):

@@ -239,7 +239,7 @@ class FlagTables(object):
               else:
                   status.C  = 0
 
-#              print "%x %x, r=%x, rc=%x %s"%(i, j, r, rc, status)
+#              print("%x %x, r=%x, rc=%x %s"%(i, j, r, rc, status))
   
               FlagTables._flagTableAdd[i][j] = result.value;
 

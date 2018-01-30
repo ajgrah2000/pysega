@@ -350,7 +350,7 @@ class VDP(object):
     def readPort7E(self):
         self._addressLatch = False  # Address is unlatched during port read
     
-        vCounter = (self.clocks.cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME
+        vCounter = int((self.clocks.cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME)
         self._currentYpos = (self.clocks.cycles-self._lastVSync)/VdpConstants.HSYNCCYCLETIME+1
     
         # I can't think of an ellegant solution, so this is as good as it gets
@@ -689,7 +689,7 @@ class VDP(object):
             self._spriteTileShift = (data & 0x4) << 6
     
         elif (7 == registerNumber):
-    	    print("Using border color: %x"%(data))
+            print("Using border color: %x"%(data))
             self._borderColor = data & 0xf
     
         elif (8 == registerNumber):
@@ -858,9 +858,9 @@ class VDP(object):
             self._cRAM[addr] = data
     
             # Generate 8-bit RGB components, just to be generic
-            r = ((data&0x3)*0xFF)/0x3
-            g = (((data>>2)&0x3)*0xFF)/0x3
-            b = (((data>>4)&0x3)*0xFF)/0x3
+            r = int(((data&0x3)*0xFF)/0x3)
+            g = int((((data>>2)&0x3)*0xFF)/0x3)
+            b = int((((data>>4)&0x3)*0xFF)/0x3)
     
             color = self.set_color(r, g, b)
     
@@ -1094,22 +1094,22 @@ void Vdp::drawDisplay(void)
                 pattern += 1
 
     def printSpriteInformation(self):
-        print inspect.stack()[0][3]
+        print(inspect.stack()[0][3])
     """
 {
     for (int i = 0 i < VdpConstants.NUMSPRITES i++)
     {
-	std::cout << "Sprite " << i
-	std::cout << " x: " << (int) self._vdpRAM[self._spriteInformationTableOffset + 128 + i*2]
-	std::cout << " y: " << (int) self._vdpRAM[self._spriteInformationTableOffset + i]
-	std::cout << " tile: " << (int) self._vdpRAM[self._spriteInformationTableOffset + 129 + i*2]
-	std::cout << std::endl
+        std::cout << "Sprite " << i
+        std::cout << " x: " << (int) self._vdpRAM[self._spriteInformationTableOffset + 128 + i*2]
+        std::cout << " y: " << (int) self._vdpRAM[self._spriteInformationTableOffset + i]
+        std::cout << " tile: " << (int) self._vdpRAM[self._spriteInformationTableOffset + 129 + i*2]
+        std::cout << std::endl
     }
 }
     """
 
     def printNameTable(self):
-        print inspect.stack()[0][3]
+        print(inspect.stack()[0][3])
     """
 {
     int offset = 0
@@ -1125,12 +1125,12 @@ void Vdp::drawDisplay(void)
             #h = self._nameTable[offset++]
 
             tmp = l + ((h & 0x1) << 8)
-	    std::cout << "Name table " << tmp << " "
-	    std::cout << (((h >> 4) & 0x1) ? 'F':'B')
-	    std::cout << (((h >> 3) & 0x1) ? 'S':'T')
-	    std::cout << (((h >> 2) & 0x1) ? 'V':'.')
-	    std::cout << (((h >> 1) & 0x1) ? 'H':'.')
-	    std::cout << std::endl
+            std::cout << "Name table " << tmp << " "
+            std::cout << (((h >> 4) & 0x1) ? 'F':'B')
+            std::cout << (((h >> 3) & 0x1) ? 'S':'T')
+            std::cout << (((h >> 2) & 0x1) ? 'V':'.')
+            std::cout << (((h >> 1) & 0x1) ? 'H':'.')
+            std::cout << std::endl
         }
     }
   
@@ -1138,7 +1138,7 @@ void Vdp::drawDisplay(void)
     """
 
     def printSpriteScanLineInfo(self):
-        print inspect.stack()[0][3]
+        print(inspect.stack()[0][3])
     """
 {
     std::cout << "Total Sprites: " << (int) self._totalSprites << std::endl
@@ -1152,13 +1152,13 @@ void Vdp::drawDisplay(void)
 
     for (int y = 0 y < self._yEnd y++)
     {
-	std::cout << (self._spriteScanLines[y].lineChanged?"*":" ") << 
+        std::cout << (self._spriteScanLines[y].lineChanged?"*":" ") << 
                 "y: " << y << " self._sprites: " << 
                 (int) self._spriteScanLines[y].numSprites
         for (int i = 0 i < self._spriteScanLines[y].numSpritesi++)
             std::cout << " [" << (int) self._spriteScanLines[y].sprites[i] << "]"
 
-	std::cout << std::endl
+        std::cout << std::endl
     }
 }
     """
