@@ -143,7 +143,7 @@ class MemoryShare(MemoryBase):
           else:
              # Assume this is a 'transient' situation, force an error if
              # subsequently accessed.
-             print("Page 2: slection larger than cratridge. 0x%x"%(data))
+             print("Page 2: selection larger than cratridge. 0x%x"%(page2_bank))
              self._memory_shared_lookup[2] = None
 
     def _write(self, address, data):

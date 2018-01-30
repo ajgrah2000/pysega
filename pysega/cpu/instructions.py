@@ -1,6 +1,7 @@
 import ctypes
 from . import flagtables
 from . import addressing
+from .. import errors
 
 def signed_char_to_int(value):
     result = value
@@ -752,10 +753,10 @@ class ADD_r(Instruction):
         self.src = src
 
     def execute(self):
-	    self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,self.src.get());
-	    self.pc_state.A = self.pc_state.A + self.src.get();
-	    self.pc_state.PC += 1
-	    return 4;
+            self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,self.src.get());
+            self.pc_state.A = self.pc_state.A + self.src.get();
+            self.pc_state.PC += 1
+            return 4;
 
 class SUB_r(Instruction):
     def __init__(self, memory, pc_state, src):
@@ -764,10 +765,10 @@ class SUB_r(Instruction):
         self.src = src
 
     def execute(self):
-	    self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.src.get());
-	    self.pc_state.A = self.pc_state.A - self.src.get();
-	    self.pc_state.PC += 1
-	    return 4;
+            self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.src.get());
+            self.pc_state.A = self.pc_state.A - self.src.get();
+            self.pc_state.PC += 1
+            return 4;
 
 class SUB_a(Instruction):
     def __init__(self, memory, pc_state):
@@ -775,10 +776,10 @@ class SUB_a(Instruction):
         self.pc_state = pc_state
 
     def execute(self):
-	    self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.pc_state.A);
-	    self.pc_state.A = 0
-	    self.pc_state.PC += 1
-	    return 4;
+            self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.pc_state.A);
+            self.pc_state.A = 0
+            self.pc_state.PC += 1
+            return 4;
 
 class BIT_r(Instruction):
     def __init__(self, memory, pc_state, src):
@@ -1493,7 +1494,7 @@ class BIT_I_d(Instruction):
             tmp8 = tmp8 | (0x1 << ((t8 >> 3) & 0x7))
             self.memory.write(tmp16,tmp8)
         else:
-            error("Instruction arg for 0xFD 0xCB")
+            errors.error("Instruction arg for 0xFD 0xCB")
     
         self.pc_state.PC += 4
     
