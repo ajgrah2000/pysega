@@ -1,6 +1,6 @@
 import ctypes
-import flagtables
-import addressing
+from . import flagtables
+from . import addressing
 
 def signed_char_to_int(value):
     result = value

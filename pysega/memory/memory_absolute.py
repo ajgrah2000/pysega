@@ -1,4 +1,4 @@
-import memory
+from . import memory
 
 """ Map the current 'pc' address to an 'absolute' address.  The
 structure of the 'absolute' address is somewhat arbitrary, but  the

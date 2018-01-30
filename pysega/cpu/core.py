@@ -60,7 +60,7 @@ class Core(object):
 
     def step_debug(self):
     
-          print ("%d %d"%(self.clocks.cycles, self.interuptor._nextPossibleInterupt))
+          print("%d %d"%(self.clocks.cycles, self.interuptor._nextPossibleInterupt))
   
           self.interuptor.setCycle(self.clocks.cycles);
   

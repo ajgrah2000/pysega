@@ -58,7 +58,7 @@ class GenericCartridge(object):
                 bytes_read = len(bank)
 
                 if (bytes_read > 0) and (bytes_read < self.bank_size):
-                    print "Short Bank, padding with zeros"
+                    print("Short Bank, padding with zeros")
                     # If the bank is short, pad it with zeros.
                     bank += bytearray('\000'.encode() * (self.bank_size-bytes_read))
 

@@ -1,5 +1,5 @@
 from . import instructions
-import addressing
+from . import addressing
 import types
 
 class InstructionDecode(object):
