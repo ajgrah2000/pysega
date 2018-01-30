@@ -1,5 +1,5 @@
-
-class PC_StatusFlags(object):
+class PC_StatusFlagFields(object):
+    __slots__ = ('value')
     flags = {'S' :7,
              'Z' :6,
              'X2':5,
@@ -13,17 +13,17 @@ class PC_StatusFlags(object):
         self.value = 0
 
     def __getattribute__(self, name):
-      if name in PC_StatusFlags.flags:
-        return (self.value >> PC_StatusFlags.flags[name]) & 1
+      if name in PC_StatusFlagFields.flags:
+        return (self.value >> PC_StatusFlagFields.flags[name]) & 1
       else:
-        return super(PC_StatusFlags, self).__getattribute__(name)
+        return super(PC_StatusFlagFields, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
-      if name in PC_StatusFlags.flags:
-        shift = PC_StatusFlags.flags[name]
+      if name in PC_StatusFlagFields.flags:
+        shift = PC_StatusFlagFields.flags[name]
         self.value = (self.value & ~(1 << shift)) | ((value & 1) << shift)
       else:
-        return super(PC_StatusFlags, self).__setattr__(name, value)
+        return super(PC_StatusFlagFields, self).__setattr__(name, value)
 
     def get_save_state(self):
         return self.value
@@ -36,10 +36,37 @@ class PC_StatusFlags(object):
                 self.C, self.N,  self.PV, self.X1, 
                 self.H, self.X2, self.Z, self.S)
 
+class PC_StatusFlags(object):
+    __slots__ = ('Fstatus')
+
+    def __init__(self):
+        self.Fstatus = PC_StatusFlagFields()
+        self.value = 0
+
+    def __getattribute__(self, name):
+      if name in 'value':
+        return self.Fstatus.value
+      else:
+        return super(PC_StatusFlags, self).__getattribute__(name)
+
+    def __setattr__(self, name, value):
+      if name == 'Fstatus':
+        super(PC_StatusFlags, self).__setattr__(name, value)
+      elif name == 'value':
+        self.Fstatus.value = value
+      else:
+        super(PC_StatusFlags, self).__setattr__(name, value)
+
+    def __str__(self):
+        return str(self.Fstatus)
+
 class PC_State(object):
     """ Initially, an ineficient but convinient representation of PC State.
     """
-    eight_bit_registers = ['A', 'B', 'C', 'D', 'E', 'H', 'L', 'F', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow']
+    __slots__ = ('A', 'B', 'C', 'D', 'E', 'H', 'L', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow','BC_', 'DE_', 'HL_', 'A_', 'F_', 'PC', 'SP', 'IX', 'IY', 'Fstatus', '_PC', 'BC', 'DE', 'HL', 'AF', 'I', 'R', 'IM', 'IFF1', 'IFF2', '_F', 'CYCLES_TO_CLOCK')
+
+
+    eight_bit_registers = ['A', 'B', 'C', 'D', 'E', 'H', 'L', 'PCHigh', 'PCLow', 'SPHigh', 'SPLow', 'IXHigh', 'IXLow', 'IYHigh', 'IYLow']
 
     sixteen_bit_shadow_registers = ['BC_', 'DE_', 'HL_']
 
@@ -92,7 +119,7 @@ class PC_State(object):
 
     def __getattribute__(self, name):
         if name == 'F':
-            return self.Fstatus.value
+            return self.Fstatus
         elif name in PC_State.eight_bit_registers:
             return super(PC_State, self).__getattribute__(name) & 0xFF
         if name in PC_State.sixteen:
