@@ -4,10 +4,10 @@ import Cython.Distutils
 import os.path
 
 def cython():
-    os.environ['CFLAGS'] = '-O3 -pg'
+    os.environ['CFLAGS'] = '-O3'
     distutils.core.setup(
             name = "PySega emulator",
-            ext_modules = Cython.Build.cythonize(["pysega/**/*.pyx","pysega/**/*.py"], exclude=['pysega/__main__.py'], language='c'),
+            ext_modules = Cython.Build.cythonize(["pysega/**/*.py"], exclude=['pysega/__main__.py'], language='c'),
             py_modules = ['run_pysega', 'pysega.__main__', 'pysega.__init__'] + ['pysega.%s.__init__'%(x) for x in ['audio','graphics','memory','cpu' ]],
             packages=['.'],
             package_data={'': ['pysega/graphics/palette.*.dat']},
@@ -28,7 +28,7 @@ def cython_extra_args():
             ext_modules = [distutils.extension.Extension(
                             'test', 
                             sources, 
-                            extra_compile_args=['-O3', '-pg'],
+                            extra_compile_args=['-O3'],
                             language='c')],
             cmdclass = {'build_ext': Cython.Distutils.build_ext},
             py_modules = ['run_pysega', 'pysega.__main__', 'pysega.__init__'] + ['pysega.%s.__init__'%(x) for x in ['audio','graphics','memory','cpu' ]],
