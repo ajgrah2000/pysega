@@ -1,4 +1,5 @@
 from . import memory
+from .. import errors
 
 """ Map the current 'pc' address to an 'absolute' address.  The
 structure of the 'absolute' address is somewhat arbitrary, but  the

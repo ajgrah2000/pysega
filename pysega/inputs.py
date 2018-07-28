@@ -99,12 +99,12 @@ class Joystick(object):
 
     def lg1(self, value):
         if (value == 0):
-            self._x = lg1x
+            self._x = self._lg1x
 
         self._port2_value = self._set_bit(self._port2_value, self.PORT2_LG1_BIT, value)
     def lg2(self, value):
         if (value == 0):
-            self._x = lg2x
+            self._x = self._lg2x
 
         self._port2_value = self._set_bit(self._port2_value, self.PORT2_LG2_BIT, value)
 

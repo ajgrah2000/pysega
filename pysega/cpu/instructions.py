@@ -1,6 +1,7 @@
 import ctypes
 from . import flagtables
 from . import addressing
+from .. import errors
 
 def signed_char_to_int(value):
     result = value
@@ -317,7 +318,7 @@ class AND_r(Instruction):
         self.src = src
 
     def execute(self):
-        self.pc_state.A = self.pc_state.A & int(self.src);
+        self.pc_state.A = self.pc_state.A & self.src.get();
         self.pc_state.PC += 1
     
         self.pc_state.F.value = flagtables.FlagTables.getStatusAnd(self.pc_state.A);
@@ -354,7 +355,7 @@ class OR_r(Instruction):
         self.src = src
 
     def execute(self):
-        self.pc_state.A = self.pc_state.A | int(self.src);
+        self.pc_state.A = self.pc_state.A | self.src.get();
         self.pc_state.PC += 1
     
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
@@ -391,7 +392,7 @@ class XOR_r(Instruction):
         self.src = src
 
     def execute(self):
-        self.pc_state.A = self.pc_state.A ^ int(self.src);
+        self.pc_state.A = self.pc_state.A ^ self.src.get();
         self.pc_state.PC += 1
     
         self.pc_state.F.value = flagtables.FlagTables.getStatusOr(self.pc_state.A);
@@ -752,10 +753,10 @@ class ADD_r(Instruction):
         self.src = src
 
     def execute(self):
-	    self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,self.src);
-	    self.pc_state.A = self.pc_state.A + int(self.src);
-	    self.pc_state.PC += 1
-	    return 4;
+            self.pc_state.F.value = flagtables.FlagTables.getStatusAdd(self.pc_state.A,self.src.get());
+            self.pc_state.A = self.pc_state.A + self.src.get();
+            self.pc_state.PC += 1
+            return 4;
 
 class SUB_r(Instruction):
     def __init__(self, memory, pc_state, src):
@@ -764,10 +765,10 @@ class SUB_r(Instruction):
         self.src = src
 
     def execute(self):
-	    self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.src);
-	    self.pc_state.A = self.pc_state.A - int(self.src);
-	    self.pc_state.PC += 1
-	    return 4;
+            self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.src.get());
+            self.pc_state.A = self.pc_state.A - self.src.get();
+            self.pc_state.PC += 1
+            return 4;
 
 class SUB_a(Instruction):
     def __init__(self, memory, pc_state):
@@ -775,10 +776,10 @@ class SUB_a(Instruction):
         self.pc_state = pc_state
 
     def execute(self):
-	    self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.pc_state.A);
-	    self.pc_state.A = 0
-	    self.pc_state.PC += 1
-	    return 4;
+            self.pc_state.F.value = flagtables.FlagTables.getStatusSub(self.pc_state.A,self.pc_state.A);
+            self.pc_state.A = 0
+            self.pc_state.PC += 1
+            return 4;
 
 class BIT_r(Instruction):
     def __init__(self, memory, pc_state, src):
@@ -789,8 +790,8 @@ class BIT_r(Instruction):
     def execute(self):
         tmp8 = self.memory.read(self.pc_state.PC+1)
 
-        self.pc_state.F.Fstatus.Z = (int(self.src) >> ((tmp8 >> 3) & 7)) ^ 0x1;
-        self.pc_state.F.Fstatus.PV = flagtables.FlagTables.calculateParity(int(self.src));
+        self.pc_state.F.Fstatus.Z = (self.src.get() >> ((tmp8 >> 3) & 7)) ^ 0x1;
+        self.pc_state.F.Fstatus.PV = flagtables.FlagTables.calculateParity(self.src.get());
         self.pc_state.F.Fstatus.H = 1;
         self.pc_state.F.Fstatus.N = 0;
         self.pc_state.F.Fstatus.S = 0;
@@ -1135,7 +1136,7 @@ class LD_r_r(Instruction):
 
     # Load any register to any other register.
     def execute(self):
-      self.dst.set(self.src);
+      self.dst.set(self.src.get());
       self.pc_state.PC += 1;
 
       return 4;
@@ -1163,7 +1164,7 @@ class LD_IY_d_r(Instruction):
         self.src = src
 
     def execute(self):
-        self.memory.write(self.pc_state.IY + signed_char_to_int(self.memory.read(self.pc_state.PC+2)), self.src); 
+        self.memory.write(self.pc_state.IY + signed_char_to_int(self.memory.read(self.pc_state.PC+2)), self.src.get()); 
         self.pc_state.PC += 3;
         return 19
 
@@ -1361,8 +1362,7 @@ class LD_I_d_r(Instruction):
 
     def execute(self):
                           
-        self.memory.write(self.I_reg.get() + signed_char_to_int(self.memory.read(self.pc_state.PC+2)),
-                      self.src) 
+        self.memory.write(self.I_reg.get() + signed_char_to_int(self.memory.read(self.pc_state.PC+2)), self.src.get()) 
         self.pc_state.PC += 3
         return  19
     
@@ -1494,7 +1494,7 @@ class BIT_I_d(Instruction):
             tmp8 = tmp8 | (0x1 << ((t8 >> 3) & 0x7))
             self.memory.write(tmp16,tmp8)
         else:
-            error("Instruction arg for 0xFD 0xCB")
+            errors.error("Instruction arg for 0xFD 0xCB")
     
         self.pc_state.PC += 4
     
