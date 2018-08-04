@@ -1,4 +1,3 @@
-import pygame
 import sys
 
 class Joystick(object):
@@ -127,37 +126,36 @@ class Input(object):
         self.refresh_inputs()
         return self.quit
 
-    def handle_events(self, event):
-        if event.type== pygame.KEYDOWN:
-            if event.key == pygame.K_q: # Dodgy quit
-                # TODO: find a better way to quit/stop pygame.
-                pygame.quit()
-            elif event.key == pygame.K_UP:
+    def handle_events(self, action, key):
+        if action == self.EVENT_KEYDOWN:
+            if key == self.KEY_QUIT: # Dodgy quit
+                sys.exit()
+            elif key == self.KEY_UP:
                 self.joystick.j1Up(0);
-            elif event.key == pygame.K_DOWN:
+            elif key == self.KEY_DOWN:
                 self.joystick.j1Down(0);
-            elif event.key == pygame.K_LEFT:
+            elif key == self.KEY_LEFT:
                 self.joystick.j1Left(0);
-            elif event.key == pygame.K_RIGHT:
+            elif key == self.KEY_RIGHT:
                 self.joystick.j1Right(0);
-            elif event.key == pygame.K_z:
+            elif key == self.KEY_FIRE_A:
                 self.joystick.j1FireA(0);
-            elif event.key == pygame.K_x:
+            elif key == self.KEY_FIRE_B:
                 self.joystick.j1FireB(0);
-            elif event.key == pygame.K_r:
+            elif key == self.KEY_RESET:
                 self.joystick.reset(0);
-        elif event.type== pygame.KEYUP:
-            if event.key == event.key == pygame.K_UP:
+        elif action == self.EVENT_KEYUP:
+            if key == self.KEY_UP:
                 self.joystick.j1Up(1);
-            elif event.key == pygame.K_DOWN:
+            elif key == self.KEY_DOWN:
                 self.joystick.j1Down(1);
-            elif event.key == pygame.K_LEFT:
+            elif key == self.KEY_LEFT:
                 self.joystick.j1Left(1);
-            elif event.key == pygame.K_RIGHT:
+            elif key == self.KEY_RIGHT:
                 self.joystick.j1Right(1);
-            elif event.key == pygame.K_z:
+            elif key == self.KEY_FIRE_A:
                 self.joystick.j1FireA(1);
-            elif event.key == pygame.K_x:
+            elif key == self.KEY_FIRE_B:
                 self.joystick.j1FireB(1);
-            elif event.key == pygame.K_r:
+            elif key == self.KEY_RESET:
                 self.joystick.reset(1);

@@ -41,13 +41,16 @@ class PygameVDP(vdp.VDP):
         else:
             self.driver_draw_display = self._draw_using_set_at
 
+        # Map input keys/events
+        self._map_input_events()
+
     def set_palette(self, palette_type):
         self._colors.set_palette(palette_type)
 
     def poll_events(self):
         # Handle events on diplay draw
         for event in pygame.event.get():
-          self.inputs.handle_events(event)
+          self.handle_events(event)
           #self.sound.handle_events(event)
 
     def driver_open_display(self):
@@ -96,3 +99,21 @@ class PygameVDP(vdp.VDP):
 
       return color
 
+    def _map_input_events(self):
+        self.inputs.EVENT_KEYDOWN     = pygame.KEYDOWN
+        self.inputs.EVENT_KEYUP       = pygame.KEYUP
+
+        self.inputs.KEY_UP            = pygame.K_UP
+        self.inputs.KEY_DOWN          = pygame.K_DOWN
+        self.inputs.KEY_LEFT          = pygame.K_LEFT
+        self.inputs.KEY_RIGHT         = pygame.K_RIGHT
+        self.inputs.KEY_RESET         = pygame.K_r
+        self.inputs.KEY_FIRE_A        = pygame.K_z
+        self.inputs.KEY_FIRE_B        = pygame.K_x
+        self.inputs.KEY_QUIT          = pygame.K_q
+
+    def handle_events(self, event):
+        if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP: 
+            self.inputs.handle_events(event.type, event.key)
+            ## TODO: find a better way to quit/stop pygame.
+            #pygame.quit()
