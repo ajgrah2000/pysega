@@ -1,5 +1,5 @@
 """ Entry point for the sega emulator.
-    Intended to work with python3, python2, pypy, pygame, pyglet (although no input, so can't play).
+    Intended to work with python3, python2, pypy, pygame, pyglet, cyglfw.
 """
 
 import argparse
@@ -12,7 +12,9 @@ audio_options = {
 
 # Possible graphics drivers
 graphics_options = {
-    'pygame': 'from pysega.graphics.pygamevdp import PygameVDP as Graphics'
+    'pygame': 'from pysega.graphics.pygamevdp import PygameVDP as Graphics',
+    'cyglfw': 'from pysega.graphics.cyglfwvdp import CyglfwVDP as Graphics',
+    'pyglet': 'from pysega.graphics.pygletvdp import PygletVDP as Graphics'
     }
 
 # Possible graphics drivers
