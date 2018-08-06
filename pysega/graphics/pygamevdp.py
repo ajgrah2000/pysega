@@ -1,20 +1,9 @@
 import pygame
 from . import vdp
 
-# Import numpy, if it exists.
-try:
-    import numpy
-    import pygame.surfarray
-    has_numpy = True
-except:
-    has_numpy = False
-finally:
-    pass
-
 class PygameColors(vdp.Colors):
     def __init__(self):
         super(PygameColors, self).__init__()
-
 
 class PygameVDP(vdp.VDP):
     """ GUI layer for vdp.
@@ -33,7 +22,7 @@ class PygameVDP(vdp.VDP):
         # Test if 'PixelArray' is part of pygame
         # pygame_cffi, may not have PixelArray
 
-        if has_numpy:
+        if vdp.has_numpy:
             # Use a faster blit with a numpy array, if available.      
             self.driver_draw_display = self._draw_using_numpy_array
         elif hasattr(pygame, 'PixelArray'):
@@ -56,10 +45,10 @@ class PygameVDP(vdp.VDP):
     def driver_open_display(self):
       pygame.init()
 
-      if has_numpy:
+      if vdp.has_numpy:
         # Replayce the 'display_lines' with a numpy array.
         #self._display_lines = numpy.zeros((self.END_DRAW_Y - self.START_DRAW_Y + 1, self.FRAME_WIDTH), dtype=numpy.int)
-        self._display_lines = numpy.array(self._display_lines)
+        self._display_lines = vdp.numpy.array(self._display_lines)
 
       self._screen = pygame.display.set_mode((
                             vdp.VDP.FRAME_WIDTH  * vdp.VDP.PIXEL_WIDTH, 

@@ -4,6 +4,17 @@ import pkg_resources
 import inspect
 from .. import errors
 
+# Import numpy, if it exists.
+try:
+    import numpy
+    import pygame.surfarray
+    has_numpy = True
+except:
+    has_numpy = False
+finally:
+    pass
+
+
 class ScanLine(object):
     pass
 

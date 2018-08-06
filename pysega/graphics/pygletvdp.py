@@ -48,9 +48,11 @@ class PygletVDP(vdp.VDP):
 
     def driver_update_display(self):
         self._draw_display()
+
         data = [x for line in reversed(self._display_lines[:vdp.VDP.FRAME_HEIGHT:]) for x in line]
 
         rawdata = (gl.GLuint * len(data))(*data)
+
         rawimage = pyglet.image.ImageData(self.FRAME_WIDTH, self.FRAME_HEIGHT, 'RGBA', rawdata)
         pyglet.gl.glTexParameteri(rawimage.get_texture().target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         rawimage.blit(0,0,0)
