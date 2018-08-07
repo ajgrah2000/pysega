@@ -1,6 +1,6 @@
 import ctypes
 import struct
-import soundchannel
+from . import soundchannel
 
 class Sound(object):
     def __init__(self, clocks):
