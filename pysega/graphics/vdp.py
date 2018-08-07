@@ -177,7 +177,7 @@ class VDP(object):
         self.inputs = inputs
 
         # Sound generation
-        self.tiasound = AudioDriver(clocks)
+        self.sound = AudioDriver(clocks)
 
         self._display_lines = []
         for y in range(self.END_DRAW_Y - self.START_DRAW_Y):
@@ -305,6 +305,7 @@ class VDP(object):
                 self.getNextInterupt(cycle)
 
     def pollInterupts(self, cycle):
+        self.sound.step()
 
         self._vSync = cycle - self._lastVSync
     

@@ -35,13 +35,14 @@ class Sega(object):
         #TODO: Fix, combine 'inputs' in a better way. 
         self.inputs.joystick  = inputs.Joystick() 
 
-        self.sound     = DummySound()
+#        self.sound     = audio(self.clocks)
 #        self.memory    = memory.MemoryReference()
 #        self.memory    = memory.MemoryCached()
 #        self.memory    = memory.MemoryShare()
         self.memory    = memory_absolute.MemoryAbsolute()
         self.vdp       = Graphics(self.clocks,  self.inputs, audio)
         self.core      = cpu.core.Core(self.clocks, self.memory, self.pc_state, self.ports, self.vdp)
+        self.sound     = self.vdp.sound
 
         self.vdp.setInterupt(self.core) # This can probably be decoupled.
 
