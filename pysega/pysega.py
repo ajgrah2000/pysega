@@ -8,6 +8,7 @@ from . import sega
 # Possible audio drivers
 audio_options = {
     'pygame':      'from pysega.audio.pygameaudio import PygameSound as AudioDriver',
+    'sounddevice':      'from pysega.audio.sounddeviceaudio import SoundDeviceSound as AudioDriver',
     }
 
 # Possible graphics drivers
