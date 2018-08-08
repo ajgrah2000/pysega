@@ -48,6 +48,8 @@ class Sound(object):
         return stream
 
     def writePort(self, data):
+        # Dispatch the data to perform the specified audio function (frequency,
+        # channel frequency, volume).
 
         if (data & 0x90) == 0x90:
             self.volume[(data >> 5) & 0x3] = data & 0xF

@@ -2,7 +2,8 @@ from . import sound
 import sounddevice
 
 class SoundDeviceSound(sound.Sound):
-    """ Capture sound (accurately), try to stretch sound to current speed.
+    """ Play back the generated 'wave' file.  Currently, the callback doesn't
+        appear to be called frequently enough, so sound is 'noisy'.
     """
 
     def __init__(self, clocks):

@@ -10,73 +10,70 @@ class SoundChannel(object):
         self.next       = [0] * self.MAXPATTERN
 
         self._rMin = 0
-        self._rMinPos = 0
-        self._R = 0
-        self._d = 0
 
     def setVolume(self, volume):
         self.volume = volume/4
 
     def setFrequency(self, freq, sample_rate):
+        """ Generate a particular frequency for the channel.
+            Generates a square waves at the specified frequency, for the length
+            'MAXPATTERN'.
+        """
         vol = self.volume
 
-        self._d = freq * 2
-        self._R = self._rMin
+        d = freq * 2
+        R = self._rMin
         self._rMin = sample_rate
-        self._rMinPos = self.MAXPATTERN
+        rMinPos = self.MAXPATTERN
+
         for self.nextlength in range(0, self.MAXPATTERN):
-            if self._R >= sample_rate:
-                self._R = self._R % sample_rate
+            if R >= sample_rate:
+                R = R % sample_rate
                 vol = self.volume - vol
                 if vol == self.volume:
-                    if self._R < self._rMin:
-                        self._rMin    = self._R
-                        self._rMinPos = self.nextlength
+                    if R < self._rMin:
+                        self._rMin    = R
+                        rMinPos = self.nextlength
 
             self.next[self.nextlength] = vol
-            self._R += self._d
-        self.nextlength = self._rMinPos
+            R += d
+        self.nextlength = rMinPos
+
         self.updated = True
 
     def getWave(self, length):
+        """ Generate the 'wave' output buffer.
+            First copy what's left of the current 'play buffer', update to the
+            new buffer, if it's changed and copy that until the wave buffer has
+            been fully populated.
+        """
         wave = [0] * length
 
-        i = 0
-        while (self.playpos <  self.playlength) and (i < length):
-            wave[i] = self.playbuf[self.playpos]
+        wave_pos = 0
+        while (self.playpos <  self.playlength) and (wave_pos < length):
+            wave[wave_pos] = self.playbuf[self.playpos]
 
             self.playpos += 1
-            i += 1
+            wave_pos += 1
 
-        if self.playpos < self.playlength:
-            return wave
-
-        
-        # Swap buffers if updated
-        if True == self.updated:
-            self.updated = False
-
-            tmp = self.playbuf
-            self.playbuf = self.next
-            self.next = tmp
-
-            tmp = self.playlength
-            self.playlength = self.nextlength
-            self.nextlength = tmp
-
-        if self.playlength == 0:
-            while i < length:
-                wave[i] = 0
-
-            return wave
-
-        self.playpos = 0
-        while i < length:
-            self.playpos = 0
-            while (self.playpos < self.playlength) and (i < length):
-                wave[i] = self.playbuf[self.playpos]
-                i += 1
-                self.playpos += 1
+        if self.playpos >= self.playlength:
+            # Swap buffers if updated
+            if True == self.updated:
+                self.updated = False
+    
+                self.playbuf, self.next = self.next, self.playbuf 
+                self.playlength, self.nextlength = self.nextlength, self.playlength
+            if self.playlength == 0:
+                while wave_pos < length:
+                    wave[wave_pos] = 0
+            else:
+                self.playpos = 0
+                while wave_pos < length:
+                    self.playpos = 0
+                    while (self.playpos < self.playlength) and (wave_pos < length):
+                        wave[wave_pos] = self.playbuf[self.playpos]
+                        wave_pos += 1
+                        self.playpos += 1
 
         return wave
            

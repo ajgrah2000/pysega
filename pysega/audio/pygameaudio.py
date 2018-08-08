@@ -9,6 +9,8 @@ class PygameSound(sound.Sound):
     def __init__(self, clocks):
         super(PygameSound, self).__init__(clocks)
 
+        # Chunk size is somewhat arbitrary, larger is likely to be less
+        # choppy/poppy/noisy, but may lag/miss frequency changes.
         self.CHANNEL_CHUNK_SIZE = 512
 
         self.openSound()
@@ -29,7 +31,6 @@ class PygameSound(sound.Sound):
         self.play_channel_buffers()
 
     def play_channel_buffers(self):
-        # Make up some numbers to check hook
         if not self.channel.get_queue() or not self.channel.get_busy():
           channel_chunk = self.get_next_audio_chunk(self.CHANNEL_CHUNK_SIZE)
 
@@ -39,6 +40,3 @@ class PygameSound(sound.Sound):
               self.channel.queue(sound)
           else:
               self.channel.play(sound)
-
-    def handle_events(self, event):
-        print("handle", event.type, event)
